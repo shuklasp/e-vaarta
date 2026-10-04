@@ -884,7 +884,10 @@ function render() {
         openDocumentMetadataEditor(source);
       });
       row.append(icon, info, collectionButton, edit);
-      row.addEventListener("click", () => selectDocument(source));
+      row.addEventListener("click", () => {
+        selectDocument(source);
+        focusCanvasSource(source);
+      });
       row.addEventListener("contextmenu", event => {
         event.preventDefault();
         event.stopPropagation();
@@ -910,7 +913,14 @@ function render() {
     if (item.id === selectedItemId) card.classList.add("card-selected");
     if (item.id === linkSourceId) card.classList.add("card-link-source");
     if (selectedItemId && workspace.links.some(link => (link.fromId === item.id || link.toId === item.id))) card.classList.add("card-linked");
-    card.addEventListener("click", () => selectItem(item));
+    card.addEventListener("click", () => {
+      selectItem(item);
+      const source = sourceForItem(item);
+      if (source && item.metadata?.libraryCard) {
+        selectedDocumentId = source.id;
+        focusLibrarySource(source);
+      }
+    });
     if (sourceForItem(item) && item.metadata?.libraryCard) {
       card.addEventListener("contextmenu", event => {
         event.preventDefault();
