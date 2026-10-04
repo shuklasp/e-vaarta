@@ -46,12 +46,6 @@ function now() {
   return new Date().toISOString();
 }
 
-/**
- * Creates a source document record.
- *
- * sourceRef is intentionally opaque: it may be a local file URI, message
- * identifier, attachment identifier or a future cloud document identifier.
- */
 export function createDocument({
   title,
   kind = DocumentKind.OTHER,
@@ -73,11 +67,6 @@ export function createDocument({
   };
 }
 
-/**
- * A source anchor identifies the exact material an excerpt/annotation came
- * from. page is one-based for paginated formats; character offsets are
- * optional and are useful for HTML/email/text sources.
- */
 export function createSourceAnchor({
   documentId,
   page = null,
@@ -156,6 +145,9 @@ export function createLink({fromId, toId, kind = LinkKind.RELATES_TO}) {
   if (fromId === toId) {
     throw new TypeError("A workspace item cannot link to itself.");
   }
+  if (!Object.values(LinkKind).includes(kind)) {
+    throw new TypeError(`Unsupported relationship kind: ${kind}`);
+  }
 
   return {
     id: id("link"),
@@ -184,9 +176,6 @@ export function createWorkspace({name, description = ""}) {
   };
 }
 
-/**
- * Adds a document to a workspace without duplicating it.
- */
 export function addDocument(workspace, document) {
   if (workspace.documents.some(existing =>
     existing.id === document.id ||
@@ -199,9 +188,6 @@ export function addDocument(workspace, document) {
   return workspace;
 }
 
-/**
- * Adds an excerpt, note or annotation to the workspace.
- */
 export function addItem(workspace, item) {
   if (!Object.values(WorkspaceItemKind).includes(item.kind)) {
     throw new TypeError(`Unsupported workspace item kind: ${item.kind}`);
@@ -214,13 +200,13 @@ export function addItem(workspace, item) {
   return workspace;
 }
 
-/**
- * Adds a semantic relationship between workspace items.
- */
 export function addLink(workspace, link) {
   const knownIds = new Set(workspace.items.map(item => item.id));
   if (!knownIds.has(link.fromId) || !knownIds.has(link.toId)) {
     throw new TypeError("Both link endpoints must exist in the workspace.");
+  }
+  if (!Object.values(LinkKind).includes(link.kind)) {
+    throw new TypeError(`Unsupported relationship kind: ${link.kind}`);
   }
   if (workspace.links.some(existing =>
     existing.fromId === link.fromId &&
@@ -234,19 +220,11 @@ export function addLink(workspace, link) {
   return workspace;
 }
 
-/**
- * Returns all items linked to an item. The result is intentionally simple so
- * UI layers can render lists, graph views or contextual navigation themselves.
- */
 export function getLinkedItems(workspace, itemId) {
   const linkedIds = new Set();
   for (const link of workspace.links) {
-    if (link.fromId === itemId) {
-      linkedIds.add(link.toId);
-    }
-    if (link.toId === itemId) {
-      linkedIds.add(link.fromId);
-    }
+    if (link.fromId === itemId) linkedIds.add(link.toId);
+    if (link.toId === itemId) linkedIds.add(link.fromId);
   }
   return workspace.items.filter(item => linkedIds.has(item.id));
 }
@@ -256,10 +234,7 @@ export function serializeWorkspace(workspace) {
 }
 
 export function deserializeWorkspace(serialized) {
-  const workspace = typeof serialized === "string"
-    ? JSON.parse(serialized)
-    : serialized;
-
+  const workspace = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
   if (workspace?.modelVersion !== EVAARTA_DOCUMENT_MODEL_VERSION) {
     throw new Error(
       `Unsupported e-Vaarta document model version: ${workspace?.modelVersion}`
