@@ -566,7 +566,9 @@ async function processIngestionQueue() {
         document.metadata.offlineMaterialization = "vaulted";
         setIngestionState(document, IngestionState.VAULTED);
         setIngestionStage(job, "extracting", 65);
-        const extraction = await extractAndIndexSource(document);
+        const extraction = await extractAndIndexSource(document, {
+          frameWindow: document.kind === "pdf" ? document.__evaartaViewerWindow : null,
+        });
         if (extraction.method === "error") throw extraction.error;
         setIngestionStage(job, "indexing", 85);
         setIngestionState(document, IngestionState.INDEXED);
@@ -2705,6 +2707,46 @@ async function indexOcrSource(source, pageCanvases = null) {
   }
 }
 
+async function extractPdfTextFromViewer(source, frameWindow) {
+  if (!source || source.kind !== "pdf" || !frameWindow) return { text: "", pageTexts: [] };
+  const pages = [...frameWindow.document.querySelectorAll(".page[data-page-number]")];
+  const pageTexts = pages.map(page => ({
+    page: Number(page.dataset.pageNumber),
+    text: (page.innerText || "").replace(/\s+/g, " ").trim(),
+  }));
+  const text = pageTexts.map(item => item.text).filter(Boolean).join("\n");
+  return { text, pageTexts };
+}
+
+async function indexPdfUnified(source, frameWindow) {
+  const extracted = await extractPdfTextFromViewer(source, frameWindow);
+  if (!extracted.text) return { text: "", indexed: false, method: "pdf-empty", pageTexts: extracted.pageTexts };
+  const fingerprint = fingerprintText(extracted.text);
+  if (needsReindex(contentIndex, source.id, "pdf-text", fingerprint)) {
+    contentIndex = upsertExtractedContent(contentIndex, {
+      documentId: source.id, sourceRef: source.sourceRef, title: source.title,
+      kind: "pdf-text", text: extracted.text,
+      metadata: { mimeType: "application/pdf", pageCount: extracted.pageTexts.length, pagesWithText: extracted.pageTexts.filter(p => p.text).map(p => p.page) },
+      fingerprint,
+    });
+    for (const page of extracted.pageTexts.filter(item => item.text)) {
+      const pageFingerprint = fingerprintText(page.text);
+      if (needsReindex(contentIndex, source.id + "-page-" + page.page, "pdf-text-page", pageFingerprint)) {
+        contentIndex = upsertExtractedContent(contentIndex, {
+          documentId: source.id + "-page-" + page.page,
+          sourceRef: source.sourceRef, title: source.title + " — page " + page.page,
+          kind: "pdf-text-page", text: page.text,
+          metadata: { mimeType: "application/pdf", page: page.page },
+          fingerprint: pageFingerprint,
+        });
+      }
+    }
+    await saveContentIndex();
+    return { text: extracted.text, indexed: true, method: "pdf", pageTexts: extracted.pageTexts };
+  }
+  return { text: extracted.text, indexed: false, method: "pdf", pageTexts: extracted.pageTexts };
+}
+
 async function extractAndIndexSource(source, options = {}) {
   if (!source) return { text: "", indexed: false, method: "none" };
   const kind = source.kind;
@@ -2724,6 +2766,9 @@ async function extractAndIndexSource(source, options = {}) {
         }
         return { text, indexed: false, method: "office" };
       }
+    }
+    if (kind === "pdf" && options.frameWindow) {
+      return await indexPdfUnified(source, options.frameWindow);
     }
     if (kind === "email") {
       const text = source.metadata?.bodyText || source.metadata?.text || "";
@@ -2878,7 +2923,11 @@ function attachSourceSelectionBridge(source) {
   document.getElementById("sourceSelectionStatus").textContent = "Select text in the source reader.";
   try {
     attachSelectionBridge(source, viewer.contentWindow);
-    indexPdfSource(source, viewer.contentWindow);
+    if (source.kind === "pdf") {
+      indexPdfUnified(source, viewer.contentWindow).catch(error =>
+        console.warn("e-Vaarta: unified PDF indexing failed", error)
+      );
+    }
     if (source.kind === "pdf") {
       const pages = [...viewer.contentWindow.document.querySelectorAll(".page[data-page-number]")];
       const nativePages = new Set(
