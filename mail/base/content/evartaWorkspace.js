@@ -40,8 +40,13 @@ async function ensureOfflineStorage() {
   await IOUtils.makeDirectory(VAULT_BLOB_DIR, { createAncestors: true });
   try {
     vaultManifest = JSON.parse(await IOUtils.readUTF8(VAULT_MANIFEST_FILE));
+    if (!vaultManifest || typeof vaultManifest !== "object" || !vaultManifest.blobs) throw new Error("Invalid vault manifest");
   } catch (error) {
-    vaultManifest = { version: 1, blobs: {} };
+    try {
+      vaultManifest = JSON.parse(await IOUtils.readUTF8(VAULT_MANIFEST_FILE + ".bak"));
+    } catch (backupError) {
+      vaultManifest = { version: 1, blobs: {} };
+    }
   }
   offlineStorageReady = true;
 }
@@ -183,13 +188,55 @@ async function removeVaultReference(document) {
 
 
 async function saveVaultManifest() {
+  vaultManifest.version = 1;
+  vaultManifest.updatedAt = new Date().toISOString();
   vaultManifestSavePromise = vaultManifestSavePromise.then(async () => {
     const temp = VAULT_MANIFEST_FILE + ".tmp";
-    await IOUtils.writeUTF8(temp, JSON.stringify(vaultManifest, null, 2));
-    await IOUtils.move(temp, VAULT_MANIFEST_FILE, { noOverwrite: false });
+    const backup = VAULT_MANIFEST_FILE + ".bak";
+    const payload = JSON.stringify(vaultManifest, null, 2);
+    try {
+      await IOUtils.writeUTF8(temp, payload);
+      try { await IOUtils.remove(backup); } catch (error) {}
+      try { await IOUtils.move(VAULT_MANIFEST_FILE, backup, { noOverwrite: true }); } catch (error) {}
+      await IOUtils.move(temp, VAULT_MANIFEST_FILE, { noOverwrite: false });
+    } catch (error) {
+      try { await IOUtils.remove(temp); } catch (ignored) {}
+      throw error;
+    }
   });
   return vaultManifestSavePromise;
 }
+
+async function reconcileVaultManifest() {
+  await ensureOfflineStorage();
+  const rebuilt = { version: 1, updatedAt: new Date().toISOString(), blobs: {} };
+  for (const document of workspace.documents) {
+    const hash = document.vault?.sha256;
+    const relativePath = document.vault?.relativePath;
+    if (!hash || !relativePath) continue;
+    let size = Number(document.vault.size || 0);
+    try {
+      const stat = await IOUtils.stat(PathUtils.join(EVAARTA_DATA_DIR, relativePath));
+      size = stat.size;
+    } catch (error) {
+      // Keep the record so the Offline Storage manager can report it missing.
+    }
+    const entry = rebuilt.blobs[hash] || {
+      relativePath,
+      originalName: document.vault.originalName || document.title || "document",
+      mimeType: document.vault.mimeType || null,
+      size,
+      createdAt: document.vault.importedAt || new Date().toISOString(),
+      refCount: 0
+    };
+    entry.refCount += 1;
+    rebuilt.blobs[hash] = entry;
+  }
+  vaultManifest = rebuilt;
+  await saveVaultManifest();
+  return vaultManifest;
+}
+
 
 async function importIntoLocalVault(sourcePath, originalName, mimeType = null) {
   await ensureOfflineStorage();
