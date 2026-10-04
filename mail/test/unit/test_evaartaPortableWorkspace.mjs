@@ -65,6 +65,21 @@ const portableV2 = {
   links: [],
 };
 
+
+const legacy = deserializeWorkspace({
+  modelVersion: 1,
+  id: "legacy-workspace",
+  name: "Legacy",
+  description: "",
+  documents: [],
+  items: [],
+  links: [],
+});
+
+assert.equal(legacy.modelVersion, 5);
+assert.deepEqual(legacy.evidenceGroups, []);
+assert.deepEqual(legacy.collections, []);
+
 const migrated = deserializeWorkspace(portableV2);
 
 assert.equal(migrated.modelVersion, 5);
