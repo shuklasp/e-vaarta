@@ -1179,9 +1179,6 @@ var messageProgressListener = {
 };
 
 /**
- * Update the flagged (starred) state of the currently selected message.
- */
-/**
  * Add the attachments of the currently displayed message to e-Vaarta.
  * Thunderbird already provides normalized AttachmentInfo objects here, so this
  * integration deliberately reuses the native attachment pipeline.
@@ -1217,8 +1214,7 @@ function addCurrentMessageAttachmentsToEvaarta() {
     JSON.stringify(documents)
   );
 
-  const tabmail = top.document.getElementById("tabmail");
-  if (tabmail) {
+  if (top.document.getElementById("tabmail")) {
     top.openTab("contentTab", {
       url: "chrome://messenger/content/evartaWorkspace.xhtml",
     }, "tab");
