@@ -295,3 +295,8 @@ Ingestion jobs are persisted in `evaarta/ingestion-queue.json`. Pending email at
 ## Phase 55: Background ingestion worker
 
 The ingestion queue is processed asynchronously after workspace initialization rather than synchronously during startup. Queue jobs persist `state`, `attempts`, `lastError`, and timestamps. The workspace exposes an aggregate ingestion status (pending, failed, deferred), while successful jobs are removed from the durable queue. This keeps workspace rendering responsive and makes ingestion progress recoverable across restarts.
+
+
+## Phase 56: Ingestion progress and cancellation
+
+Background ingestion jobs now persist `processedBytes`, `totalBytes`, and running state. The Library displays aggregate progress for the active job and exposes a Cancel action. Cancellation returns the job to `queued` so it remains recoverable rather than being discarded; completed jobs continue through vault and index finalization.
