@@ -412,11 +412,13 @@ async function saveIngestionQueue() {
 function queueIngestionSource(source) {
   if (!source?.sourceRef) return;
   const existing = ingestionQueue.find(item => item.sourceRef === source.sourceRef);
+  const now = new Date().toISOString();
   if (existing) {
-    Object.assign(existing, source, { queuedAt: existing.queuedAt || new Date().toISOString() });
+    Object.assign(existing, source, { state: source.state || existing.state || "queued", queuedAt: existing.queuedAt || now, updatedAt: now });
   } else {
-    ingestionQueue.push({ ...source, queuedAt: new Date().toISOString() });
+    ingestionQueue.push({ ...source, state: source.state || "queued", attempts: source.attempts || 0, queuedAt: now, updatedAt: now });
   }
+  updateIngestionStatusSummary();
   return saveIngestionQueue();
 }
 
@@ -472,41 +474,96 @@ const evaartaOcrObserver = {
   },
 };
 
+let ingestionWorkerRunning = false;
+let ingestionWorkerTimer = null;
+
+function updateIngestionStatusSummary() {
+  const target = document.getElementById("ingestionStatusSummary");
+  if (!target) return;
+  const counts = { queued: 0, running: 0, failed: 0, deferred: 0 };
+  for (const job of ingestionQueue) counts[job.state] = (counts[job.state] || 0) + 1;
+  const active = counts.queued + counts.running;
+  if (!ingestionQueue.length) {
+    target.textContent = "Ingestion: idle";
+    return;
+  }
+  const parts = [];
+  if (active) parts.push(active + " pending");
+  if (counts.failed) parts.push(counts.failed + " failed");
+  if (counts.deferred) parts.push(counts.deferred + " deferred");
+  target.textContent = "Ingestion: " + parts.join(" • ");
+}
+
 async function retryIngestion(document) {
   const source = document?.metadata?.ingestionSource;
   if (!source?.sourceRef) return false;
-  await queueIngestionSource(source);
+  await queueIngestionSource({ ...source, state: "queued", attempts: 0, lastError: null });
   setIngestionState(document, IngestionState.QUEUED);
   await saveWorkspace();
-  await processIngestionQueue();
+  scheduleIngestionWorker(0);
   return true;
 }
 
 async function processIngestionQueue() {
-  if (!ingestionQueue.length) return;
-  const queue = ingestionQueue.slice();
-  for (const source of queue) {
-    if (!source?.localPath) continue;
-    const document = workspace?.documents?.find(item => item.sourceRef === source.sourceRef);
-    if (!document) continue;
-    setIngestionState(document, IngestionState.MATERIALIZING);
-    try {
-      const vault = await importIntoLocalVault(source.localPath, source.title, source.mimeType || null);
-      document.vault = vault;
-      attachVaultRecord(document, vault);
-      document.metadata.offlineMaterialization = "vaulted";
-      setIngestionState(document, IngestionState.VAULTED);
-      setIngestionState(document, IngestionState.INDEXED);
-      await removeIngestionSource(source.sourceRef);
-      await saveWorkspace();
-    } catch (error) {
-      setIngestionState(document, IngestionState.FAILED, error);
-      await saveWorkspace();
-    } finally {
-      try { await IOUtils.remove(source.localPath); } catch (error) {}
+  if (ingestionWorkerRunning || !ingestionQueue.length) return;
+  ingestionWorkerRunning = true;
+  try {
+    for (const job of ingestionQueue.slice()) {
+      if (job.state === "succeeded") continue;
+      const document = workspace?.documents?.find(item => item.sourceRef === job.sourceRef);
+      if (!document) continue;
+      if (!job.localPath) {
+        job.state = "deferred";
+        job.updatedAt = new Date().toISOString();
+        setIngestionState(document, IngestionState.DEFERRED, "Source requires materialization before background import.");
+        continue;
+      }
+      job.state = "running";
+      job.attempts = (job.attempts || 0) + 1;
+      job.updatedAt = new Date().toISOString();
+      await saveIngestionQueue();
+      setIngestionState(document, IngestionState.MATERIALIZING);
+      try {
+        const vault = await importIntoLocalVault(job.localPath, job.title, job.mimeType || null);
+        document.vault = vault;
+        attachVaultRecord(document, vault);
+        document.metadata.offlineMaterialization = "vaulted";
+        setIngestionState(document, IngestionState.VAULTED);
+        setIngestionState(document, IngestionState.INDEXED);
+        job.state = "succeeded";
+        job.lastError = null;
+        job.updatedAt = new Date().toISOString();
+        await saveWorkspace();
+        await removeIngestionSource(job.sourceRef);
+      } catch (error) {
+        job.state = "failed";
+        job.lastError = String(error);
+        job.updatedAt = new Date().toISOString();
+        setIngestionState(document, IngestionState.FAILED, error);
+        await saveWorkspace();
+        await saveIngestionQueue();
+      } finally {
+        try { await IOUtils.remove(job.localPath); } catch (error) {}
+      }
     }
+    ingestionQueue = ingestionQueue.filter(job => job.state !== "succeeded");
+    await saveIngestionQueue();
+    updateIngestionStatusSummary();
+    renderLibrary?.();
+  } finally {
+    ingestionWorkerRunning = false;
   }
 }
+
+function scheduleIngestionWorker(delay = 1000) {
+  if (ingestionWorkerTimer) return;
+  ingestionWorkerTimer = setTimeout(async () => {
+    ingestionWorkerTimer = null;
+    await processIngestionQueue();
+    updateIngestionStatusSummary();
+  }, delay);
+}
+
 
 async function loadWorkspace() {
   try {
@@ -2885,5 +2942,7 @@ document.getElementById("sourceContextVaultRecoverButton").addEventListener("cli
   });
   window.addEventListener("resize", () => { layoutCards(); requestAnimationFrame(renderGraphEdges); });
   render();
+  updateIngestionStatusSummary();
+  scheduleIngestionWorker(1500);
   if (workspace.documents[0]) selectDocument(workspace.documents[0]);
 }
