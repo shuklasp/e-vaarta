@@ -315,3 +315,8 @@ Sources now pass through a common `extractAndIndexSource()` path. The pipeline s
 ## Phase 59: Unified PDF extraction
 
 PDFs now participate in the unified extraction pipeline through a page-aware PDF.js extraction adapter. Native text is indexed both as a document-level entry and as page-level entries, preserving page metadata needed by evidence navigation. Existing OCR fallback remains limited to pages without native text, so scanned/mixed PDFs do not duplicate native text extraction.
+
+
+## Phase 60: Extraction provenance
+
+Indexed content now carries provenance metadata: extraction method, source kind, extraction timestamp, and method-specific details such as PDF page, OCR language, and OCR confidence. The content index was upgraded to version 4 with migration support for older entries, which are marked as legacy provenance rather than losing existing searchable content.
