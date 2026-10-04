@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:html="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <title>e-Vaarta Workspace</title>
+  <link rel="stylesheet" href="chrome://messenger/skin/evartaWorkspace.css" />
+</head>
+<body>
+  <main id="workspace" class="workspace-shell">
+    <header class="workspace-header">
+      <div>
+        <div class="eyebrow">e-Vaarta</div>
+        <h1>Document Workspace</h1>
+        <p>Read, collect, connect and return to the source.</p>
+      </div>
+      <div class="workspace-actions">
+        <button id="newNoteButton" class="primary">New note</button>
+        <button id="addExcerptButton">Add excerpt</button>
+      </div>
+    </header>
+
+    <section class="workspace-grid">
+      <aside class="document-pane">
+        <h2>Sources</h2>
+        <div id="sourceList" class="empty-state">
+          <strong>No documents yet</strong>
+          <span>Documents and email attachments will appear here as sources.</span>
+        </div>
+      </aside>
+
+      <section class="canvas-pane">
+        <div class="pane-heading">
+          <div>
+            <h2 id="workspaceName">My workspace</h2>
+            <span id="itemCount">0 items</span>
+          </div>
+          <button id="clearButton" class="quiet">Clear workspace</button>
+        </div>
+        <div id="workspaceCanvas" class="workspace-canvas">
+          <div id="canvasEmpty" class="canvas-empty">
+            <div class="canvas-mark">✦</div>
+            <h3>Build your evidence space</h3>
+            <p>Pull important passages out of documents, add your own notes, and connect ideas without losing the source.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="chrome://messenger/content/evartaWorkspace.js"></script>
+</body>
+</html>
