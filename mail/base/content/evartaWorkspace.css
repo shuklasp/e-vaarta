@@ -704,3 +704,5 @@ select:focus-visible,
   .evidence-group-manager-row { grid-template-columns: 1fr 1fr; }
   .evidence-group-manager-row > div { grid-column: 1 / -1; }
 }
+
+.evidence-group-intelligence { margin: 7px 0 9px; font-size: .74em; line-height: 1.4; opacity: .72; }
