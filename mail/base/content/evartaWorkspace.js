@@ -885,6 +885,20 @@ function render() {
           preview.textContent = sourceKindLabel(source.kind);
           preview.classList.add("workspace-source-preview-fallback");
         }
+        preview.title = "Open source";
+        preview.addEventListener("click", event => {
+          event.stopPropagation();
+          selectDocument(source);
+        });
+        preview.setAttribute("role", "button");
+        preview.setAttribute("tabindex", "0");
+        preview.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            event.stopPropagation();
+            selectDocument(source);
+          }
+        });
         card.append(preview);
 
         const sourceMeta = document.createElement("div");
