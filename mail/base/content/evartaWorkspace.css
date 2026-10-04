@@ -643,3 +643,6 @@ select:focus-visible,
 .card-focus-pulse { animation: evaarta-card-focus .9s ease-out; }
 @keyframes evaarta-source-focus { 0% { outline: 2px solid Highlight; } 100% { outline: 2px solid transparent; } }
 @keyframes evaarta-card-focus { 0% { box-shadow: 0 0 0 3px Highlight; } 100% { box-shadow: 0 0 0 3px transparent; } }
+
+.workspace-card[data-source-card="true"] .card-collection-row { margin-bottom: 2px; }
+.workspace-card .card-source { font-size: .78em; opacity: .72; }
