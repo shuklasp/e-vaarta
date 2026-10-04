@@ -10,7 +10,7 @@ const { IOUtils } = ChromeUtils.importESModule("resource://gre/modules/IOUtils.s
 const { PathUtils } = ChromeUtils.importESModule("resource://gre/modules/PathUtils.sys.mjs");
 const {
   createWorkspace, createNote, createExcerpt, createAnnotation, createDocument,
-  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace, createCollection, addCollection, updateCollection, removeCollection, setDocumentCollections, setCollectionRule, getCollectionDocuments,
+  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace, createCollection, addCollection, updateCollection, removeCollection, setDocumentCollections, setCollectionRule, getCollectionDocuments, createEvidenceGroup, addEvidenceGroup, updateEvidenceGroup, removeEvidenceGroup, addItemToEvidenceGroup, removeItemFromEvidenceGroup, getEvidenceGroupItems, evidenceGroupsForItem,
 } = ChromeUtils.importESModule(
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
 );
@@ -130,6 +130,47 @@ function indexEmailSource(source, bodyText) {
 
 function findItem(itemId) { return workspace.items.find(item => item.id === itemId) || null; }
 function itemLabel(item) { return item?.title || (item?.kind === "note" ? "Note" : "Excerpt"); }
+
+function groupsForItem(item) {
+  return item ? evidenceGroupsForItem(workspace, item.id) : [];
+}
+
+function evidenceGroupLabel(group) {
+  return group?.name || "Evidence group";
+}
+
+function selectEvidenceGroup(group) {
+  if (!group) return;
+  selectedItemId = group.itemIds?.[0] || null;
+  if (group.documentId) {
+    const source = workspace.documents.find(document => document.id === group.documentId);
+    if (source) selectDocument(source);
+  }
+  render();
+}
+
+function createEvidenceGroupFromItem(item) {
+  if (!item) return;
+  const source = sourceForItem(item);
+  const name = prompt("Evidence group name", source ? source.title + " evidence" : "Evidence group");
+  if (!name?.trim()) return;
+  const group = createEvidenceGroup({
+    name: name.trim(),
+    documentId: source?.id || item.anchor?.documentId || null,
+  });
+  workspace = addEvidenceGroup(workspace, group);
+  addItemToEvidenceGroup(workspace, group.id, item.id);
+  saveWorkspace();
+  render();
+}
+
+function toggleEvidenceGroupItem(group, item) {
+  if (!group || !item) return;
+  if (group.itemIds.includes(item.id)) removeItemFromEvidenceGroup(workspace, group.id, item.id);
+  else addItemToEvidenceGroup(workspace, group.id, item.id);
+  saveWorkspace();
+  render();
+}
 function linkLabel(kind) { return kind.replaceAll("-", " "); }
 
 function jumpToSource(item) {
@@ -836,8 +877,9 @@ function render() {
   const canvas = document.getElementById("workspaceCanvas");
   const empty = document.getElementById("canvasEmpty");
   const count = document.getElementById("itemCount");
+  const groupCount = (workspace.evidenceGroups || []).length;
   document.getElementById("workspaceName").textContent = workspace.name;
-  count.textContent = workspace.items.length + " item" + (workspace.items.length === 1 ? "" : "s") + " • " + workspace.links.length + " relationship" + (workspace.links.length === 1 ? "" : "s");
+  count.textContent = workspace.items.length + " item" + (workspace.items.length === 1 ? "" : "s") + " • " + workspace.links.length + " relationship" + (workspace.links.length === 1 ? "" : "s") + " • " + groupCount + " evidence group" + (groupCount === 1 ? "" : "s");
 
   sourceList.replaceChildren();
   sourceList.classList.toggle("library-grid", libraryView === "grid");
@@ -1104,6 +1146,22 @@ function render() {
       }
     }
 
+    const groupBadges = groupsForItem(item);
+    if (groupBadges.length) {
+      const groupRow = document.createElement("div");
+      groupRow.className = "evidence-group-row";
+      for (const group of groupBadges) {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "evidence-group-chip";
+        chip.textContent = "Evidence • " + evidenceGroupLabel(group);
+        chip.title = "Select this evidence group";
+        chip.addEventListener("click", event => { event.stopPropagation(); selectEvidenceGroup(group); });
+        groupRow.append(chip);
+      }
+      card.append(groupRow);
+    }
+
     const controls = document.createElement("div");
     controls.className = "card-controls";
     if (item.kind === "note") {
@@ -1150,6 +1208,14 @@ function render() {
       });
       controls.append(jump);
     }
+    if (item.kind === "annotation" || item.metadata?.sourceAware || item.kind === "excerpt") {
+      const group = document.createElement("button");
+      group.textContent = groupsForItem(item).length ? "Group…" : "Group evidence";
+      group.title = "Add this item to an evidence group";
+      group.addEventListener("click", event => { event.stopPropagation(); createEvidenceGroupFromItem(item); });
+      controls.append(group);
+    }
+
     const link = document.createElement("button");
     link.textContent = linkSourceId === item.id ? "Select target…" : "Link";
     link.className = linkSourceId === item.id ? "link-active" : "";
