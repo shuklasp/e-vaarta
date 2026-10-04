@@ -201,3 +201,8 @@ Evidence groups provide a semantic container for related excerpts and annotation
 Evidence groups are now first-class knowledge-graph nodes. Relationships may connect an evidence group to an excerpt, annotation, note, source-backed card, or another evidence group using the existing semantic relationship vocabulary. Group nodes render as distinct cluster cards on the Canvas and expose their member evidence directly.
 
 Selecting a group highlights its member evidence and synchronizes to the group's source document when one is recorded. Group relationships use the same persistent link model as item relationships, allowing later clients and the AI layer to reason over an entire evidence set rather than requiring every member relationship to be duplicated.
+
+
+## Phase 38: Evidence selection and group operations
+
+The desktop Canvas now supports multi-selection of evidence items using Shift-click. The selection toolbar reports the active evidence set, allows the selection to be cleared, and can create an evidence group directly from two or more selected excerpts or annotations. When all selected evidence belongs to the same source, that source is retained on the new group; mixed-source selections remain source-neutral. Group creation preserves the original evidence items and only adds group membership.
