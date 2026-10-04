@@ -206,3 +206,8 @@ Selecting a group highlights its member evidence and synchronizes to the group's
 ## Phase 38: Evidence selection and group operations
 
 The desktop Canvas now supports multi-selection of evidence items using Shift-click. The selection toolbar reports the active evidence set, allows the selection to be cleared, and can create an evidence group directly from two or more selected excerpts or annotations. When all selected evidence belongs to the same source, that source is retained on the new group; mixed-source selections remain source-neutral. Group creation preserves the original evidence items and only adds group membership.
+
+
+## Phase 39: Coordinated evidence navigation
+
+Evidence groups now have a dedicated navigator. Opening Navigate for a group presents all member evidence in order, tracks the active member, and provides Previous/Next controls. Selecting a member uses the existing synchronized evidence navigation path, so anchored annotations/excerpts jump to their source passage while the group context remains active.
