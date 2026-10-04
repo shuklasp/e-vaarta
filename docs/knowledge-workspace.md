@@ -265,3 +265,8 @@ New vault imports are now stored under SHA-256 content-addressed blob paths and 
 ## Phase 49: Vault migration and manifest hardening
 
 The vault now maintains a backup manifest and uses transactional replacement for manifest writes. Startup can recover from a damaged primary manifest using the backup, migrate legacy Phase 44–47 vault paths into content-addressed SHA-256 blob paths, and reconcile manifest reference counts from the workspace's actual document records. This makes the manifest a recoverable index rather than the sole source of truth.
+
+
+## Phase 50: Vault repair and garbage collection
+
+The Offline Storage manager now supports explicit vault maintenance. A repair operation rebuilds the manifest and reference counts from workspace records. Garbage collection removes only manifest blobs with no workspace references, and it updates the manifest after successful deletion. Missing physical blobs remain visible for recovery rather than being silently removed.
