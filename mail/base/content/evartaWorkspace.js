@@ -129,6 +129,11 @@ function indexWorkspace() {
     body.textContent = group.description || (group.itemIds.length + " evidence item" + (group.itemIds.length === 1 ? "" : "s"));
     card.append(kind, title, body);
 
+    const intelligence = document.createElement("div");
+    intelligence.className = "evidence-group-intelligence";
+    intelligence.textContent = evidenceGroupIntelligenceText(group);
+    card.append(intelligence);
+
     const members = document.createElement("div");
     members.className = "evidence-group-members";
     for (const member of getEvidenceGroupItems(workspace, group.id).slice(0, 5)) {
@@ -205,6 +210,35 @@ function groupsForItem(item) {
 
 function evidenceGroupLabel(group) {
   return group?.name || "Evidence group";
+}
+
+function evidenceGroupIntelligence(group) {
+  const items = getEvidenceGroupItems(workspace, group.id);
+  const sourceIds = new Set();
+  const kinds = new Map();
+  const links = workspace.links.filter(link => group.itemIds.includes(link.fromId) || group.itemIds.includes(link.toId));
+  for (const item of items) {
+    const source = sourceForItem(item);
+    if (source) sourceIds.add(source.id);
+    const kind = item.kind || "other";
+    kinds.set(kind, (kinds.get(kind) || 0) + 1);
+  }
+  return {
+    itemCount: items.length,
+    sourceCount: sourceIds.size,
+    relationshipCount: links.length,
+    kinds: [...kinds.entries()].sort((a, b) => b[1] - a[1]),
+  };
+}
+
+function evidenceGroupIntelligenceText(group) {
+  const stats = evidenceGroupIntelligence(group);
+  const typeText = stats.kinds.length
+    ? stats.kinds.map(([kind, count]) => count + " " + kind).join(" • ")
+    : "No evidence yet";
+  return stats.itemCount + " evidence • " + stats.sourceCount + " source" + (stats.sourceCount === 1 ? "" : "s") +
+    " • " + stats.relationshipCount + " relationship" + (stats.relationshipCount === 1 ? "" : "s") +
+    " • " + typeText;
 }
 
 function findGraphEntity(entityId) {
