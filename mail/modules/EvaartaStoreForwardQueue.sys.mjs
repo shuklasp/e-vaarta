@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export class EvaartaStoreForwardQueue { constructor(items=[]){this.items=[...items];} enqueue(envelope,reason="no-route"){this.items.push({envelope,reason,attempts:0,queuedAt:new Date().toISOString()});return this.items.length;} peek(){return this.items[0]||null;} markAttempt(){if(this.items[0])this.items[0].attempts++;} remove(){return this.items.shift()||null;} snapshot(){return structuredClone(this.items);} }
