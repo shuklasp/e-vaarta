@@ -12,7 +12,7 @@
  * keeping the original source context addressable.
  */
 
-export const EVAARTA_DOCUMENT_MODEL_VERSION = 4;
+export const EVAARTA_DOCUMENT_MODEL_VERSION = 5;
 
 export const DocumentKind = Object.freeze({
   PDF: "pdf",
@@ -212,11 +212,91 @@ export function createWorkspace({name, description = ""}) {
     description,
     documents: [],
     collections: [],
+    evidenceGroups: [],
     items: [],
     links: [],
     createdAt: now(),
     updatedAt: now(),
   };
+}
+
+export function createEvidenceGroup({ name, description = "", documentId = null } = {}) {
+  if (!name?.trim()) throw new TypeError("An evidence group name is required.");
+  return {
+    id: id("evidence-group"),
+    name: name.trim(),
+    description: String(description || "").trim(),
+    documentId,
+    itemIds: [],
+    createdAt: now(),
+    updatedAt: now(),
+  };
+}
+
+export function addEvidenceGroup(workspace, group) {
+  workspace.evidenceGroups ||= [];
+  if (workspace.evidenceGroups.some(existing =>
+    existing.id === group.id ||
+    existing.name.toLocaleLowerCase() === group.name.toLocaleLowerCase()
+  )) return workspace;
+  workspace.evidenceGroups.push(group);
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function updateEvidenceGroup(workspace, groupId, changes = {}) {
+  const group = (workspace.evidenceGroups || []).find(item => item.id === groupId);
+  if (!group) return workspace;
+  if (changes.name?.trim()) group.name = changes.name.trim();
+  if (changes.description !== undefined) group.description = String(changes.description || "").trim();
+  if (changes.documentId !== undefined) group.documentId = changes.documentId || null;
+  group.updatedAt = now();
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function removeEvidenceGroup(workspace, groupId) {
+  workspace.evidenceGroups = (workspace.evidenceGroups || []).filter(group => group.id !== groupId);
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function setEvidenceGroupItems(workspace, groupId, itemIds = []) {
+  const group = (workspace.evidenceGroups || []).find(item => item.id === groupId);
+  if (!group) return workspace;
+  const known = new Set(workspace.items.map(item => item.id));
+  group.itemIds = [...new Set(itemIds)].filter(itemId => known.has(itemId));
+  group.updatedAt = now();
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function addItemToEvidenceGroup(workspace, groupId, itemId) {
+  const group = (workspace.evidenceGroups || []).find(item => item.id === groupId);
+  if (!group || !workspace.items.some(item => item.id === itemId)) return workspace;
+  if (!group.itemIds.includes(itemId)) group.itemIds.push(itemId);
+  group.updatedAt = now();
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function removeItemFromEvidenceGroup(workspace, groupId, itemId) {
+  const group = (workspace.evidenceGroups || []).find(item => item.id === groupId);
+  if (!group) return workspace;
+  group.itemIds = group.itemIds.filter(id => id !== itemId);
+  group.updatedAt = now();
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function getEvidenceGroupItems(workspace, groupId) {
+  const group = (workspace.evidenceGroups || []).find(item => item.id === groupId);
+  if (!group) return [];
+  return workspace.items.filter(item => group.itemIds.includes(item.id));
+}
+
+export function evidenceGroupsForItem(workspace, itemId) {
+  return (workspace.evidenceGroups || []).filter(group => group.itemIds.includes(itemId));
 }
 
 export function createCollection({ name, description = "" } = {}) {
@@ -358,10 +438,18 @@ export function serializeWorkspace(workspace) {
 
 export function deserializeWorkspace(serialized) {
   const workspace = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
-  if (workspace?.modelVersion === 1 || workspace?.modelVersion === 2 || workspace?.modelVersion === 3) {
+  if (workspace?.modelVersion === 1 || workspace?.modelVersion === 2 || workspace?.modelVersion === 3 || workspace?.modelVersion === 4) {
     workspace.modelVersion = EVAARTA_DOCUMENT_MODEL_VERSION;
     workspace.collections ||= [];
+    workspace.evidenceGroups ||= [];
     for (const collection of workspace.collections) collection.smartRule ??= null;
+    for (const group of workspace.evidenceGroups) {
+      group.description ??= "";
+      group.documentId ??= null;
+      group.itemIds ||= [];
+      group.createdAt ||= now();
+      group.updatedAt ||= now();
+    }
     for (const item of workspace.items || []) {
       if (item.anchor) {
         item.anchor.selector ??= null;
