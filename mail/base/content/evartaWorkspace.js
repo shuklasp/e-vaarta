@@ -8,7 +8,7 @@ const { Services } = ChromeUtils.importESModule(
 );
 const {
   createWorkspace, createNote, createExcerpt, createAnnotation, createDocument,
-  createSourceAnchor, createLink, addDocument, addItem, addLink,
+  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace,
 } = ChromeUtils.importESModule(
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
 );
@@ -37,7 +37,7 @@ function importPendingAttachments(workspace) {
 function loadWorkspace() {
   try {
     const value = Services.prefs.getStringPref(PREF, "");
-    if (value) return importPendingAttachments(JSON.parse(value));
+    if (value) return importPendingAttachments(deserializeWorkspace(value));
   } catch (error) { console.error("e-Vaarta: failed to load workspace", error); }
   return importPendingAttachments(createWorkspace({ name: "My workspace" }));
 }
