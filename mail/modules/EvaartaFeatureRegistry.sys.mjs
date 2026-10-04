@@ -43,6 +43,24 @@ const CAPABILITIES = Object.freeze([
   { id: "contacts-graph", area: "integrations", status: FeatureStatus.CONTRACTED },
   { id: "media-intelligence", area: "media", status: FeatureStatus.IMPLEMENTED },
   { id: "institutional-governance", area: "enterprise", status: FeatureStatus.CONTRACTED },
+
+  // Best-in-class PDF reader contract. The model is implemented; native
+  // rendering, platform integration, and acceptance validation remain separate.
+  { id: "pdf-reader-model", area: "pdf", status: FeatureStatus.IMPLEMENTED },
+  { id: "pdf-native-renderer", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-reading-mode", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-reflow", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-layout-navigation", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-semantic-search", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-annotation-engine", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-forms", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-redaction", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-signatures", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-accessibility", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-large-document-performance", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-print-export-fidelity", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-evidence-extraction", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-multidocument-reading", area: "pdf", status: FeatureStatus.CONTRACTED },
 ]);
 
 export function listFeatureCapabilities() {
