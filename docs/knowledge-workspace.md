@@ -344,3 +344,10 @@ The preview's **Open evidence** action reuses the existing source-aware navigati
 Evidence context is now available directly from annotation rows and workspace canvas evidence cards. An **Inspect context** action reveals the evidence's source, source page, evidence-group membership, and graph relationships without replacing the current workspace state. The same source-aware **Jump to evidence** / **Jump to source** behavior remains available from the context panel.
 
 This extends Phase 63 beyond search: evidence can now be inspected wherever it is already being worked with, while navigation remains an explicit user action.
+
+
+## Phase 65: Bidirectional evidence references
+
+Sources now expose reverse evidence usage in Search and on first-class workspace source cards. When a source has anchored excerpts or annotations, the UI reports how many evidence items and evidence groups reference that source. This makes the relationship bidirectional: users can move from evidence to its source and also see, from the source, how much evidence has been built from it.
+
+The reference counts are derived from the canonical workspace evidence model rather than stored as duplicated counters, so they remain consistent as evidence and group membership change.
