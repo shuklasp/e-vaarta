@@ -842,6 +842,7 @@ function render() {
     const card = document.createElement("article");
     card.className = "workspace-card";
     card.dataset.itemId = item.id;
+    if (item.metadata?.libraryCard) card.dataset.sourceCard = "true";
     card.tabIndex = 0;
     if (item.id === selectedItemId) card.classList.add("card-selected");
     if (item.id === linkSourceId) card.classList.add("card-link-source");
