@@ -216,3 +216,27 @@ button.primary {
   border: 0;
   margin-bottom: 5px;
 }
+
+
+.workspace-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.card-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.card-controls button {
+  font-size: 11px;
+  padding: 5px 8px;
+}
+
+.card-controls .link-active {
+  font-weight: 700;
+  border-style: dashed;
+}
