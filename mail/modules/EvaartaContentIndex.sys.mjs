@@ -11,7 +11,7 @@
  * metadata, OCR output, or other sources without inflating workspace JSON.
  */
 
-export const EVAARTA_INDEX_VERSION = 3;
+export const EVAARTA_INDEX_VERSION = 4;
 
 function now() {
   return new Date().toISOString();
@@ -84,7 +84,15 @@ export function upsertExtractedContent(index, {
     title,
     kind,
     text,
-    metadata: { ...metadata, fingerprint },
+    metadata: {
+      ...metadata,
+      fingerprint,
+      provenance: metadata.provenance || {
+        method: "unknown",
+        sourceKind: null,
+        extractedAt: now(),
+      },
+    },
   }));
 }
 
@@ -145,6 +153,20 @@ export function serializeIndex(index) {
 
 export function deserializeIndex(serialized) {
   const index = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
+  if (index?.version === 1 || index?.version === 2 || index?.version === 3) {
+    index.version = EVAARTA_INDEX_VERSION;
+    for (const entry of index.entries || []) {
+      entry.metadata ||= {};
+      if (!entry.metadata.provenance) {
+        entry.metadata.provenance = {
+          method: "legacy",
+          sourceKind: null,
+          extractedAt: entry.updatedAt || now(),
+        };
+      }
+    }
+    return index;
+  }
   if (index?.version === 1 || index?.version === 2) {
     index.version = EVAARTA_INDEX_VERSION;
     for (const entry of index.entries || []) {
