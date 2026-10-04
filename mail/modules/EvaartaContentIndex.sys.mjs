@@ -80,6 +80,8 @@ export function searchIndex(index, query, limit = 100) {
       if (!matched) return null;
       return {
         ...entry,
+        type: entry.metadata?.itemKind || (entry.kind === "document" ? "document" : entry.kind),
+        id: entry.metadata?.itemId || entry.documentId,
         score: matched / terms.length,
       };
     })
