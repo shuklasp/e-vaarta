@@ -1494,6 +1494,13 @@ function render() {
       row.setAttribute("aria-current", source.id === selectedDocumentId ? "true" : "false");
       const icon = document.createElement("span");
       icon.className = "source-icon";
+      if (source.vault) {
+        const health = document.createElement("span");
+        health.className = "vault-health vault-health-" + (source.vault.health || "unknown");
+        health.textContent = source.vault.health === "healthy" ? "LOCAL" : source.vault.health === "missing" ? "MISSING" : source.vault.health === "modified" ? "MODIFIED" : "LOCAL";
+        health.title = "Local vault: " + (source.vault.health || "unknown");
+        row.append(health);
+      }
       icon.setAttribute("aria-hidden", "true");
       icon.textContent = source.kind === "pdf" ? "PDF" : source.kind === "word" ? "DOCX" : source.kind === "powerpoint" ? "PPTX" : source.kind === "email" ? "✉" : source.kind === "image" ? "IMG" : "DOC";
       if (libraryView === "grid") {
