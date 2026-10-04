@@ -179,3 +179,8 @@ Excerpts created from a source card through its context actions are marked sourc
 ## Phase 33: Evidence hierarchy visualization
 
 Source-aware excerpts are now visually identified as evidence nodes. Their automatic `derived-from` relationships use a distinct dashed graph edge and become emphasized when the related node is selected. Direct evidence relationships also receive a subtle card highlight, making source-to-excerpt structure easier to read without changing graph semantics.
+
+
+## Phase 34: Evidence navigation
+
+Evidence excerpts are now first-class navigation targets. Selecting an anchored excerpt synchronizes the Canvas selection with its originating document in the Document Library and opens the Reader at the stored page. When a quote is available, the Reader also restores the stored evidence selection using the PDF.js span selector first and the quoted text as a fallback. The Canvas keeps the evidence card visibly active while the navigation occurs. The explicit action on anchored evidence is labelled **Jump to evidence**, while other anchored items retain **Jump to source**.
