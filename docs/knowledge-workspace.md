@@ -189,3 +189,8 @@ Evidence excerpts are now first-class navigation targets. Selecting an anchored 
 ## Phase 35: Annotation synchronization
 
 Annotations now participate in bidirectional source synchronization. PDF selections preserve their page, quote, PDF.js span selector, and selection rectangles when creating annotations. Selecting an annotation jumps to its anchored source and focuses its Canvas card; selecting the matching source passage automatically selects the corresponding annotation card when one exists. Anchor restoration is guarded so programmatic PDF selection does not recursively trigger annotation synchronization. The annotation panel's Jump to annotation action uses the same synchronized navigation path.
+
+
+## Phase 36: Evidence groups
+
+Evidence groups provide a semantic container for related excerpts and annotations. A group has a stable ID, name, description, optional source document, and item IDs, so it can be shared across clients without depending on canvas layout. The desktop workspace provides an Evidence groups manager, group chips on evidence cards, creation from the selected item, adding the selected item to an existing group, opening a group's evidence, and deleting a group without deleting its underlying evidence.
