@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function eventToICS(event){const esc=v=>String(v??"").replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");const fmt=d=>new Date(d).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}Z$/,"Z");const lines=["BEGIN:VEVENT",`UID:${esc(event.id)}`,`DTSTART:${fmt(event.start)}`,`DTEND:${fmt(event.end||event.start)}`,`SUMMARY:${esc(event.title)}`];if(event.description)lines.push("DESCRIPTION:"+esc(event.description));lines.push("END:VEVENT");return lines.join("\r\n");}
