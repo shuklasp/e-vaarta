@@ -285,3 +285,8 @@ The Add to e-Vaarta email workflow now materializes message attachments through 
 ## Phase 53: Unified ingestion state
 
 Document ingestion now records a persistent state machine: queued, materializing, vaulted, indexed, failed, or deferred. Attachment failures retain an error message for diagnosis, while successful materialization progresses through vault storage to indexing. The Document Library exposes the current ingestion state, making offline import progress and failures explicit rather than implicit.
+
+
+## Phase 54: Durable ingestion queue and retry
+
+Ingestion jobs are persisted in `evaarta/ingestion-queue.json`. Pending email attachments are queued before materialization, allowing the queue to survive application restart. Failed or deferred Library sources expose a Retry action; retry processing re-enters the materialization → vault → index state flow and removes a job from the queue only after successful completion.
