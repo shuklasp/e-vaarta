@@ -650,6 +650,12 @@ select:focus-visible,
 .card-evidence-label { display: inline-block; margin-top: 5px; font-size: .72em; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; opacity: .65; }
 .workspace-card.card-source-aware { border-left: 3px solid Highlight; }
 .workspace-card.card-evidence-related { outline: 1px solid Highlight; outline-offset: 2px; }
+.workspace-card.card-evidence-active { box-shadow: 0 0 0 3px Highlight; scroll-margin: 24px; }
+.edge-derived .edge-line { stroke-dasharray: 5 4; opacity: .72; }
+.edge-derived .edge-label { font-size: .72em; opacity: .72; }
+.edge-derived-active .edge-line { stroke-width: 3; opacity: 1; }
+.workspace-card.card-source-aware { border-left: 3px solid Highlight; }
+.workspace-card.card-evidence-related { outline: 1px solid Highlight; outline-offset: 2px; }
 .edge-derived .edge-line { stroke-dasharray: 5 4; opacity: .72; }
 .edge-derived .edge-label { font-size: .72em; opacity: .72; }
 .edge-derived-active .edge-line { stroke-width: 3; opacity: 1; }
