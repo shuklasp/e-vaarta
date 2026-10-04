@@ -270,3 +270,8 @@ The vault now maintains a backup manifest and uses transactional replacement for
 ## Phase 50: Vault repair and garbage collection
 
 The Offline Storage manager now supports explicit vault maintenance. A repair operation rebuilds the manifest and reference counts from workspace records. Garbage collection removes only manifest blobs with no workspace references, and it updates the manifest after successful deletion. Missing physical blobs remain visible for recovery rather than being silently removed.
+
+
+## Phase 51: Offline ingestion normalization
+
+Pending email sources now carry explicit ingestion metadata. Email messages remain message-backed sources, while attachments are marked as deferred offline materialization rather than being falsely treated as local files. Existing local-file imports continue through the content-addressed vault pipeline, ensuring hashing, deduplication, and integrity metadata are applied consistently wherever a real filesystem source is available.
