@@ -102,6 +102,65 @@ var gBuiltExpandedView = false;
  */
 var gMessageListeners = [];
 
+var gEvaartaIndex = null;
+
+function getEvaartaContentIndex() {
+  if (gEvaartaIndex) return gEvaartaIndex;
+  try {
+    gEvaartaIndex = ChromeUtils.importESModule(
+      "resource:///modules/EvaartaContentIndex.sys.mjs"
+    );
+    return gEvaartaIndex;
+  } catch (error) {
+    console.error("e-Vaarta: unable to load content index", error);
+    return null;
+  }
+}
+
+function indexCurrentMessageForEvaarta() {
+  if (!gMessageURI) return;
+  const browser = getMessagePaneBrowser();
+  const body = browser?.contentDocument?.body;
+  if (!body) return;
+
+  const indexApi = getEvaartaContentIndex();
+  if (!indexApi) return;
+
+  const bodyText = body.innerText?.replace(/\s+/g, " ").trim();
+  if (!bodyText) return;
+
+  try {
+    const prefs = Services.prefs;
+    const pref = "mail.evaarta.contentIndex.json";
+    const serialized = prefs.getStringPref(pref, "");
+    const index = serialized
+      ? indexApi.deserializeIndex(serialized)
+      : indexApi.createIndex();
+    const fingerprint = indexApi.fingerprintText(bodyText);
+    if (!indexApi.needsReindex(index, gMessageURI, "email-body", fingerprint)) {
+      return;
+    }
+
+    indexApi.upsertExtractedContent(index, {
+      documentId: gMessageURI,
+      sourceRef: gMessageURI,
+      title: gMessage?.mime2DecodedSubject || gMessage?.subject || "Email",
+      kind: "email-body",
+      text: bodyText,
+      metadata: {
+        mimeType: "message/rfc822",
+        sender: gMessage?.mime2DecodedAuthor || "",
+      },
+      fingerprint,
+    });
+    prefs.setStringPref(pref, indexApi.serializeIndex(index));
+  } catch (error) {
+    console.error("e-Vaarta: failed to index current message", error);
+  }
+}
+
+
+
 /**
  * List of common headers and mapping for how they should be populated.
  *
@@ -625,6 +684,8 @@ var messageProgressListener = {
       // retrieved from the server.
       return;
     }
+
+    indexCurrentMessageForEvaarta();
 
     autoMarkAsRead();
   },
