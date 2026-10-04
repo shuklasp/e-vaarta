@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export class EvaartaTransportRouter { constructor(registry,preferred=[]){this.registry=registry;this.preferred=preferred;} select(context={}){const candidates=context.preferred||this.preferred;for(const id of candidates){const a=this.registry.get(id);if(a?.isAvailable?.())return id;}return null;} async deliver(envelope,context={}){const id=this.select(context);if(!id)return {status:"queued",transport:null};return {status:"sent",transport:id,result:await this.registry.send(id,envelope,context)};} }

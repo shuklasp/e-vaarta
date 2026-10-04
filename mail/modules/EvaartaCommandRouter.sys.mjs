@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function routeWorkspaceCommand(command,{openDocument=null,selectItem=null,search=null,newNote=null,capture=null}={}){switch(command?.type){case"open":return openDocument?.(command.payload);case"search":return search?.(command.payload);case"new-note":return newNote?.(command.payload);case"capture":return capture?.(command.payload);default:return false}}

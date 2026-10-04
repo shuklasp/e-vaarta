@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function buildPresentationModel(workspace,{selectedDocumentId=null,selectedItemId=null,searchResults=[]}={}){const doc=workspace?.documents?.find(d=>d.id===selectedDocumentId)||null;return{workspaceId:workspace?.id||null,name:workspace?.name||"",document:doc,items:(workspace?.items||[]).filter(i=>!selectedDocumentId||i.anchor?.documentId===selectedDocumentId),selectedItemId,searchResults};}

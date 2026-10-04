@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function createEvidenceHandoff(item,workspace){if(!item?.id||!workspace?.documents?.some(d=>d.id===item.anchor?.documentId))return null;return{version:1,itemId:item.id,documentId:item.anchor.documentId,page:item.anchor.page??null,quote:item.anchor.quote||item.text||""}}

@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function presentCollections(workspace){return(workspace?.collections||[]).map(c=>({id:c.id,name:c.name,count:c.smartRule?null:(c.documentIds||[]).length,smart:Boolean(c.smartRule)}));}

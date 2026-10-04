@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function presentOfflineStatus({ready=false,recovered=false,pendingOperations=0,error=null}={}){return{label:ready?"Offline ready":"Preparing offline storage",ready,recovered,pendingOperations,error}}

@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function searchWorkspace(workspace,query){ const q=String(query||"").trim().toLowerCase(); if(!q)return []; const out=[]; for(const d of workspace?.documents||[]){if([d.title,d.sourceRef,d.mimeType].some(v=>String(v||"").toLowerCase().includes(q))) out.push({type:"document",id:d.id,title:d.title});} return out; }

@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function createAnnotationFromSelection({documentId,selection,author=null}={}){ if(!documentId||!selection?.text) throw new TypeError("documentId and selection are required"); return {id:crypto.randomUUID(),kind:"annotation",documentId,text:selection.text,start:selection.start,end:selection.end,author,createdAt:new Date().toISOString()}; }

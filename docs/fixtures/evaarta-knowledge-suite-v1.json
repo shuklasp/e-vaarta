@@ -1,0 +1,25 @@
+{
+  "protocol":"e-vaarta-knowledge",
+  "version":1,
+  "project":{"id":"project-001","kind":"project","name":"Solar Research"},
+  "entities":[
+    {"id":"doc-001","kind":"document","title":"Solar Report"},
+    {"id":"ev-001","kind":"evidence","documentId":"doc-001","revisionId":"rev-001","type":"quote","text":"Solar panels convert sunlight into electricity.","anchor":{"documentId":"doc-001","revisionId":"rev-001","page":2,"quote":"Solar panels convert sunlight into electricity."}},
+    {"id":"claim-001","kind":"claim","text":"Solar panels generate electrical energy from sunlight."},
+    {"id":"finding-001","kind":"finding","text":"The source supports solar generation."},
+    {"id":"decision-001","kind":"decision","text":"Use solar generation in the project."},
+    {"id":"task-001","kind":"task","title":"Prepare solar demonstration","status":"open"}
+  ],
+  "relations":[
+    {"id":"rel-001","fromId":"ev-001","toId":"claim-001","kind":"supports"},
+    {"id":"rel-002","fromId":"claim-001","toId":"finding-001","kind":"supports"},
+    {"id":"rel-003","fromId":"finding-001","toId":"decision-001","kind":"supports"},
+    {"id":"rel-004","fromId":"decision-001","toId":"task-001","kind":"implements"}
+  ],
+  "canvas":{"id":"canvas-001","title":"Evidence Workspace","nodes":[
+    {"entityId":"ev-001","kind":"evidence","x":0,"y":0},
+    {"entityId":"claim-001","kind":"claim","x":320,"y":0},
+    {"entityId":"finding-001","kind":"finding","x":640,"y":0},
+    {"entityId":"decision-001","kind":"decision","x":960,"y":0},
+    {"entityId":"task-001","kind":"task","x":1280,"y":0}
+  ]}
