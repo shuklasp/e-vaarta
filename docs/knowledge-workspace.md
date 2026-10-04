@@ -305,3 +305,8 @@ Background ingestion jobs now persist `processedBytes`, `totalBytes`, and runnin
 ## Phase 57: Stage-aware ingestion progress
 
 Ingestion progress is now stage-based rather than a simple byte jump. Jobs persist a `stage` and `progress` value across starting, materializing, vaulting, extracting, indexing, and complete. Office sources invoke the existing Office extractor during the extraction stage. The Library status presents both percentage and current stage.
+
+
+## Phase 58: Unified extraction pipeline
+
+Sources now pass through a common `extractAndIndexSource()` path. The pipeline selects the existing specialized extractor by source kind: Office XML extraction for Word/PowerPoint, email-body text extraction for email sources, and OCR for images when an OCR backend is available. Extraction and indexing are reported as separate ingestion stages, while PDF text remains tied to the PDF.js reader because its page text layer provides the current page-aware extraction and anchor model.
