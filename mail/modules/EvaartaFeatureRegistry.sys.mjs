@@ -70,7 +70,7 @@ const CAPABILITIES = Object.freeze([
   { id: "local-model-runtime", area: "ai", status: FeatureStatus.CONTRACTED },
   { id: "provider-ai-abstraction", area: "ai", status: FeatureStatus.CONTRACTED },
   { id: "evidence-agent", area: "ai", status: FeatureStatus.CONTRACTED },
-  { id: "evidence-action-graph", area: "semantic", status: FeatureStatus.IMPLEMENTED },
+  { id: "evidence-action-graph", area: "semantic", status: FeatureStatus.IMPLEMENTED },\n  { id: "pdf-production-contract", area: "pdf", status: FeatureStatus.IMPLEMENTED },\n  { id: "research-interaction-model", area: "research", status: FeatureStatus.IMPLEMENTED },\n  { id: "scholarly-citation-model", area: "citations", status: FeatureStatus.IMPLEMENTED },\n  { id: "markdown-vault-model", area: "knowledge", status: FeatureStatus.IMPLEMENTED },\n  { id: "local-ai-boundary", area: "ai", status: FeatureStatus.IMPLEMENTED },\n  { id: "semantic-collaboration-events", area: "collaboration", status: FeatureStatus.IMPLEMENTED },\n  { id: "mobile-capture-model", area: "mobile", status: FeatureStatus.IMPLEMENTED },
   { id: "semantic-collaboration", area: "collaboration", status: FeatureStatus.CONTRACTED },
   { id: "mobile-pdf-reader", area: "mobile", status: FeatureStatus.CONTRACTED },
   { id: "mobile-evidence-workspace", area: "mobile", status: FeatureStatus.CONTRACTED },
