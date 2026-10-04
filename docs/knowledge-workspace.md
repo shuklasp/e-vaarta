@@ -221,3 +221,8 @@ Existing evidence groups can now be edited from the group manager. Multi-selecte
 ## Phase 41: Evidence-group intelligence
 
 Evidence-group cards now expose a live intelligence summary derived from their members and graph relationships. The summary reports evidence count, distinct source count, relationship count, and the distribution of evidence item kinds. This gives a group immediate structural context without changing the underlying evidence or graph model.
+
+
+## Phase 42: Evidence-group relationships
+
+Evidence groups can now participate directly in the semantic knowledge graph as relationship sources. Selecting Link on a group exposes all other evidence groups and evidence items as targets and supports the existing relationship vocabulary: relates-to, supports, contradicts, derived-from, and references. Relationships remain persisted through the same workspace link model used by individual evidence.
