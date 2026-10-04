@@ -88,18 +88,18 @@ const CONTRACTS = Object.freeze([
     "audit", "undo", "scheduled-actions",
   ]],
   ["interoperability", [
-    "eml", "mbox", "maildir", "pdf", "docx", "pptx", "xlsx", "markdown",
+    "round-trip-validation", "loss-report", "eml", "mbox", "maildir", "pdf", "docx", "pptx", "xlsx", "markdown",
     "html", "bibtex", "ris", "csl-json", "opml", "ics", "json-canvas",
     "evaarta-json",
   ]],
   ["security", [
-    "device-identity", "capabilities", "signed-events", "encrypted-envelopes",
+    "threat-model", "malicious-document-isolation", "device-identity", "capabilities", "signed-events", "encrypted-envelopes",
     "secure-storage", "audit-log", "retention", "legal-hold",
   ]],
   ["semantic", [
     "evidence-action-graph", "provenance", "revision-awareness", "cross-platform-semantic-model",
     "typed-edges", "evidence-linked-decisions", "evidence-linked-tasks",
-    "report-traceability", "communication-traceability",
+    "report-traceability", "communication-traceability", "validation-evidence", "human-benchmark",
   ]],
 ]);
 
