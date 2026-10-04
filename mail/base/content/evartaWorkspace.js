@@ -31,6 +31,7 @@ let libraryView = "list";
 let metadataEditorDocumentId = null;
 let selectedItemId = null;
 let selectedGroupId = null;
+let selectedItemIds = new Set();
 let linkSourceId = null;
 let selectedLinkId = null;
 let annotationPanelOpen = false;
@@ -218,6 +219,7 @@ function graphEntityIsGroup(entity) {
 
 function selectGraphEntity(entity) {
   if (!entity) return;
+  selectedItemIds.clear();
   if (graphEntityIsGroup(entity)) {
     selectedGroupId = entity.id;
     selectedItemId = null;
@@ -602,7 +604,41 @@ function focusCanvasItem(item) {
   window.setTimeout(() => card.classList.remove("card-evidence-active"), 1200);
 }
 
+function toggleItemMultiSelection(item) {
+  if (!item) return;
+  if (selectedItemIds.has(item.id)) selectedItemIds.delete(item.id);
+  else selectedItemIds.add(item.id);
+  selectedItemId = item.id;
+  selectedGroupId = null;
+  selectedLinkId = null;
+  render();
+}
+
+function clearMultiSelection() {
+  selectedItemIds.clear();
+  render();
+}
+
+function createEvidenceGroupFromSelection() {
+  const ids = [...selectedItemIds];
+  if (ids.length < 2) return;
+  const name = prompt("Evidence group name", "Selected evidence");
+  if (!name?.trim()) return;
+  const sources = ids.map(findItem).map(sourceForItem).filter(Boolean);
+  const documentId = sources.length && sources.every(source => source.id === sources[0].id)
+    ? sources[0].id
+    : null;
+  const group = createEvidenceGroup({ name: name.trim(), documentId });
+  workspace = addEvidenceGroup(workspace, group);
+  for (const itemId of ids) addItemToEvidenceGroup(workspace, group.id, itemId);
+  selectedGroupId = group.id;
+  selectedItemIds.clear();
+  saveWorkspace();
+  render();
+}
+
 function selectItem(item) {
+  selectedItemIds.clear();
   selectedItemId = item.id;
   selectedGroupId = null;
   selectedLinkId = null;
@@ -1043,6 +1079,14 @@ function render() {
   const count = document.getElementById("itemCount");
   const groupCount = (workspace.evidenceGroups || []).length;
   document.getElementById("workspaceName").textContent = workspace.name;
+  const selectionStatus = document.getElementById("selectionStatus");
+  const groupSelectionButton = document.getElementById("createEvidenceGroupSelectionButton");
+  const clearSelectionButton = document.getElementById("clearEvidenceSelectionButton");
+  if (selectionStatus) selectionStatus.textContent = selectedItemIds.size
+    ? selectedItemIds.size + " evidence item" + (selectedItemIds.size === 1 ? "" : "s") + " selected."
+    : "Shift-click evidence to select multiple items.";
+  if (groupSelectionButton) groupSelectionButton.disabled = selectedItemIds.size < 2;
+  if (clearSelectionButton) clearSelectionButton.hidden = selectedItemIds.size === 0;
   count.textContent = workspace.items.length + " item" + (workspace.items.length === 1 ? "" : "s") + " • " + workspace.links.length + " relationship" + (workspace.links.length === 1 ? "" : "s") + " • " + groupCount + " evidence group" + (groupCount === 1 ? "" : "s");
 
   sourceList.replaceChildren();
@@ -1190,7 +1234,8 @@ function render() {
     card.dataset.itemId = item.id;
     if (item.metadata?.libraryCard) card.dataset.sourceCard = "true";
     card.tabIndex = 0;
-    if (item.id === selectedItemId) card.classList.add("card-selected");
+    if (item.id === selectedItemId || selectedItemIds.has(item.id)) card.classList.add("card-selected");
+    if (selectedItemIds.has(item.id)) card.classList.add("card-multi-selected");
     if (item.id === linkSourceId) card.classList.add("card-link-source");
     if ((selectedItemId || selectedGroupId) && workspace.links.some(link => (link.fromId === item.id || link.toId === item.id))) card.classList.add("card-linked");
     if (selectedGroupId && (workspace.evidenceGroups || []).find(group => group.id === selectedGroupId)?.itemIds.includes(item.id)) card.classList.add("card-group-member");
@@ -1201,7 +1246,11 @@ function render() {
         card.classList.add("card-evidence-related");
       }
     }
-    card.addEventListener("click", () => {
+    card.addEventListener("click", event => {
+      if (event.shiftKey) {
+        toggleItemMultiSelection(item);
+        return;
+      }
       selectItem(item);
       const source = sourceForItem(item);
       if (source) {
@@ -2007,6 +2056,8 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("captureSelectionButton").addEventListener("click", captureSelection);
   document.getElementById("annotateSelectionButton").addEventListener("click", annotateSelection);
   document.getElementById("annotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(true));
+  document.getElementById("createEvidenceGroupSelectionButton").addEventListener("click", createEvidenceGroupFromSelection);
+  document.getElementById("clearEvidenceSelectionButton").addEventListener("click", clearMultiSelection);
   document.getElementById("evidenceGroupsButton").addEventListener("click", openEvidenceGroups);
   document.getElementById("evidenceGroupsCloseButton").addEventListener("click", () => document.getElementById("evidenceGroupsPane").close());
   document.getElementById("newEvidenceGroupButton").addEventListener("click", createEvidenceGroupFromManager);
