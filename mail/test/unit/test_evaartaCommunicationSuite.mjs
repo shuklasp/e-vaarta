@@ -1,0 +1,12 @@
+import { strict as assert } from "assert";
+import { createPerson,createConversation,createMessage,createCommunicationStore,searchCommunication,communicationToTask,communicationToDecision,reconcileCommunicationEvents,buildCommunicationGraph,communicationSuiteContract } from "../EvaartaCommunicationSuite.sys.mjs";
+const p=createPerson({id:"p1",name:"A",addresses:["a@example.test"]});
+const c=createConversation({id:"c1",participantIds:["p1"],channel:"email"});
+const m=createMessage({id:"m1",conversationId:"c1",senderId:"p1",body:"Please complete this task by Friday; decision approved.",channel:"email"});
+const s=createCommunicationStore({people:[p],conversations:[c],messages:[m]});
+assert.equal(searchCommunication(s,"approved").length,1);
+assert.equal(communicationToTask(m).sourceMessageId,"m1");
+assert.equal(communicationToDecision(m).sourceIds[0],"m1");
+assert.equal(reconcileCommunicationEvents([{id:"1",idempotencyKey:"x",entityId:"m1"},{id:"2",idempotencyKey:"x",entityId:"m1"}]).accepted.length,1);
+assert.equal(buildCommunicationGraph(s).edges.length,3);
+assert.ok(communicationSuiteContract().phases.length===7);
