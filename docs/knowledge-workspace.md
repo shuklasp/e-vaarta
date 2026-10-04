@@ -280,3 +280,8 @@ Pending email sources now carry explicit ingestion metadata. Email messages rema
 ## Phase 52: Native email-attachment materialization
 
 The Add to e-Vaarta email workflow now materializes message attachments through Thunderbird's attachment URL into a temporary local file, routes that file through the same SHA-256/content-addressed vault importer used by ordinary documents, and removes the temporary staging file afterward. Attachments that cannot be materialized remain explicitly deferred rather than being represented as falsely offline-ready sources. Email messages themselves remain backed by Thunderbird's local message store.
+
+
+## Phase 53: Unified ingestion state
+
+Document ingestion now records a persistent state machine: queued, materializing, vaulted, indexed, failed, or deferred. Attachment failures retain an error message for diagnosis, while successful materialization progresses through vault storage to indexing. The Document Library exposes the current ingestion state, making offline import progress and failures explicit rather than implicit.
