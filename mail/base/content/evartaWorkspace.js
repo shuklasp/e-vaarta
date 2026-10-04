@@ -991,6 +991,7 @@ function clearWorkspace() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  updateOcrStatus();
   workspace = loadWorkspace();
   contentIndex = loadContentIndex();
   indexWorkspace();
