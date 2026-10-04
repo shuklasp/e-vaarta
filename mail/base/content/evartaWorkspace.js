@@ -2203,6 +2203,17 @@ sourceList.replaceChildren();
       card.append(evidence);
     }
 
+    const contextButton = document.createElement("button");
+    contextButton.type = "button";
+    contextButton.className = "quiet";
+    contextButton.textContent = "Inspect context";
+    contextButton.title = "Inspect source, groups and relationships without navigating";
+    contextButton.addEventListener("click", event => {
+      event.stopPropagation();
+      toggleEvidenceContext(item);
+    });
+    card.append(contextButton);
+
     const source = sourceForItem(item);
     if (source) {
       if (item.metadata?.libraryCard) {
