@@ -10,7 +10,7 @@ const { IOUtils } = ChromeUtils.importESModule("resource://gre/modules/IOUtils.s
 const { PathUtils } = ChromeUtils.importESModule("resource://gre/modules/PathUtils.sys.mjs");
 const {
   createWorkspace, createNote, createExcerpt, createAnnotation, createDocument,
-  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace, createCollection, addCollection, updateCollection, removeCollection, setDocumentCollections,
+  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace, createCollection, addCollection, updateCollection, removeCollection, setDocumentCollections, setCollectionRule, getCollectionDocuments,
 } = ChromeUtils.importESModule(
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
 );
@@ -537,7 +537,11 @@ function saveDocumentMetadata() {
 }
 
 function customCollectionForSource(source) {
-  return workspace.collections.find(collection => collection.documentIds.includes(source.id)) || null;
+  return workspace.collections.find(collection =>
+    collection.smartRule
+      ? collection.smartRule && workspace.documents.some(document => document.id === source.id && getCollectionDocuments(workspace, collection.id).some(item => item.id === source.id))
+      : collection.documentIds.includes(source.id)
+  ) || null;
 }
 
 function openCollectionManager() {
@@ -570,6 +574,17 @@ function renderCollectionManager() {
       renderCollectionManager();
       render();
     });
+    const smart = document.createElement("button");
+    smart.type = "button";
+    smart.textContent = collection.smartRule ? "Smart" : "Rule";
+    smart.addEventListener("click", () => {
+      selectedCustomCollectionId = collection.id;
+      document.getElementById("ruleKind").value = collection.smartRule?.kind || "";
+      document.getElementById("ruleTag").value = collection.smartRule?.tag || "";
+      document.getElementById("ruleText").value = collection.smartRule?.text || "";
+      document.getElementById("ruleDays").value = collection.smartRule?.updatedWithinDays || "";
+      document.getElementById("collectionRuleEditor").showModal();
+    });
     const remove = document.createElement("button");
     remove.type = "button";
     remove.textContent = "Delete";
@@ -581,7 +596,7 @@ function renderCollectionManager() {
       renderCollectionManager();
       render();
     });
-    row.append(name, count, edit, remove);
+    row.append(name, count, edit, smart, remove);
     list.append(row);
   }
 }
@@ -592,6 +607,22 @@ function createCustomCollection() {
   const collection = createCollection({ name });
   workspace = addCollection(workspace, collection);
   document.getElementById("newCollectionName").value = "";
+  saveWorkspace();
+  renderCollectionManager();
+  render();
+}
+
+function saveCollectionRule(collection) {
+  const kind = document.getElementById("ruleKind").value;
+  const tag = document.getElementById("ruleTag").value.trim();
+  const text = document.getElementById("ruleText").value.trim();
+  const days = Number(document.getElementById("ruleDays").value);
+  const rule = {};
+  if (kind) rule.kind = kind;
+  if (tag) rule.tag = tag;
+  if (text) rule.text = text;
+  if (Number.isFinite(days) && days > 0) rule.updatedWithinDays = days;
+  setCollectionRule(workspace, collection.id, Object.keys(rule).length ? rule : null);
   saveWorkspace();
   renderCollectionManager();
   render();
@@ -635,7 +666,13 @@ function sourceMatchesCollection(source) {
 }
 
 function sourceMatchesFilter(source) {
-  if (selectedCustomCollectionId && !workspace.collections.find(c => c.id === selectedCustomCollectionId)?.documentIds.includes(source.id)) return false;
+  if (selectedCustomCollectionId) {
+    const collection = workspace.collections.find(c => c.id === selectedCustomCollectionId);
+    const matches = collection?.smartRule
+      ? getCollectionDocuments(workspace, collection.id).some(item => item.id === source.id)
+      : collection?.documentIds.includes(source.id);
+    if (!matches) return false;
+  }
   if (!sourceMatchesCollection(source)) return false;
   const query = libraryFilter.trim().toLocaleLowerCase();
   if (!query) return true;
@@ -1416,6 +1453,14 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("collectionManagerButton").addEventListener("click", openCollectionManager);
   document.getElementById("collectionManagerCloseButton").addEventListener("click", closeCollectionManager);
   document.getElementById("newCollectionButton").addEventListener("click", createCustomCollection);
+  document.getElementById("ruleEditorCloseButton").addEventListener("click", () => document.getElementById("collectionRuleEditor").close());
+  document.getElementById("ruleCancelButton").addEventListener("click", () => document.getElementById("collectionRuleEditor").close());
+  document.getElementById("ruleSaveButton").addEventListener("click", event => {
+    event.preventDefault();
+    const collection = workspace.collections.find(item => item.id === selectedCustomCollectionId);
+    if (collection) saveCollectionRule(collection);
+    document.getElementById("collectionRuleEditor").close();
+  });
   document.getElementById("metadataCloseButton").addEventListener("click", closeDocumentMetadataEditor);
   document.getElementById("metadataCancelButton").addEventListener("click", closeDocumentMetadataEditor);
   document.getElementById("documentMetadataForm").addEventListener("submit", event => {
