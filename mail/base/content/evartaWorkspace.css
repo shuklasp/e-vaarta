@@ -664,3 +664,12 @@ select:focus-visible,
 .annotation-row { cursor: pointer; }
 .annotation-row.annotation-selected { outline: 1px solid Highlight; outline-offset: 2px; }
 .annotation-row:hover { background: color-mix(in srgb, CanvasText 5%, transparent); }
+
+
+.evidence-group-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 0; }
+.evidence-group-chip { font-size: .76em; border: 1px solid color-mix(in srgb, Highlight 45%, CanvasText 20%); border-radius: 999px; padding: 3px 8px; }
+.evidence-group-chip:hover { text-decoration: underline; }
+.evidence-group-list { display: grid; gap: 8px; }
+.evidence-group-manager-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent); }
+.evidence-group-manager-row strong, .evidence-group-manager-row small { display: block; }
+.evidence-group-manager-row small { opacity: .68; margin-top: 2px; }
