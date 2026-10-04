@@ -1405,6 +1405,75 @@ function createEvidenceGroupFromSelection() {
   render();
 }
 
+function renderEvidenceContext(item, container, options = {}) {
+  if (!item || !container) return;
+  const source = sourceForItem(item);
+  const context = document.createElement("section");
+  context.className = "evidence-context";
+  const heading = document.createElement("strong");
+  heading.textContent = options.title || "Evidence context";
+  context.append(heading);
+
+  if (source) {
+    const sourceLine = document.createElement("div");
+    sourceLine.className = "evidence-context-line";
+    sourceLine.textContent = "Source: " + (source.title || "Untitled") + " • " + String(source.kind || "document").toUpperCase();
+    context.append(sourceLine);
+  }
+
+  if (item.anchor?.page != null) {
+    const pageLine = document.createElement("div");
+    pageLine.className = "evidence-context-line";
+    pageLine.textContent = "Page " + item.anchor.page;
+    context.append(pageLine);
+  }
+
+  const groups = evidenceGroupsForItem(workspace, item.id) || [];
+  if (groups.length) {
+    const groupLine = document.createElement("div");
+    groupLine.className = "evidence-context-line";
+    groupLine.textContent = "Groups: " + groups.map(group => group.name).join(" • ");
+    context.append(groupLine);
+  }
+
+  const relationships = workspace.links
+    .filter(link => link.fromId === item.id || link.toId === item.id)
+    .map(link => {
+      const otherId = link.fromId === item.id ? link.toId : link.fromId;
+      const other = findGraphEntity(otherId);
+      return other ? graphEntityLabel(other) + " (" + linkLabel(link.kind) + ")" : null;
+    })
+    .filter(Boolean);
+  if (relationships.length) {
+    const relationshipLine = document.createElement("div");
+    relationshipLine.className = "evidence-context-line";
+    relationshipLine.textContent = "Related: " + relationships.join(" • ");
+    context.append(relationshipLine);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "evidence-context-actions";
+  const preview = document.createElement("button");
+  preview.type = "button";
+  preview.className = "quiet";
+  preview.textContent = "Inspect context";
+  preview.addEventListener("click", event => {
+    event.stopPropagation();
+    context.classList.toggle("expanded");
+  });
+  const jump = document.createElement("button");
+  jump.type = "button";
+  jump.className = "quiet";
+  jump.textContent = item.anchor?.quote ? "Jump to evidence" : "Jump to source";
+  jump.addEventListener("click", event => {
+    event.stopPropagation();
+    selectItem(item);
+  });
+  actions.append(preview, jump);
+  context.append(actions);
+  container.append(context);
+}
+
 function selectItem(item) {
   selectedItemIds.clear();
   selectedItemId = item.id;
@@ -2663,7 +2732,9 @@ function renderAnnotations() {
     remove.textContent = "Delete";
     remove.className = "quiet";
     remove.addEventListener("click", () => removeAnnotation(item));
-    row.append(title, text, meta, jump, edit, remove);
+    row.append(title, text, meta);
+    renderEvidenceContext(item, row, { title: "Annotation context" });
+    row.append(jump, edit, remove);
     list.append(row);
   }
 }
