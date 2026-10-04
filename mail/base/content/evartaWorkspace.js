@@ -8,7 +8,7 @@ const { Services } = ChromeUtils.importESModule(
 );
 const {
   createWorkspace, createNote, createExcerpt, createAnnotation, createDocument,
-  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace,
+  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace,
 } = ChromeUtils.importESModule(
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
 );
@@ -477,6 +477,60 @@ function render() {
   requestAnimationFrame(renderGraphEdges);
 }
 
+function renderSearchResults(query = "") {
+  const list = document.getElementById("searchResults");
+  list.replaceChildren();
+  const results = searchWorkspace(workspace, query);
+  if (!query.trim()) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "Search sources, excerpts, notes and annotations.";
+    list.append(empty);
+    return;
+  }
+  if (!results.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No matching workspace content.";
+    list.append(empty);
+    return;
+  }
+  for (const result of results) {
+    const row = document.createElement("article");
+    row.className = "search-result";
+    const title = document.createElement("strong");
+    title.textContent = result.title;
+    const type = document.createElement("span");
+    type.textContent = result.type;
+    const text = document.createElement("p");
+    text.textContent = result.text;
+    row.append(title, type, text);
+    row.addEventListener("click", () => {
+      if (result.type === "document") {
+        const source = workspace.documents.find(document => document.id === result.documentId);
+        if (source) selectDocument(source);
+      } else {
+        const item = findItem(result.id);
+        if (item) {
+          selectedItemId = item.id;
+          jumpToSource(item);
+          render();
+        }
+      }
+    });
+    list.append(row);
+  }
+}
+
+function toggleSearch(open = true) {
+  document.getElementById("searchPane").hidden = !open;
+  if (open) {
+    const input = document.getElementById("workspaceSearchInput");
+    input.focus();
+    renderSearchResults(input.value);
+  }
+}
+
 function annotations() {
   return workspace.items.filter(item => item.kind === "annotation");
 }
@@ -769,6 +823,9 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("captureSelectionButton").addEventListener("click", captureSelection);
   document.getElementById("annotateSelectionButton").addEventListener("click", annotateSelection);
   document.getElementById("annotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(true));
+  document.getElementById("searchButton").addEventListener("click", () => toggleSearch(true));
+  document.getElementById("closeSearchButton").addEventListener("click", () => toggleSearch(false));
+  document.getElementById("workspaceSearchInput").addEventListener("input", event => renderSearchResults(event.target.value));
   document.getElementById("closeAnnotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(false));
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
