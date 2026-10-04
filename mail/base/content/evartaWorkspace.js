@@ -1872,6 +1872,19 @@ sourceList.replaceChildren();
         state.textContent = ingestionStatus;
         state.title = source.metadata.ingestionError || "Ingestion state: " + ingestionStatus;
         row.append(state);
+        if (source.metadata.ingestionState === "failed" || source.metadata.ingestionState === "deferred") {
+          const retry = document.createElement("button");
+          retry.type = "button";
+          retry.className = "ingestion-retry";
+          retry.textContent = "Retry";
+          retry.title = source.metadata.ingestionError || "Retry ingestion";
+          retry.addEventListener("click", async event => {
+            event.stopPropagation();
+            await retryIngestion(source);
+            renderLibrary();
+          });
+          row.append(retry);
+        }
       }
       if (source.vault) {
         const health = document.createElement("span");
