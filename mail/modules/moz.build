@@ -26,7 +26,7 @@ EXTRA_JS_MODULES += [
     "EvaartaPdfReaderModel.sys.mjs",
     "EvaartaPdfPlatform.sys.mjs",
     "EvaartaProductContracts.sys.mjs",
-    "EvaartaEvidenceActionGraph.sys.mjs",
+    "EvaartaEvidenceActionGraph.sys.mjs",\n    "EvaartaPdfProduction.sys.mjs",\n    "EvaartaResearchInteraction.sys.mjs",\n    "EvaartaScholarlyCitations.sys.mjs",\n    "EvaartaMarkdownVault.sys.mjs",\n    "EvaartaLocalAI.sys.mjs",\n    "EvaartaSemanticCollaboration.sys.mjs",\n    "EvaartaMobileCapture.sys.mjs",
     "EvaartaKnowledgeAuthoring.sys.mjs",
     "EvaartaAutomationEngine.sys.mjs",
     "EvaartaAccessibility.sys.mjs",
