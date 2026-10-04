@@ -753,6 +753,29 @@ function pdfSelector(range, page) {
   }
 }
 
+function indexPdfSource(source, frameWindow) {
+  if (!source || source.kind !== "pdf" || !frameWindow) return;
+  try {
+    const pages = [...frameWindow.document.querySelectorAll(".page")];
+    const text = pages.map(page => page.innerText || "").join("\n").replace(/\s+/g, " ").trim();
+    if (!text) return;
+    const fingerprint = fingerprintText(text);
+    if (!needsReindex(contentIndex, source.id, "pdf-text", fingerprint)) return;
+    contentIndex = upsertExtractedContent(contentIndex, {
+      documentId: source.id,
+      sourceRef: source.sourceRef,
+      title: source.title,
+      kind: "pdf-text",
+      text,
+      metadata: { mimeType: "application/pdf", pageCount: pages.length },
+      fingerprint,
+    });
+    saveContentIndex();
+  } catch (error) {
+    console.warn("e-Vaarta: PDF text indexing unavailable", error);
+  }
+}
+
 function inspectPdfSelection(frameWindow) {
   let selection;
   try { selection = frameWindow.getSelection(); } catch (error) { return null; }
@@ -807,8 +830,12 @@ function attachSourceSelectionBridge(source) {
   if (!viewer) return;
   activeSourceSelection = null;
   document.getElementById("sourceSelectionStatus").textContent = "Select text in the source reader.";
-  try { attachSelectionBridge(source, viewer.contentWindow); }
-  catch (error) { console.warn("e-Vaarta: PDF selection bridge unavailable", error); }
+  try {
+    attachSelectionBridge(source, viewer.contentWindow);
+    indexPdfSource(source, viewer.contentWindow);
+  } catch (error) {
+    console.warn("e-Vaarta: PDF selection bridge unavailable", error);
+  }
 }
 
 function selectionForCurrentSource() {
