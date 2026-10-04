@@ -68,8 +68,12 @@ const CONTRACTS = Object.freeze([
     "meeting-ai", "controlled-agents", "permissioned-actions",
   ]],
   ["projects", [
-    "tasks", "dependencies", "critical-path", "milestones", "kanban",
-    "calendar", "timeline", "decisions", "reports", "evidence-linked-tasks",
+    "tasks", "subtasks", "dependencies", "critical-path", "milestones", "kanban", "list",
+    "calendar", "timeline", "gantt", "sprints", "backlog", "capacity", "workload", "assignment",
+    "acceptance", "monitoring", "stalled-detection", "escalation", "sla", "recurrence", "checklists",
+    "time-tracking", "activity-stream", "decisions", "reports", "evidence-linked-tasks", "verification",
+    "portfolio", "risk", "predictive-deadlines", "decision-to-task", "evidence-to-task", "evidence-completion",
+    "impact-analysis", "grounded-project-control", "weekly-review", "authorization-boundary",
   ]],
   ["collaboration", [
     "semantic-events", "three-way-merge", "conflict-review",
