@@ -155,7 +155,7 @@ function indexWorkspace() {
     const link = document.createElement("button");
     link.textContent = linkSourceId === group.id ? "Select target…" : "Link";
     link.className = linkSourceId === group.id ? "link-active" : "";
-    link.addEventListener("click", event => { event.stopPropagation(); linkItem(group); });
+    link.addEventListener("click", event => { event.stopPropagation(); startGraphLink(group); });
     controls.append(link);
     card.append(controls);
 
@@ -720,6 +720,38 @@ function cancelLinkMode() {
   render();
 }
 
+function startGraphLink(entity) {
+  if (!entity) return;
+  linkSourceId = entity.id;
+  selectedLinkId = null;
+  render();
+}
+
+function graphRelationshipTargets(sourceEntity) {
+  return [
+    ...workspace.items.filter(item => item.id !== sourceEntity.id),
+    ...(workspace.evidenceGroups || []).filter(group => group.id !== sourceEntity.id),
+  ];
+}
+
+function createGraphRelationship(sourceEntity, targetEntity, kind) {
+  if (!sourceEntity || !targetEntity || sourceEntity.id === targetEntity.id) return;
+  const duplicate = workspace.links.some(link =>
+    ((link.fromId === sourceEntity.id && link.toId === targetEntity.id) ||
+     (link.fromId === targetEntity.id && link.toId === sourceEntity.id)) && link.kind === kind
+  );
+  if (duplicate) return;
+  workspace = addLink(workspace, createLink({
+    fromId: sourceEntity.id,
+    toId: targetEntity.id,
+    kind,
+  }));
+  linkSourceId = null;
+  selectedLinkId = null;
+  saveWorkspace();
+  render();
+}
+
 function linkItem(item) {
   if (!linkSourceId) {
     linkSourceId = item.id;
@@ -1216,7 +1248,39 @@ function sourceMatchesFilter(source) {
     .join(" ").toLocaleLowerCase().includes(query);
 }
 
+function renderGraphLinkTargets() {
+  const chooser = document.getElementById("graphLinkTargetChooser");
+  if (!chooser) return;
+  chooser.replaceChildren();
+  if (!linkSourceId) return;
+  const source = findGraphEntity(linkSourceId);
+  if (!source) return;
+  const targets = graphRelationshipTargets(source);
+  const label = document.createElement("span");
+  label.className = "graph-link-source-label";
+  label.textContent = "Link from: " + graphEntityLabel(source);
+  chooser.append(label);
+  for (const target of targets) {
+    const row = document.createElement("div");
+    row.className = "graph-link-target-row";
+    const select = document.createElement("select");
+    for (const kind of ["relates-to", "supports", "contradicts", "derived-from", "references"]) {
+      const option = document.createElement("option");
+      option.value = kind;
+      option.textContent = linkLabel(kind);
+      select.append(option);
+    }
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = graphEntityLabel(target);
+    button.addEventListener("click", () => createGraphRelationship(source, target, select.value));
+    row.append(select, button);
+    chooser.append(row);
+  }
+}
+
 function render() {
+  renderGraphLinkTargets();
   const sourceList = document.getElementById("sourceList");
   const canvas = document.getElementById("workspaceCanvas");
   const empty = document.getElementById("canvasEmpty");
