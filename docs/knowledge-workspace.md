@@ -59,3 +59,8 @@ This is the first library/search foundation rather than a full-text extraction s
 A separate `EvaartaContentIndex` module now stores searchable content outside workspace JSON. It supports versioned entries, upsert/remove operations, simple term-based scoring, and serialized persistence. The desktop workspace maintains an index preference and feeds it document metadata plus excerpts, notes, and annotations. Search prefers indexed results and falls back to the semantic workspace search when the index has no matches.
 
 The index intentionally exposes an adapter boundary: future ingestion services can add extracted PDF text, email bodies, Office text, attachment metadata, and OCR without changing the workspace/annotation model. The current phase indexes metadata and workspace-derived text; it does not yet attempt heavyweight PDF or Office extraction.
+
+
+## Phase 10: Incremental content ingestion
+
+The content index now supports extracted-content entries, fingerprints, and `needsReindex()` checks so ingestion can be incremental instead of rebuilding all text on every workspace load. The desktop workspace adds an email-body ingestion hook and document-content metadata ingestion. Heavy extraction remains adapter-driven; the next integration can feed real Thunderbird message bodies and PDF text into these APIs without changing search or workspace semantics.
