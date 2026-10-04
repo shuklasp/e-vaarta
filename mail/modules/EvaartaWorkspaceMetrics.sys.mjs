@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function workspaceMetrics(workspace){return{documents:workspace?.documents?.length||0,items:workspace?.items?.length||0,annotations:(workspace?.items||[]).filter(i=>i.kind==="annotation").length,excerpts:(workspace?.items||[]).filter(i=>i.kind==="excerpt").length,notes:(workspace?.items||[]).filter(i=>i.kind==="note").length,links:workspace?.links?.length||0,evidenceGroups:workspace?.evidenceGroups?.length||0,collections:workspace?.collections?.length||0};}

@@ -1,0 +1,3 @@
+/* MPL-2.0 */
+export const KeyboardCommand=Object.freeze({SEARCH:"search",NEW_NOTE:"new-note",NEXT_EVIDENCE:"next-evidence",PREVIOUS_EVIDENCE:"previous-evidence",CLOSE_PANEL:"close-panel"});
+export function commandForKey({key,ctrl=false,meta=false,shift=false}={}){const modifier=ctrl||meta;if(modifier&&key.toLowerCase()==="f")return KeyboardCommand.SEARCH;if(modifier&&key.toLowerCase()==="n")return KeyboardCommand.NEW_NOTE;if(key==="Escape")return KeyboardCommand.CLOSE_PANEL;if(shift&&key==="ArrowRight")return KeyboardCommand.NEXT_EVIDENCE;if(shift&&key==="ArrowLeft")return KeyboardCommand.PREVIOUS_EVIDENCE;return null}
