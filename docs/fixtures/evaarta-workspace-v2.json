@@ -1,0 +1,58 @@
+{
+  "modelVersion": 2,
+  "id": "workspace-demo",
+  "name": "Evidence Workspace",
+  "description": "Portable e-Vaarta evidence-group fixture.",
+  "documents": [
+    {
+      "id": "doc-1",
+      "title": "Research Paper",
+      "kind": "pdf",
+      "sourceRef": "vault/research.pdf",
+      "mimeType": "application/pdf"
+    }
+  ],
+  "items": [
+    {
+      "id": "excerpt-1",
+      "kind": "excerpt",
+      "title": "Finding",
+      "text": "The observed result supports the hypothesis.",
+      "anchor": {
+        "documentId": "doc-1",
+        "page": 2,
+        "startOffset": 120,
+        "endOffset": 168,
+        "quote": "The observed result supports the hypothesis."
+      }
+    },
+    {
+      "id": "annotation-1",
+      "kind": "annotation",
+      "title": "Important",
+      "text": "Primary supporting evidence.",
+      "anchor": {
+        "documentId": "doc-1",
+        "page": 2,
+        "startOffset": 220,
+        "endOffset": 246,
+        "quote": "Primary supporting evidence."
+      },
+      "annotationType": "highlight",
+      "color": "#F4C542"
+    }
+  ],
+  "evidenceGroups": [
+    {
+      "id": "evidence-group-1",
+      "name": "Supporting Evidence",
+      "description": "Evidence selected for the conclusion.",
+      "documentId": "doc-1",
+      "itemIds": [
+        "excerpt-1",
+        "annotation-1"
+      ]
+    }
+  ],
+  "links": []
+}
