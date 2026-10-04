@@ -15,3 +15,14 @@ The workspace also exposes **Highlight selection**. A selected source passage be
 The annotation remains part of the same graph as notes and excerpts, so it can participate in semantic relationships.
 
 The current selection bridge intentionally remains defensive. Native PDF viewers may keep text selection inside an internal viewer document, so the next PDF-specific step is to integrate with Thunderbird's native PDF/content-tab selection machinery rather than assuming iframe-level selection is always available.
+
+
+## Phase 4: PDF selection bridge
+
+The desktop workspace now listens for source selection changes through the embedded document hierarchy. When PDF.js exposes a selectable text layer, e-Vaarta records the selected quote, the PDF.js page number when available, and the selection range offsets.
+
+This bridge deliberately lives on the e-Vaarta workspace side rather than patching PDF.js. It recursively attaches to accessible child frames and ignores contexts that enforce a different origin. This keeps the integration compatible with Thunderbird PDF.js updates while allowing e-Vaarta to consume native PDF text selection.
+
+The **Capture selection** action creates a source-bound excerpt, while **Highlight selection** creates a source-bound annotation. Both retain the same source document and selection metadata, making them usable by the knowledge graph.
+
+The next refinement should add persistent text-layer selectors or PDF.js-specific page coordinates where available, followed by an actual Thunderbird build/runtime test of selection capture across representative PDFs.
