@@ -97,7 +97,7 @@ const CONTRACTS = Object.freeze([
     "secure-storage", "audit-log", "retention", "legal-hold",
   ]],
   ["semantic", [
-    "evidence-action-graph", "provenance", "revision-awareness",
+    "evidence-action-graph", "provenance", "revision-awareness", "cross-platform-semantic-model",
     "typed-edges", "evidence-linked-decisions", "evidence-linked-tasks",
     "report-traceability", "communication-traceability",
   ]],
