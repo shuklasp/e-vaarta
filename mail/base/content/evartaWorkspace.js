@@ -566,7 +566,8 @@ async function processIngestionQueue() {
         document.metadata.offlineMaterialization = "vaulted";
         setIngestionState(document, IngestionState.VAULTED);
         setIngestionStage(job, "extracting", 65);
-        if (document.kind === "word" || document.kind === "powerpoint") indexOfficeSource(document);
+        const extraction = await extractAndIndexSource(document);
+        if (extraction.method === "error") throw extraction.error;
         setIngestionStage(job, "indexing", 85);
         setIngestionState(document, IngestionState.INDEXED);
         setIngestionStage(job, "complete", 100);
@@ -2701,6 +2702,69 @@ async function indexOcrSource(source, pageCanvases = null) {
     saveContentIndex();
   } catch (error) {
     console.warn("e-Vaarta: OCR indexing unavailable", error);
+  }
+}
+
+async function extractAndIndexSource(source, options = {}) {
+  if (!source) return { text: "", indexed: false, method: "none" };
+  const kind = source.kind;
+  try {
+    if (kind === "word" || kind === "powerpoint") {
+      const text = extractOfficeText(source.sourceRef, kind) || "";
+      if (text.trim()) {
+        const fingerprint = fingerprintText(text);
+        if (needsReindex(contentIndex, source.id, "office-text", fingerprint)) {
+          contentIndex = upsertExtractedContent(contentIndex, {
+            documentId: source.id, sourceRef: source.sourceRef, title: source.title,
+            kind: "office-text", text,
+            metadata: { mimeType: source.mimeType || null }, fingerprint,
+          });
+          await saveContentIndex();
+          return { text, indexed: true, method: "office" };
+        }
+        return { text, indexed: false, method: "office" };
+      }
+    }
+    if (kind === "email") {
+      const text = source.metadata?.bodyText || source.metadata?.text || "";
+      if (text.trim()) {
+        const fingerprint = fingerprintText(text);
+        if (needsReindex(contentIndex, source.id, "email-body", fingerprint)) {
+          contentIndex = upsertExtractedContent(contentIndex, {
+            documentId: source.id, sourceRef: source.sourceRef, title: source.title,
+            kind: "email-body", text, metadata: { sender: source.metadata?.sender || null }, fingerprint,
+          });
+          await saveContentIndex();
+          return { text, indexed: true, method: "email" };
+        }
+        return { text, indexed: false, method: "email" };
+      }
+    }
+    if (kind === "image" && isOcrAvailable()) {
+      const result = await extractOcrText({
+        id: source.id, sourceRef: source.sourceRef, title: source.title,
+        kind: source.kind, mimeType: source.mimeType || "image/*",
+      });
+      const text = result?.text || "";
+      if (text.trim()) {
+        const fingerprint = fingerprintText(text);
+        if (needsReindex(contentIndex, source.id, "ocr-text", fingerprint)) {
+          contentIndex = upsertExtractedContent(contentIndex, {
+            documentId: source.id, sourceRef: source.sourceRef, title: source.title,
+            kind: "ocr-text", text,
+            metadata: { language: result?.language || null, confidence: result?.confidence ?? null },
+            fingerprint,
+          });
+          await saveContentIndex();
+          return { text, indexed: true, method: "ocr" };
+        }
+        return { text, indexed: false, method: "ocr" };
+      }
+    }
+    return { text: "", indexed: false, method: "none" };
+  } catch (error) {
+    console.warn("e-Vaarta: unified extraction failed", error);
+    return { text: "", indexed: false, method: "error", error };
   }
 }
 
