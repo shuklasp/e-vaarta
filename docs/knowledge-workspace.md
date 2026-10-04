@@ -159,3 +159,8 @@ First-class source cards now include lightweight visual previews. Image document
 ## Phase 29: Interactive source previews
 
 Source previews on workspace cards are now explicit source-opening controls. Clicking or keyboard-activating a preview selects and opens the source without triggering the surrounding card's graph-selection behavior. Hover and focus states provide visual feedback, while previews remain non-editable.
+
+
+## Phase 30: Source context actions
+
+Sources in the Document Library and first-class source cards on the workspace canvas now expose a native context menu. It provides Open source, Add excerpt, Edit metadata, Add/remove collection, and Remove from workspace actions. Removing a canvas source card does not remove the underlying Library document.
