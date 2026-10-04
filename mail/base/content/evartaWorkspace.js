@@ -13,6 +13,8 @@ const {
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
 );
 
+const { createIndex, createIndexEntry, upsertIndexEntry, serializeIndex, deserializeIndex, searchIndex } = ChromeUtils.importESModule("resource:///modules/EvaartaContentIndex.sys.mjs");
+
 const PREF = "mail.evaarta.workspace.json";
 const INDEX_PREF = "mail.evaarta.contentIndex.json";
 let workspace;
@@ -81,7 +83,7 @@ function indexWorkspace() {
       title: item.title || item.kind,
       kind: item.kind,
       text: [item.text, item.anchor?.quote].filter(Boolean).join(" "),
-      metadata: { page: item.anchor?.page, annotationType: item.annotationType },
+      metadata: { page: item.anchor?.page, annotationType: item.annotationType, itemId: item.id, itemKind: item.kind },
     }));
   }
   saveContentIndex();
