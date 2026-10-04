@@ -712,3 +712,6 @@ select:focus-visible,
 .graph-link-target-row { display: flex; gap: 6px; align-items: center; }
 .graph-link-target-row select { min-width: 105px; padding: 5px 7px; font-size: .78em; }
 .graph-link-target-row button { flex: 1; text-align: left; font-size: .78em; }
+
+#offlineStatus[data-ready="true"] { font-weight: 600; }
+#offlineStatus[data-ready="false"] { opacity: .8; }
