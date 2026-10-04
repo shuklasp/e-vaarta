@@ -154,3 +154,8 @@ Library-backed cards on the workspace canvas are now treated as first-class sour
 ## Phase 28: Visual source previews
 
 First-class source cards now include lightweight visual previews. Image documents render their image thumbnail, PDFs render page one through the existing PDF viewer, and Office, email, and other document types use a compact type marker. Preview failures fall back to the document type without affecting source actions or workspace data.
+
+
+## Phase 29: Interactive source previews
+
+Source previews on workspace cards are now explicit source-opening controls. Clicking or keyboard-activating a preview selects and opens the source without triggering the surrounding card's graph-selection behavior. Hover and focus states provide visual feedback, while previews remain non-editable.
