@@ -48,7 +48,7 @@ EXTRA_JS_MODULES += [
     "EvaartaTaskWorkManagement.sys.mjs",
     "EvaartaTaskWorkBenchmark.sys.mjs",
     "EvaartaTaskWorkOperatingSystem.sys.mjs",
-    "EvaartaTaskWorkOperatingSystemBenchmark.sys.mjs",
+    "EvaartaTaskWorkOperatingSystemBenchmark.sys.mjs",\n    "EvaartaTaskWorkPhaseF.sys.mjs",\n    "EvaartaTaskWorkPhaseFBenchmark.sys.mjs",
     "EvaartaKnowledgeAuthoring.sys.mjs",
     "EvaartaAutomationEngine.sys.mjs",
     "EvaartaAccessibility.sys.mjs",
