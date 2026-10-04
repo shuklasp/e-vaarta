@@ -939,7 +939,7 @@ function render() {
     card.addEventListener("click", () => {
       selectItem(item);
       const source = sourceForItem(item);
-      if (source && item.metadata?.libraryCard) {
+      if (source) {
         selectedDocumentId = source.id;
         focusLibrarySource(source);
       }
