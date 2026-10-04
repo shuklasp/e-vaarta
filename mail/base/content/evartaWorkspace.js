@@ -570,6 +570,12 @@ function renderSearchResults(query = "") {
       if (result.type === "document") {
         const source = workspace.documents.find(document => document.id === result.documentId);
         if (source) selectDocument(source);
+      } else if (result.type === "email-body" || result.kind === "email-body") {
+        if (result.sourceRef) {
+          try {
+            window.openDialog("chrome://messenger/content/messageWindow.xhtml", "_blank", "chrome,dialog=no,all", result.sourceRef);
+          } catch (error) { console.error("e-Vaarta: unable to open indexed email", error); }
+        }
       } else {
         const item = findItem(result.id);
         if (item) {
