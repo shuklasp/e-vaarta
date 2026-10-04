@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shuklasp/e-vaarta/blob/main/evaarta/core/schema/evaarta-model.schema.json",
+  "title": "e-Vaarta Core Model",
+  "description": "Version 1 shared domain contract for e-Vaarta clients and services.",
+  "type": "object",
+  "required": ["version", "entities"],
+  "properties": {
+    "version": { "const": 1 },
+    "entities": {
+      "type": "object",
+      "required": ["people", "conversations", "messages", "projects", "tasks"],
+      "properties": {
+        "people": { "type": "array", "items": { "$ref": "#/$defs/person" } },
+        "conversations": { "type": "array", "items": { "$ref": "#/$defs/conversation" } },
+        "messages": { "type": "array", "items": { "$ref": "#/$defs/message" } },
+        "projects": { "type": "array", "items": { "$ref": "#/$defs/project" } },
+        "tasks": { "type": "array", "items": { "$ref": "#/$defs/task" } }
+      }
+    }
+  },
+  "$defs": {
+    "channel": {
+      "type": "string",
+      "enum": ["email", "sms", "rcs", "whatsapp", "signal", "telegram", "slack", "teams", "matrix", "xmpp", "other"]
+    },
+    "person": {
+      "type": "object",
+      "required": ["id", "displayName", "addresses"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "displayName": { "type": "string" },
+        "addresses": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "message": {
+      "type": "object",
+      "required": ["id", "conversationId", "senderId", "timestamp", "channel", "body", "state"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "conversationId": { "type": "string", "minLength": 1 },
+        "senderId": { "type": "string", "minLength": 1 },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "channel": { "$ref": "#/$defs/channel" },
+        "body": { "type": "string" },
+        "state": { "enum": ["draft", "sent", "delivered", "read", "failed"] },
+        "attachmentIds": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "conversation": {
+      "type": "object",
+      "required": ["id", "participantIds", "channel", "messageIds"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": ["string", "null"] },
+        "participantIds": { "type": "array", "items": { "type": "string" } },
+        "channel": { "$ref": "#/$defs/channel" },
+        "messageIds": { "type": "array", "items": { "type": "string" } },
+        "projectId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "project": {
+      "type": "object",
+      "required": ["id", "name", "taskIds"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": ["string", "null"] },
+        "ownerId": { "type": ["string", "null"] },
+        "taskIds": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "task": {
+      "type": "object",
+      "required": ["id", "title", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "projectId": { "type": ["string", "null"] },
+        "status": { "enum": ["todo", "in_progress", "blocked", "done", "cancelled"] },
+        "assigneeId": { "type": ["string", "null"] },
+        "dueAt": { "type": ["string", "null"], "format": "date-time" },
+        "sourceConversationId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  }
+}
