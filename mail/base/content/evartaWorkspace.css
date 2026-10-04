@@ -659,3 +659,8 @@ select:focus-visible,
 .edge-derived .edge-line { stroke-dasharray: 5 4; opacity: .72; }
 .edge-derived .edge-label { font-size: .72em; opacity: .72; }
 .edge-derived-active .edge-line { stroke-width: 3; opacity: 1; }
+
+
+.annotation-row { cursor: pointer; }
+.annotation-row.annotation-selected { outline: 1px solid Highlight; outline-offset: 2px; }
+.annotation-row:hover { background: color-mix(in srgb, CanvasText 5%, transparent); }
