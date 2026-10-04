@@ -104,3 +104,8 @@ The backend currently OCRs local image documents. It runs Tesseract through Thun
 Scanned and mixed-content PDFs now use page-aware OCR. e-Vaarta obtains the PDF.js document, renders each page to an off-screen canvas at OCR resolution, writes a temporary PNG, and sends that image through the local OCR adapter. Each OCR result is indexed independently as `ocr-text-page` with its PDF page number. Pages that already contain native PDF text are skipped, allowing mixed PDFs to combine native extraction and OCR without duplicating content.
 
 Temporary rendered images are deleted after OCR. OCR indexing therefore stores searchable text and page metadata, not page image copies. Search results can use the recorded page number to reopen the PDF at the relevant page.
+
+
+## Phase 16: Source-aware search navigation
+
+Search results now include a contextual excerpt generated around the first matched term and optional source location metadata. OCR page entries expose their PDF page number. Selecting a page-aware result opens the corresponding source directly at that page; email-body results continue to open the original Thunderbird message. Index version 3 migrates existing v1/v2 indexes automatically.
