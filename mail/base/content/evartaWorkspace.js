@@ -19,6 +19,7 @@ const {
 const { createIndex, createIndexEntry, upsertIndexEntry, serializeIndex, deserializeIndex, searchIndex, upsertExtractedContent, needsReindex, fingerprintText } = ChromeUtils.importESModule("resource:///modules/EvaartaContentIndex.sys.mjs");
 const { extractOfficeText } = ChromeUtils.importESModule("resource:///modules/EvaartaOfficeExtractor.sys.mjs");
 const { extractOcrText, isOcrAvailable } = ChromeUtils.importESModule("resource:///modules/EvaartaOcr.sys.mjs");
+const { getEvidenceForDocument, getEvidenceGroupsForDocument } = ChromeUtils.importESModule("resource:///modules/EvaartaEvidenceNavigator.sys.mjs");
 
 const PREF = "mail.evaarta.workspace.json";
 const INDEX_PREF = "mail.evaarta.contentIndex.json";
@@ -1570,19 +1571,12 @@ function openSelectedEmailSource() {
 
 function evidenceForSource(source) {
   if (!source) return [];
-  return workspace.items.filter(item =>
-    item.anchor?.documentId === source.id &&
-    !item.metadata?.libraryCard &&
-    (item.kind === "excerpt" || item.kind === "annotation")
-  );
+  return getEvidenceForDocument(workspace, source.id);
 }
 
 function evidenceGroupsForSource(source) {
-  const groups = new Map();
-  for (const item of evidenceForSource(source)) {
-    for (const group of evidenceGroupsForItem(workspace, item.id) || []) groups.set(group.id, group);
-  }
-  return [...groups.values()];
+  if (!source) return [];
+  return getEvidenceGroupsForDocument(workspace, source.id);
 }
 
 function sourceForItem(item) {
