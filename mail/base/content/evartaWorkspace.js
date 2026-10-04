@@ -1221,6 +1221,8 @@ function openSourceContextMenu(source) {
   if (!source) return;
   sourceContextDocumentId = source.id;
   document.getElementById("sourceContextTitle").textContent = source.title || "Source";
+  document.getElementById("sourceContextVaultRecoverButton").disabled = !source.vault;
+  document.getElementById("sourceContextVaultDetachButton").disabled = !source.vault;
   document.getElementById("sourceContextMenu").showModal();
 }
 
