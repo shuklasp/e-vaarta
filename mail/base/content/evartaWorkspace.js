@@ -688,7 +688,19 @@ async function openDocument() {
     : lowerName.endsWith(".docx") ? "word"
     : lowerName.endsWith(".pptx") ? "powerpoint"
     : "other";
-  const source = createDocument({ title: file.leafName, kind, sourceRef: Services.io.newFileURI(file).spec, mimeType: kind == "pdf" ? "application/pdf" : null });
+  const mimeType = kind === "pdf"
+    ? "application/pdf"
+    : kind === "word"
+      ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      : kind === "powerpoint"
+        ? "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        : null;
+  const source = createDocument({
+    title: file.leafName,
+    kind,
+    sourceRef: Services.io.newFileURI(file).spec,
+    mimeType,
+  });
   workspace = addDocument(workspace, source);
   workspace.updatedAt = new Date().toISOString();
   saveWorkspace();
