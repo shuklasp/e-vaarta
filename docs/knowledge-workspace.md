@@ -245,3 +245,8 @@ Existing documents without vault metadata remain compatible and continue using t
 ## Phase 45: Vault integrity and deduplication
 
 Vault-backed documents now carry SHA-256 content fingerprints and health metadata. When importing a file, e-Vaarta checks for an existing vault document with the same fingerprint and reuses that document instead of creating a duplicate local copy. Vault health can distinguish healthy, modified, missing, and unknown states by checking the local file and, when available, its fingerprint. The Document Library exposes the local vault state alongside the source.
+
+
+## Phase 46: Vault recovery and lifecycle management
+
+The offline vault now supports lifecycle operations from the source context menu. A missing or damaged local copy can be recovered from a user-selected file only when its SHA-256 fingerprint matches the stored fingerprint. Removing a vault reference safely deletes the local blob only when no other document references the same path; otherwise it detaches only the current document. This prevents accidental deletion of shared offline content.
