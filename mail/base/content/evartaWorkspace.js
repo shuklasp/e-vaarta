@@ -394,57 +394,111 @@ function selectDocument(source, page = null) {
   document.getElementById("openEmailSourceButton").hidden = source.kind !== "email";
   const sourceRef = source.sourceRef || "about:blank";
   document.getElementById("sourceViewer").src = page && source.kind === "pdf" ? sourceRef + "#page=" + page : sourceRef;
+  const viewer = document.getElementById("sourceViewer");
+  viewer.addEventListener("load", () => attachSourceSelectionBridge(source), { once: true });
   render();
+}
+
+let activeSourceSelection = null;
+const selectionCleanup = new WeakMap();
+
+function inspectPdfSelection(frameWindow) {
+  let selection;
+  try { selection = frameWindow.getSelection(); } catch (error) { return null; }
+  const text = selection?.toString().trim();
+  if (!text || !selection.rangeCount) return null;
+  const range = selection.getRangeAt(0);
+  let page = null;
+  let node = range.commonAncestorContainer;
+  if (node.nodeType !== node.ELEMENT_NODE) node = node.parentElement;
+  try {
+    const pageElement = node?.closest?.(".page[data-page-number]");
+    if (pageElement) page = Number(pageElement.dataset.pageNumber) || null;
+  } catch (error) {}
+  return {
+    text,
+    page,
+    startOffset: range.startOffset,
+    endOffset: range.endOffset,
+  };
+}
+
+function rememberSourceSelection(source, selection) {
+  if (!selection?.text) return;
+  activeSourceSelection = {
+    documentId: source.id,
+    page: selection.page,
+    quote: selection.text,
+    startOffset: selection.startOffset,
+    endOffset: selection.endOffset,
+  };
+  document.getElementById("sourceSelectionStatus").textContent =
+    selection.page ? "Selection ready • page " + selection.page : "Selection ready";
+}
+
+function attachSelectionBridge(source, frameWindow, seen = new Set()) {
+  if (!frameWindow || seen.has(frameWindow)) return;
+  seen.add(frameWindow);
+  const onSelectionChange = () => {
+    const selection = inspectPdfSelection(frameWindow);
+    if (selection) rememberSourceSelection(source, selection);
+  };
+  try {
+    frameWindow.document.addEventListener("selectionchange", onSelectionChange, true);
+    for (const frame of frameWindow.frames) attachSelectionBridge(source, frame, seen);
+  } catch (error) {}
+}
+
+function attachSourceSelectionBridge(source) {
+  const viewer = document.getElementById("sourceViewer");
+  if (!viewer) return;
+  activeSourceSelection = null;
+  document.getElementById("sourceSelectionStatus").textContent = "Select text in the source reader.";
+  try { attachSelectionBridge(source, viewer.contentWindow); }
+  catch (error) { console.warn("e-Vaarta: PDF selection bridge unavailable", error); }
+}
+
+function selectionForCurrentSource() {
+  const source = workspace.documents.find(document => document.id === selectedDocumentId);
+  if (!source || activeSourceSelection?.documentId !== source.id) return null;
+  return activeSourceSelection;
 }
 
 function captureSelection() {
   const source = workspace.documents.find(document => document.id === selectedDocumentId) || workspace.documents[0];
-  const viewer = document.getElementById("sourceViewer");
-  if (!source || !viewer?.contentWindow) { alert("Open a document first."); return; }
-  let selectedText = "";
-  let page = null;
-  try {
-    selectedText = viewer.contentWindow.getSelection()?.toString().trim() || "";
-    const match = viewer.contentWindow.location.hash.replace(/^#/, "").match(/(?:^|&)page=(\\d+)/);
-    page = match ? Number(match[1]) : null;
-  } catch (error) { console.warn("e-Vaarta: unable to read source selection", error); }
-  if (!selectedText) { alert("Select text in the source reader first."); return; }
-  workspace = addItem(workspace, createExcerpt({ anchor: createSourceAnchor({ documentId: source.id, page, quote: selectedText }), title: "Selected excerpt", text: selectedText }));
+  if (!source) { alert("Open a document first."); return; }
+  const selection = selectionForCurrentSource();
+  if (!selection?.quote) { alert("Select text in the source reader first."); return; }
+  workspace = addItem(workspace, createExcerpt({
+    anchor: createSourceAnchor({
+      documentId: source.id,
+      page: selection.page,
+      startOffset: selection.startOffset,
+      endOffset: selection.endOffset,
+      quote: selection.quote,
+    }),
+    title: "Selected excerpt",
+    text: selection.quote,
+  }));
   saveWorkspace();
   render();
 }
 
 function annotateSelection() {
   const source = workspace.documents.find(document => document.id === selectedDocumentId) || workspace.documents[0];
-  const viewer = document.getElementById("sourceViewer");
-  if (!source || !viewer?.contentWindow) {
-    alert("Open a document first.");
-    return;
-  }
-
-  let selectedText = "";
-  let page = null;
-  try {
-    selectedText = viewer.contentWindow.getSelection()?.toString().trim() || "";
-    const match = viewer.contentWindow.location.hash.replace(/^#/, "").match(/(?:^|&)page=(\d+)/);
-    page = match ? Number(match[1]) : null;
-  } catch (error) {
-    console.warn("e-Vaarta: unable to read source selection", error);
-  }
-
-  if (!selectedText) {
-    alert("Select text in the source reader first.");
-    return;
-  }
-
+  if (!source) { alert("Open a document first."); return; }
+  const selection = selectionForCurrentSource();
+  if (!selection?.quote) { alert("Select text in the source reader first."); return; }
   workspace = addItem(workspace, createAnnotation({
     anchor: createSourceAnchor({
       documentId: source.id,
-      page,
-      quote: selectedText,
+      page: selection.page,
+      startOffset: selection.startOffset,
+      endOffset: selection.endOffset,
+      quote: selection.quote,
     }),
     annotationType: "highlight",
-    text: selectedText,
+    text: selection.quote,
   }));
   saveWorkspace();
   render();
