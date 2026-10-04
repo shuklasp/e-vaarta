@@ -25,6 +25,7 @@ let workspace;
 let contentIndex;
 let selectedDocumentId = null;
 let libraryFilter = "";
+let libraryCollection = "all";
 let libraryView = "list";
 let metadataEditorDocumentId = null;
 let selectedItemId = null;
@@ -538,7 +539,18 @@ function sourceKindLabel(kind) {
   return ({ pdf: "PDF", word: "Word", powerpoint: "PowerPoint", image: "Image", email: "Email", web: "Web" }[kind] || "Document");
 }
 
+function sourceMatchesCollection(source) {
+  if (libraryCollection === "recent") {
+    const stamp = new Date(source.updatedAt || source.createdAt || 0).getTime();
+    return Date.now() - stamp <= 7 * 24 * 60 * 60 * 1000;
+  }
+  if (libraryCollection === "office") return ["word", "powerpoint"].includes(source.kind);
+  if (libraryCollection === "all") return true;
+  return source.kind === libraryCollection;
+}
+
 function sourceMatchesFilter(source) {
+  if (!sourceMatchesCollection(source)) return false;
   const query = libraryFilter.trim().toLocaleLowerCase();
   if (!query) return true;
   return [source.title, source.description, source.kind, ...(source.tags || [])]
@@ -556,7 +568,14 @@ function render() {
   sourceList.replaceChildren();
   sourceList.classList.toggle("library-grid", libraryView === "grid");
   const libraryToolbar = document.createElement("div");
-  libraryToolbar.className = "library-toolbar";  const viewButton = document.createElement("button");
+  libraryToolbar.className = "library-toolbar";  document.querySelectorAll(".library-filter").forEach(button => {
+    button.classList.toggle("active", button.dataset.libraryFilter === libraryCollection);
+    button.addEventListener("click", () => {
+      libraryCollection = button.dataset.libraryFilter;
+      render();
+    });
+  });
+  const viewButton = document.createElement("button");
   viewButton.type = "button";
   viewButton.className = "quiet";
   viewButton.textContent = libraryView === "list" ? "Grid" : "List";
