@@ -21,7 +21,8 @@
         <button id="openDocumentButton">Open document</button>
         <button id="addExcerptButton">Add excerpt</button>
         <button id="captureSelectionButton">Capture selection</button>
-        <button id="annotateSelectionButton">Highlight selection</button><button id="annotationPanelButton">Annotations</button><span id="ocrStatus" class="evaarta-status" title="OCR backend status">OCR: unavailable</span>
+        <button id="annotateSelectionButton">Highlight selection</button><button id="annotationPanelButton">Annotations</button>
+        <button id="evidenceGroupsButton">Evidence groups</button><span id="ocrStatus" class="evaarta-status" title="OCR backend status">OCR: unavailable</span>
       <button id="searchButton">Search</button>
       </div>
     </header>
@@ -132,6 +133,17 @@
       </div>
       <div id="customCollectionList" class="custom-collection-list"></div>
     </form>
+  </dialog>
+  <dialog id="evidenceGroupsPane" class="item-editor">
+    <div class="editor-heading">
+      <div><div class="eyebrow">e-Vaarta</div><h2>Evidence groups</h2></div>
+      <button type="button" id="evidenceGroupsCloseButton" class="quiet">Close</button>
+    </div>
+    <div class="collection-create">
+      <input id="newEvidenceGroupName" type="text" maxlength="120" placeholder="New evidence group" />
+      <button type="button" id="newEvidenceGroupButton" class="primary">Create</button>
+    </div>
+    <div id="evidenceGroupList" class="evidence-group-list"></div>
   </dialog>
   <dialog id="sourceContextMenu" class="item-editor source-context-menu">
     <div class="editor-heading">
