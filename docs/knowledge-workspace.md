@@ -45,3 +45,10 @@ PDF selections now capture optional PDF.js text-layer selectors and selection re
 ## Phase 7: Annotation management
 
 The workspace now includes an annotation panel with a source-bound list, jump-to-source, edit, and delete actions. Annotations retain their source anchor and graph relationships when edited. The annotation model supports highlight, underline, strikethrough, and comment types plus a persisted color. PDF.js text-layer restoration applies the appropriate visual class and color when the annotation is reopened.
+
+
+## Phase 8: Document Library and unified search
+
+The shared document model is now version 3 and supports document descriptions and tags. The model also provides a workspace search function covering source documents, notes, excerpts, and annotations, with source document context attached to item results. The desktop workspace exposes this through a unified Search panel; selecting a result opens the source or jumps to the corresponding source-bound item.
+
+This is the first library/search foundation rather than a full-text extraction service. PDF/Office content indexing should be added as a separate ingestion layer so large documents are not embedded wholesale in workspace JSON.
