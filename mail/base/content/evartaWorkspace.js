@@ -142,14 +142,52 @@ async function migrateLegacyVaultRecords() {
   return migrated;
 }
 
+async function collectVaultMaintenance() {
+  await reconcileVaultManifest();
+  const referenced = new Set(workspace.documents.map(item => item.vault?.sha256).filter(Boolean));
+  const orphaned = Object.entries(vaultManifest.blobs).filter(([hash]) => !referenced.has(hash));
+  const missing = [];
+  for (const [hash, blob] of Object.entries(vaultManifest.blobs)) {
+    try {
+      await IOUtils.stat(PathUtils.join(EVAARTA_DATA_DIR, blob.relativePath));
+    } catch (error) {
+      missing.push(hash);
+    }
+  }
+  return { orphaned, missing };
+}
+
+async function garbageCollectVault() {
+  const { orphaned } = await collectVaultMaintenance();
+  let removed = 0;
+  for (const [hash, blob] of orphaned) {
+    try {
+      await IOUtils.remove(PathUtils.join(EVAARTA_DATA_DIR, blob.relativePath));
+      delete vaultManifest.blobs[hash];
+      removed += 1;
+    } catch (error) {
+      console.warn("e-Vaarta vault garbage collection skipped", hash, error);
+    }
+  }
+  if (removed) await saveVaultManifest();
+  return removed;
+}
+
+async function repairVaultManifest() {
+  await reconcileVaultManifest();
+  return collectVaultMaintenance();
+}
+
 async function openVaultManager() {
   const dialog = document.getElementById("vaultManager");
   if (!dialog) return;
   const stats = await scanVault();
+  const maintenance = await collectVaultMaintenance();
   document.getElementById("vaultManagerSummary").textContent =
     stats.total + " local documents • " + stats.healthy + " healthy • " +
     stats.missing + " missing • " + stats.modified + " modified • " +
-    stats.shared + " shared blobs • " + stats.orphaned + " orphaned • " + formatBytes(stats.bytes);
+    stats.shared + " shared blobs • " + maintenance.orphaned.length + " orphaned • " +
+    maintenance.missing.length + " missing blobs • " + formatBytes(stats.bytes);
   const list = document.getElementById("vaultManagerList");
   list.replaceChildren();
   for (const source of workspace.documents.filter(item => item.vault)) {
