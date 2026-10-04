@@ -1,0 +1,3 @@
+/* MPL-2.0 */
+export function createEvidenceSurface(workspace, documentId){ const groups=(workspace?.evidenceGroups||[]).filter(g=>g.documentId===documentId); return {documentId,groups,selectedGroupId:null}; }
+export function addEvidenceToGroup(workspace,groupId,itemId){ const group=(workspace?.evidenceGroups||[]).find(g=>g.id===groupId); if(!group) throw new Error("evidence group not found"); if(!group.itemIds.includes(itemId)) group.itemIds.push(itemId); return group; }
