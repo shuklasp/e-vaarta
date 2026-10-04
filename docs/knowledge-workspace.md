@@ -184,3 +184,8 @@ Source-aware excerpts are now visually identified as evidence nodes. Their autom
 ## Phase 34: Evidence navigation
 
 Evidence excerpts are now first-class navigation targets. Selecting an anchored excerpt synchronizes the Canvas selection with its originating document in the Document Library and opens the Reader at the stored page. When a quote is available, the Reader also restores the stored evidence selection using the PDF.js span selector first and the quoted text as a fallback. The Canvas keeps the evidence card visibly active while the navigation occurs. The explicit action on anchored evidence is labelled **Jump to evidence**, while other anchored items retain **Jump to source**.
+
+
+## Phase 35: Annotation synchronization
+
+Annotations now participate in bidirectional source synchronization. PDF selections preserve their page, quote, PDF.js span selector, and selection rectangles when creating annotations. Selecting an annotation jumps to its anchored source and focuses its Canvas card; selecting the matching source passage automatically selects the corresponding annotation card when one exists. Anchor restoration is guarded so programmatic PDF selection does not recursively trigger annotation synchronization. The annotation panel's Jump to annotation action uses the same synchronized navigation path.
