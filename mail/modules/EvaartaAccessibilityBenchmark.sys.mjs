@@ -6,7 +6,7 @@
 export const AccessibilityMode = Object.freeze({
   KEYBOARD: "keyboard",
   SCREEN_READER: "screen-reader",
-  REALLOW: "reflow",
+  REFLOW: "reflow",
   TEXT_SCALE: "text-scale",
   HIGH_CONTRAST: "high-contrast",
   FOCUS: "focus",
