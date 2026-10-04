@@ -337,3 +337,10 @@ Search results are now source-aware navigation targets. PDF results with page me
 Search results now provide an explicit **Preview** action that opens an inline evidence preview without leaving the current workspace. The preview keeps the existing excerpt and provenance information together and adds the resolved source, collections, evidence-group membership, and graph relationships when those entities are available.
 
 The preview's **Open evidence** action reuses the existing source-aware navigation path, including page-aware PDF navigation and email-source opening. Preview is therefore a non-destructive inspection step: users can evaluate evidence context before committing to navigation away from the current canvas state.
+
+
+## Phase 64: Persistent evidence context
+
+Evidence context is now available directly from annotation rows and workspace canvas evidence cards. An **Inspect context** action reveals the evidence's source, source page, evidence-group membership, and graph relationships without replacing the current workspace state. The same source-aware **Jump to evidence** / **Jump to source** behavior remains available from the context panel.
+
+This extends Phase 63 beyond search: evidence can now be inspected wherever it is already being worked with, while navigation remains an explicit user action.
