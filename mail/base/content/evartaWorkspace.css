@@ -570,3 +570,13 @@ select:focus-visible,
 
 .search-result small { display: block; opacity: 0.7; margin-top: 2px; }
 .search-result p { margin: 4px 0 0; }
+
+.library-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.library-toolbar input { flex: 1; min-width: 0; }
+.library-summary { opacity: .65; font-size: .8em; white-space: nowrap; }
+.source-row { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; }
+.source-row[aria-current="true"] { font-weight: 600; }
+.source-icon { min-width: 52px; font-size: .7em; text-align: center; opacity: .7; }
+.source-info { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.source-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.source-info small { opacity: .65; margin-top: 2px; }
