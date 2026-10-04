@@ -82,6 +82,38 @@ function findTextRange(root, quote) {
   return null;
 }
 
+function restorePdfHighlight(anchor) {
+  const viewer = document.getElementById("sourceViewer");
+  if (!viewer?.contentWindow || anchor?.page == null) return false;
+  const selector = anchor.selector;
+  if (!selector?.spanIndexes?.length) return false;
+  const seen = new Set();
+
+  function visit(win) {
+    if (!win || seen.has(win)) return false;
+    seen.add(win);
+    try {
+      const page = win.document.querySelector(".page[data-page-number='" + anchor.page + "']");
+      const textLayer = page?.querySelector(".textLayer");
+      if (!textLayer) return false;
+      const spans = [...textLayer.querySelectorAll("span")];
+      for (const index of selector.spanIndexes) {
+        const span = spans[index];
+        if (!span) continue;
+        span.classList.add("evaarta-persistent-highlight");
+      }
+      if (selector.spanIndexes.some(index => spans[index])) {
+        const first = spans[selector.spanIndexes[0]];
+        first?.scrollIntoView({ block: "center", behavior: "smooth" });
+        return true;
+      }
+    } catch (error) {}
+    for (const frame of win.frames) if (visit(frame)) return true;
+    return false;
+  }
+  return visit(viewer.contentWindow);
+}
+
 function restorePdfAnchor(anchor) {
   const viewer = document.getElementById("sourceViewer");
   if (!viewer?.contentWindow || !anchor?.quote) return false;
@@ -460,7 +492,10 @@ function selectDocument(source, page = null, anchor = null) {
   viewer.addEventListener("load", () => {
     attachSourceSelectionBridge(source);
     if (anchor?.quote) {
-      setTimeout(() => restorePdfAnchor(anchor), 250);
+      setTimeout(() => {
+        restorePdfHighlight(anchor);
+        restorePdfAnchor(anchor);
+      }, 250);
     }
   }, { once: true });
   render();
