@@ -11,7 +11,7 @@
  * metadata, OCR output, or other sources without inflating workspace JSON.
  */
 
-export const EVAARTA_INDEX_VERSION = 2;
+export const EVAARTA_INDEX_VERSION = 3;
 
 function now() {
   return new Date().toISOString();
@@ -105,6 +105,17 @@ export function fingerprintText(text) {
   return (hash >>> 0).toString(16);
 }
 
+function buildSearchExcerpt(text, terms, radius = 120) {
+  const value = String(text || "").replace(/\s+/g, " ").trim();
+  if (!value) return "";
+  const lower = value.toLocaleLowerCase();
+  const positions = terms.map(term => lower.indexOf(term)).filter(position => position >= 0);
+  const position = positions.length ? Math.min(...positions) : 0;
+  const start = Math.max(0, position - radius);
+  const end = Math.min(value.length, position + radius);
+  return (start > 0 ? "… " : "") + value.slice(start, end) + (end < value.length ? " …" : "");
+}
+
 export function searchIndex(index, query, limit = 100) {
   const needle = normalize(query);
   if (!needle) return [];
@@ -119,6 +130,8 @@ export function searchIndex(index, query, limit = 100) {
         type: entry.metadata?.itemKind || (entry.kind === "document" ? "document" : entry.kind),
         id: entry.metadata?.itemId || entry.documentId,
         score: matched / terms.length,
+        page: entry.metadata?.page ?? null,
+        excerpt: buildSearchExcerpt(entry.text, terms),
       };
     })
     .filter(Boolean)
@@ -132,9 +145,14 @@ export function serializeIndex(index) {
 
 export function deserializeIndex(serialized) {
   const index = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
-  if (index?.version === 1) {
+  if (index?.version === 1 || index?.version === 2) {
     index.version = EVAARTA_INDEX_VERSION;
-    for (const entry of index.entries || []) entry.metadata ||= {};
+    for (const entry of index.entries || []) {
+      entry.metadata ||= {};
+      if (entry.kind === "ocr-text-page" && entry.metadata.page == null) {
+        entry.metadata.page = null;
+      }
+    }
   }
   if (index?.version !== EVAARTA_INDEX_VERSION) {
     throw new Error(`Unsupported e-Vaarta index version: ${index?.version}`);
