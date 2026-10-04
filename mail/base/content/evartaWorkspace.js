@@ -26,16 +26,32 @@ let workspace;
 let selectedDocumentId = null;
 let linkSourceId = null;
 
+function importPendingAttachments(workspace) {
+  try {
+    const value = Services.prefs.getStringPref("mail.evaarta.pendingAttachments", "");
+    if (!value) return workspace;
+    const pending = JSON.parse(value);
+    Services.prefs.clearUserPref("mail.evaarta.pendingAttachments");
+    for (const source of pending) {
+      if (!source?.title || !source?.sourceRef) continue;
+      workspace = addDocument(workspace, createDocument(source));
+    }
+  } catch (error) {
+    console.error("e-Vaarta: failed to import pending attachments", error);
+  }
+  return workspace;
+}
+
 function loadWorkspace() {
   try {
     const value = Services.prefs.getStringPref(PREF, "");
     if (value) {
-      return JSON.parse(value);
+      return importPendingAttachments(JSON.parse(value));
     }
   } catch (error) {
     console.error("e-Vaarta: failed to load workspace", error);
   }
-  return createWorkspace({ name: "My workspace" });
+  return importPendingAttachments(createWorkspace({ name: "My workspace" }));
 }
 
 function saveWorkspace() {
