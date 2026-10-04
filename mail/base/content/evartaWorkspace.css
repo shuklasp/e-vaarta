@@ -583,3 +583,8 @@ select:focus-visible,
 
 .workspace-canvas.canvas-drop-active { outline: 2px dashed currentColor; outline-offset: -6px; }
 .workspace-canvas.canvas-drop-active::before { content: "Drop source here"; position: absolute; inset: 12px; display: grid; place-items: start center; pointer-events: none; opacity: .7; font-weight: 600; z-index: 5; }
+
+.source-row { position: relative; padding-right: 4px; }
+.source-edit { margin-left: auto; opacity: .65; }
+.source-edit:hover { opacity: 1; }
+.document-pane .item-editor { min-width: 420px; }
