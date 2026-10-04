@@ -2233,6 +2233,16 @@ sourceList.replaceChildren();
 
     const source = sourceForItem(item);
     if (source) {
+      const evidence = evidenceForSource(source);
+      const groups = evidenceGroupsForSource(source);
+      if (evidence.length || groups.length) {
+        const usage = document.createElement("div");
+        usage.className = "evidence-source-usage";
+        usage.textContent = evidence.length + " evidence item" + (evidence.length === 1 ? "" : "s") +
+          (groups.length ? " • " + groups.length + " group" + (groups.length === 1 ? "" : "s") : "");
+        usage.title = "Evidence and groups referencing this source";
+        card.append(usage);
+      }
       if (item.metadata?.libraryCard) {
         const preview = document.createElement("div");
         preview.className = "workspace-source-preview";
