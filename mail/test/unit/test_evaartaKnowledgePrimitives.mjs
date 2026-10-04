@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import {createCanvasState,addCanvasNode,connectCanvasNodes,semanticZoom,validateCanvas} from "../../modules/EvaartaSpatialWorkspace.sys.mjs";
+import {hybridRank} from "../../modules/EvaartaHybridSearch.sys.mjs";
+import {extractIdentifiers,parseBibTeX,toCSL} from "../../modules/EvaartaCitation.sys.mjs";
+import {createTask,validateTaskGraph,criticalPath,projectStatus} from "../../modules/EvaartaProjectPlanning.sys.mjs";
+import {mergeSemanticEvents} from "../../modules/EvaartaSemanticMerge.sys.mjs";
+import {buildGroundedAnswer,unsupportedClaims} from "../../modules/EvaartaGroundedAI.sys.mjs";
+let c=createCanvasState(); addCanvasNode(c,{id:"a",x:10,y:20}); addCanvasNode(c,{id:"b"}); connectCanvasNodes(c,{from:"a",to:"b",type:"supports"}); semanticZoom(c,2); assert.equal(validateCanvas(c),true);
+assert.equal(hybridRank("solar",[{id:"1",text:"solar energy"}])[0].id,"1");
+assert.equal(extractIdentifiers("doi 10.1234/ABC").doi[0],"10.1234/abc");
+const bib=parseBibTeX("@article{x,\n title={Test},\n author={Doe, Jane},\n year={2026}\n}"); assert.equal(toCSL(bib[0]).title,"Test");
+const tasks=[createTask({id:"a",title:"A",duration:2}),createTask({id:"b",title:"B",dependsOn:["a"],duration:3})]; assert.equal(validateTaskGraph(tasks),true); assert.equal(criticalPath(tasks)[0].pathLength,5); assert.equal(projectStatus(tasks),"planned");
+assert.equal(mergeSemanticEvents([], [{id:"a",v:1}], [{id:"a",v:2}]).hasConflicts,true);
+const grounded=buildGroundedAnswer({answer:"x",claims:[{id:"c",evidenceIds:["e"]}],evidence:[{id:"e",sourceId:"s"}]}); assert.equal(grounded.grounded,true); assert.equal(unsupportedClaims(grounded).length,0);
+console.log("e-Vaarta knowledge primitives passed");
