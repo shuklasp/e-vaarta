@@ -1,12 +1,9 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { createCredentialReference, createCapabilityToken, authorizeAction, createRetentionDecision } from "../../mail/modules/EvaartaProductionIntegration.sys.mjs";
-import { createProviderAdapter, canProvider, normalizeProviderEnvelope } from "../../mail/modules/EvaartaProviderAdapters.sys.mjs";
-import { createCalendarAdapter, calendarRequest, mergeFreeBusy } from "../../mail/modules/EvaartaCalendarProviders.sys.mjs";
-import { classifyCommunication, secureDeletionDecision } from "../../mail/modules/EvaartaSecurityBoundary.sys.mjs";
-
-test("credentials contain references, not secret material",()=>{const r=createCredentialReference({provider:"slack",accountId:"a",secretRef:"os-keychain:a"});assert.equal(r.secretMaterial,null);assert.equal(r.secretRef,"os-keychain:a");});
-test("capability authorization fails closed",()=>{const t=createCapabilityToken({subject:"u",capability:"send",resource:"conversation:c",expiresAt:"2099-01-01T00:00:00Z",nonce:"n"});assert.equal(authorizeAction({token:t,requiredCapability:"send",resource:"conversation:c"}).allowed,true);assert.equal(authorizeAction({token:t,requiredCapability:"delete",resource:"conversation:c"}).allowed,false);});
-test("provider boundary normalizes provenance",()=>{const a=createProviderAdapter({id:"s",provider:"slack",channel:"slack",capabilities:["send"]});assert.equal(canProvider(a,"send"),true);const e=normalizeProviderEnvelope({provider:"slack",channel:"slack",externalId:"x",conversationId:"c",sender:"u",body:"hi"});assert.equal(e.provenance.externalId,"x");});
-test("calendar free-busy merge is deterministic",()=>{const a=createCalendarAdapter({id:"g",provider:"google",capabilities:["free-busy"]});assert.equal(calendarRequest({adapter:a,operation:"free-busy"}).allowed,true);assert.equal(mergeFreeBusy([[{start:"2026-10-01T10:00:00Z",end:"2026-10-01T11:00:00Z"}],[{start:"2026-10-01T10:30:00Z",end:"2026-10-01T12:00:00Z"}]]).length,1);});
-test("security fails closed on active attachments",()=>{assert.equal(classifyCommunication({attachments:[{name:"payload.exe"}]}).decision,"require-confirmation");assert.equal(secureDeletionDecision({legalHold:true,retentionExpired:true}).allowed,false);});
+import { createCredentialReference, createCapabilityToken, authorizeAction } from "../modules/EvaartaProductionIntegration.sys.mjs";
+import { createProviderAdapter, canProvider, normalizeProviderEnvelope } from "../modules/EvaartaProviderAdapters.sys.mjs";
+import { createCalendarAdapter, calendarRequest, mergeFreeBusy } from "../modules/EvaartaCalendarProviders.sys.mjs";
+import { classifyCommunication, secureDeletionDecision } from "../modules/EvaartaSecurityBoundary.sys.mjs";
+const r=createCredentialReference({provider:"slack",accountId:"a",secretRef:"os-keychain:a"}); if(r.secretMaterial!==null)throw new Error("credential");
+const t=createCapabilityToken({subject:"u",capability:"send",resource:"conversation:c",expiresAt:"2099-01-01T00:00:00Z",nonce:"n"}); if(!authorizeAction({token:t,requiredCapability:"send",resource:"conversation:c"}).allowed)throw new Error("auth"); if(authorizeAction({token:t,requiredCapability:"delete",resource:"conversation:c"}).allowed)throw new Error("fail-closed");
+const a=createProviderAdapter({id:"s",provider:"slack",channel:"slack",capabilities:["send"]}); if(!canProvider(a,"send"))throw new Error("provider"); if(normalizeProviderEnvelope({provider:"slack",channel:"slack",externalId:"x",conversationId:"c",sender:"u",body:"hi"}).provenance.externalId!=="x")throw new Error("provenance");
+const ca=createCalendarAdapter({id:"g",provider:"google",capabilities:["free-busy"]}); if(!calendarRequest({adapter:ca,operation:"free-busy"}).allowed)throw new Error("calendar"); if(mergeFreeBusy([[{start:"2026-10-01T10:00:00Z",end:"2026-10-01T11:00:00Z"}],[{start:"2026-10-01T10:30:00Z",end:"2026-10-01T12:00:00Z"}]]).length!==1)throw new Error("busy");
+if(classifyCommunication({attachments:[{name:"payload.exe"}]}).decision!=="require-confirmation")throw new Error("security"); if(secureDeletionDecision({legalHold:true,retentionExpired:true}).allowed)throw new Error("legal-hold");
