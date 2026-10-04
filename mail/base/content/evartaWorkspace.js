@@ -2666,6 +2666,7 @@ async function indexOcrSource(source, pageCanvases = null) {
               page: pageNumber,
               language: result.language,
               confidence: result.confidence,
+              provenance: extractionProvenance("ocr", source, { page: pageNumber, language: result.language, confidence: result.confidence }),
             },
             fingerprint,
           });
@@ -2726,7 +2727,7 @@ async function indexPdfUnified(source, frameWindow) {
     contentIndex = upsertExtractedContent(contentIndex, {
       documentId: source.id, sourceRef: source.sourceRef, title: source.title,
       kind: "pdf-text", text: extracted.text,
-      metadata: { mimeType: "application/pdf", pageCount: extracted.pageTexts.length, pagesWithText: extracted.pageTexts.filter(p => p.text).map(p => p.page) },
+      metadata: { mimeType: "application/pdf", pageCount: extracted.pageTexts.length, pagesWithText: extracted.pageTexts.filter(p => p.text).map(p => p.page), provenance: extractionProvenance("pdf-native", source, { pageCount: extracted.pageTexts.length }) },
       fingerprint,
     });
     for (const page of extracted.pageTexts.filter(item => item.text)) {
@@ -2736,7 +2737,7 @@ async function indexPdfUnified(source, frameWindow) {
           documentId: source.id + "-page-" + page.page,
           sourceRef: source.sourceRef, title: source.title + " — page " + page.page,
           kind: "pdf-text-page", text: page.text,
-          metadata: { mimeType: "application/pdf", page: page.page },
+          metadata: { mimeType: "application/pdf", page: page.page, provenance: extractionProvenance("pdf-native", source, { page: page.page }) },
           fingerprint: pageFingerprint,
         });
       }
@@ -2745,6 +2746,15 @@ async function indexPdfUnified(source, frameWindow) {
     return { text: extracted.text, indexed: true, method: "pdf", pageTexts: extracted.pageTexts };
   }
   return { text: extracted.text, indexed: false, method: "pdf", pageTexts: extracted.pageTexts };
+}
+
+function extractionProvenance(method, source, extra = {}) {
+  return {
+    method,
+    sourceKind: source?.kind || "unknown",
+    extractedAt: new Date().toISOString(),
+    ...extra,
+  };
 }
 
 async function extractAndIndexSource(source, options = {}) {
@@ -2759,7 +2769,7 @@ async function extractAndIndexSource(source, options = {}) {
           contentIndex = upsertExtractedContent(contentIndex, {
             documentId: source.id, sourceRef: source.sourceRef, title: source.title,
             kind: "office-text", text,
-            metadata: { mimeType: source.mimeType || null }, fingerprint,
+            metadata: { mimeType: source.mimeType || null, provenance: extractionProvenance("office", source) }, fingerprint,
           });
           await saveContentIndex();
           return { text, indexed: true, method: "office" };
@@ -2777,7 +2787,7 @@ async function extractAndIndexSource(source, options = {}) {
         if (needsReindex(contentIndex, source.id, "email-body", fingerprint)) {
           contentIndex = upsertExtractedContent(contentIndex, {
             documentId: source.id, sourceRef: source.sourceRef, title: source.title,
-            kind: "email-body", text, metadata: { sender: source.metadata?.sender || null }, fingerprint,
+            kind: "email-body", text, metadata: { sender: source.metadata?.sender || null, provenance: extractionProvenance("email-body", source) }, fingerprint,
           });
           await saveContentIndex();
           return { text, indexed: true, method: "email" };
@@ -2797,7 +2807,7 @@ async function extractAndIndexSource(source, options = {}) {
           contentIndex = upsertExtractedContent(contentIndex, {
             documentId: source.id, sourceRef: source.sourceRef, title: source.title,
             kind: "ocr-text", text,
-            metadata: { language: result?.language || null, confidence: result?.confidence ?? null },
+            metadata: { language: result?.language || null, confidence: result?.confidence ?? null, provenance: extractionProvenance("ocr", source, { language: result?.language || null, confidence: result?.confidence ?? null }) },
             fingerprint,
           });
           await saveContentIndex();
