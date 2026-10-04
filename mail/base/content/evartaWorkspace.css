@@ -779,3 +779,23 @@ select:focus-visible,
   gap: 6px;
   margin-top: 9px;
 }
+
+
+.evidence-context {
+  margin-top: 9px;
+  padding: 9px 10px;
+  border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  font-size: .78em;
+}
+.evidence-context-line {
+  margin-top: 5px;
+  line-height: 1.35;
+  opacity: .72;
+}
+.evidence-context-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.evidence-context-actions button { font-size: .75em; padding: 5px 8px; }
+.evidence-context:not(.expanded) .evidence-context-line { max-height: 2.7em; overflow: hidden; }
