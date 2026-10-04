@@ -226,3 +226,10 @@ Evidence-group cards now expose a live intelligence summary derived from their m
 ## Phase 42: Evidence-group relationships
 
 Evidence groups can now participate directly in the semantic knowledge graph as relationship sources. Selecting Link on a group exposes all other evidence groups and evidence items as targets and supports the existing relationship vocabulary: relates-to, supports, contradicts, derived-from, and references. Relationships remain persisted through the same workspace link model used by individual evidence.
+
+
+## Phase 43: Offline-first local storage
+
+e-Vaarta workspace persistence is now file-backed in the Thunderbird profile rather than relying on a large preference string. Workspace state is stored locally under the e-Vaarta profile data directory, with the content index stored separately. Existing preference data is migrated automatically when no local file exists. Writes are serialized to avoid concurrent state loss, and the UI exposes explicit offline/local-storage status. If file storage fails, the application retains a local preference fallback and continues in recovery mode.
+
+This phase is deliberately local-only: no network service is required to create, edit, navigate, search, annotate, group, or relate workspace evidence.
