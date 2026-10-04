@@ -2347,8 +2347,26 @@ function renderSearchResults(query = "") {
     const text = document.createElement("p");
     text.textContent = result.excerpt || result.text;
     const location = document.createElement("small");
-    location.textContent = result.page ? `Page ${result.page}` : result.kind;
+    const provenance = result.metadata?.provenance || {};
+    const methodLabels = {
+      "pdf-native": "PDF text",
+      ocr: "OCR",
+      office: "Office text",
+      "email-body": "Email body",
+      legacy: "Legacy index",
+    };
+    const method = methodLabels[provenance.method] || provenance.method || result.kind;
+    location.textContent = result.page ? `Page ${result.page} • ${method}` : method;
+    location.className = "search-provenance";
     row.append(title, type, location, text);
+    if (provenance.extractedAt) {
+      const provenanceInfo = document.createElement("small");
+      provenanceInfo.className = "search-provenance-detail";
+      provenanceInfo.textContent = provenance.confidence != null
+        ? `Extracted ${new Date(provenance.extractedAt).toLocaleString()} • confidence ${provenance.confidence}`
+        : `Extracted ${new Date(provenance.extractedAt).toLocaleString()}`;
+      row.append(provenanceInfo);
+    }
     const source = result.documentId
       ? workspace.documents.find(document => document.id === result.documentId)
       : null;
