@@ -78,6 +78,51 @@ async function vaultHealth(document) {
   }
 }
 
+async function recoverVaultDocument(document) {
+  if (!document?.vault?.relativePath || !document.vault.originalName) return false;
+  const picker = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
+  picker.init(window, "Recover e-Vaarta document", Ci.nsIFilePicker.modeOpen);
+  picker.appendFilters(Ci.nsIFilePicker.filterAll);
+  const result = await new Promise(resolve => picker.open(resolve));
+  if (result !== Ci.nsIFilePicker.returnOK || !picker.file) return false;
+  const sourcePath = picker.file.path;
+  const recoveredHash = await sha256File(sourcePath);
+  if (document.vault.sha256 && recoveredHash !== document.vault.sha256) {
+    Services.prompt.alert(window, "e-Vaarta", "The selected file does not match the original vault fingerprint.");
+    return false;
+  }
+  const destination = PathUtils.join(EVAARTA_DATA_DIR, document.vault.relativePath);
+  await IOUtils.copy(sourcePath, destination);
+  document.vault.size = (await IOUtils.stat(destination)).size;
+  document.vault.health = "healthy";
+  saveWorkspace();
+  render();
+  return true;
+}
+
+async function removeVaultReference(document) {
+  if (!document?.vault?.relativePath) return false;
+  const references = workspace.documents.filter(item =>
+    item !== document && item.vault?.relativePath === document.vault.relativePath
+  );
+  if (references.length) {
+    document.vault = null;
+    saveWorkspace();
+    render();
+    return false;
+  }
+  try {
+    await IOUtils.remove(PathUtils.join(EVAARTA_DATA_DIR, document.vault.relativePath));
+  } catch (error) {
+    console.warn("e-Vaarta vault cleanup failed", error);
+  }
+  document.vault = null;
+  saveWorkspace();
+  render();
+  return true;
+}
+
+
 async function importIntoLocalVault(sourcePath, originalName, mimeType = null) {
   await ensureOfflineStorage();
   const vaultId = "vault-" + crypto.randomUUID();
@@ -1562,6 +1607,13 @@ function render() {
         openDocumentMetadataEditor(source);
       });
       row.append(icon, info, collectionButton, edit);
+      row.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        if (!source.vault) return;
+        const choice = Services.prompt.select(window, "e-Vaarta vault", "Choose a vault action:", ["Recover local copy", "Remove local vault reference"]);
+        if (choice === 0) recoverVaultDocument(source);
+        else if (choice === 1) removeVaultReference(source);
+      });
       row.addEventListener("click", () => {
         selectDocument(source);
         focusCanvasSource(source);
