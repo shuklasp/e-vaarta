@@ -371,6 +371,7 @@ let selectedItemId = null;
 let selectedGroupId = null;
 let selectedItemIds = new Set();
 let activeEvidenceGroupId = null;
+let activeSourceEvidenceId = null;
 let activeEvidenceIndex = 0;
 let linkSourceId = null;
 let selectedLinkId = null;
@@ -883,21 +884,35 @@ function activeEvidenceItems() {
   return group ? getEvidenceGroupItems(workspace, group.id) : [];
 }
 
+function evidenceNavigatorItems() {
+  if (activeSourceEvidenceId) {
+    const source = workspace.documents.find(document => document.id === activeSourceEvidenceId);
+    return source ? evidenceForSource(source) : [];
+  }
+  return activeEvidenceItems();
+}
+
 function navigateEvidenceGroup(step) {
-  const group = activeEvidenceGroup();
-  const items = activeEvidenceItems();
-  if (!group || !items.length) return;
+  const items = evidenceNavigatorItems();
+  if (!items.length) return;
   activeEvidenceIndex = Math.max(0, Math.min(items.length - 1, activeEvidenceIndex + step));
   const item = items[activeEvidenceIndex];
   selectItem(item);
-  selectedGroupId = group.id;
-  activeEvidenceGroupId = group.id;
+  if (activeSourceEvidenceId) {
+    selectedGroupId = null;
+    selectedDocumentId = activeSourceEvidenceId;
+  } else {
+    const group = activeEvidenceGroup();
+    selectedGroupId = group?.id || null;
+    activeEvidenceGroupId = group?.id || null;
+  }
   render();
   window.setTimeout(() => focusCanvasItem(item), 0);
 }
 
 function openEvidenceGroupNavigator(group) {
   if (!group) return;
+  activeSourceEvidenceId = null;
   activeEvidenceGroupId = group.id;
   activeEvidenceIndex = 0;
   selectGraphEntity(group);
@@ -905,21 +920,35 @@ function openEvidenceGroupNavigator(group) {
   renderEvidenceNavigator();
 }
 
+function openSourceEvidenceNavigator(source) {
+  const items = evidenceForSource(source);
+  if (!source || !items.length) return;
+  activeSourceEvidenceId = source.id;
+  activeEvidenceGroupId = null;
+  activeEvidenceIndex = 0;
+  selectedGroupId = null;
+  selectedDocumentId = source.id;
+  focusLibrarySource(source);
+  selectItem(items[0]);
+  document.getElementById("evidenceNavigator").showModal();
+  renderEvidenceNavigator();
+}
+
 function renderEvidenceNavigator() {
   const list = document.getElementById("evidenceNavigatorList");
   const group = activeEvidenceGroup();
-  const items = activeEvidenceItems();
+  const items = evidenceNavigatorItems();
   list.replaceChildren();
-  if (!group || !items.length) {
+  if (!items.length) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.textContent = "This evidence group has no members.";
+    empty.textContent = activeSourceEvidenceId ? "This source has no anchored evidence." : "This evidence group has no members.";
     list.append(empty);
     return;
   }
   const counter = document.createElement("div");
   counter.className = "evidence-navigator-counter";
-  counter.textContent = "Evidence " + (activeEvidenceIndex + 1) + " of " + items.length;
+  counter.textContent = (activeSourceEvidenceId ? "Source evidence " : "Evidence ") + (activeEvidenceIndex + 1) + " of " + items.length;
   list.append(counter);
   for (let index = 0; index < items.length; index++) {
     const item = items[index];
@@ -931,7 +960,7 @@ function renderEvidenceNavigator() {
     row.addEventListener("click", () => {
       activeEvidenceIndex = index;
       selectItem(item);
-      selectedGroupId = group.id;
+      selectedGroupId = activeSourceEvidenceId ? null : group?.id || null;
       renderEvidenceNavigator();
     });
     list.append(row);
@@ -2243,6 +2272,18 @@ sourceList.replaceChildren();
         usage.title = "Evidence and groups referencing this source";
         card.append(usage);
       }
+      if (item.metadata?.libraryCard && evidence.length) {
+        const browse = document.createElement("button");
+        browse.type = "button";
+        browse.className = "quiet";
+        browse.textContent = "Browse evidence";
+        browse.title = "Navigate anchored evidence from this source";
+        browse.addEventListener("click", event => {
+          event.stopPropagation();
+          openSourceEvidenceNavigator(source);
+        });
+        card.append(browse);
+      }
       if (item.metadata?.libraryCard) {
         const preview = document.createElement("div");
         preview.className = "workspace-source-preview";
@@ -3354,7 +3395,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("createEvidenceGroupSelectionButton").addEventListener("click", createEvidenceGroupFromSelection);
   document.getElementById("evidenceNavigatorPrevButton").addEventListener("click", () => { navigateEvidenceGroup(-1); renderEvidenceNavigator(); });
   document.getElementById("evidenceNavigatorNextButton").addEventListener("click", () => { navigateEvidenceGroup(1); renderEvidenceNavigator(); });
-  document.getElementById("evidenceNavigatorCloseButton").addEventListener("click", () => document.getElementById("evidenceNavigator").close());
+  document.getElementById("evidenceNavigatorCloseButton").addEventListener("click", () => {
+    activeSourceEvidenceId = null;
+    activeEvidenceGroupId = null;
+    document.getElementById("evidenceNavigator").close();
+  });
   document.getElementById("clearEvidenceSelectionButton").addEventListener("click", clearMultiSelection);
   document.getElementById("evidenceGroupsButton").addEventListener("click", openEvidenceGroups);
   document.getElementById("evidenceGroupsCloseButton").addEventListener("click", () => document.getElementById("evidenceGroupsPane").close());
