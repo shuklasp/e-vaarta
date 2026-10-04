@@ -65,6 +65,8 @@ EXTRA_JS_MODULES += [
     "EvaartaDeepLinkRouter.sys.mjs",
     "EvaartaMeetingIntelligence.sys.mjs",
     "EvaartaCalendarBridge.sys.mjs",
+    "EvaartaCommunicationSuite.sys.mjs",
+    "EvaartaCommunicationBenchmark.sys.mjs",
     "DNS.sys.mjs",
     "DNS.worker.mjs",
     "ExtensionsUI.sys.mjs",
