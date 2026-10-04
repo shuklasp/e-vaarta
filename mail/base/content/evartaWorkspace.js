@@ -56,9 +56,10 @@ function render() {
     sourceList.append(state);
   } else {
     for (const document of workspace.documents) {
-      const row = document.createElement("div");
+      const row = document.createElement("button");
       row.className = "source-row";
       row.textContent = document.title;
+      row.addEventListener("click", () => selectDocument(document));
       sourceList.append(row);
     }
   }
@@ -98,6 +99,40 @@ function addNote() {
   );
   saveWorkspace();
   render();
+}
+
+async function openDocument() {
+  const picker = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
+  picker.init(window, "Open document", Ci.nsIFilePicker.modeOpen);
+  picker.appendFilter("PDF documents", "*.pdf");
+  picker.appendFilter("Office documents", "*.doc;*.docx;*.ppt;*.pptx");
+  picker.appendFilters(Ci.nsIFilePicker.filterAll);
+  const result = await new Promise(resolve => picker.open(resolve));
+  if (result != Ci.nsIFilePicker.returnOK || !picker.file) {
+    return;
+  }
+
+  const file = picker.file;
+  const lowerName = file.leafName.toLowerCase();
+  const kind = lowerName.endsWith(".pdf") ? "pdf" : "other";
+  const source = createDocument({
+    title: file.leafName,
+    kind,
+    sourceRef: Services.io.newFileURI(file).spec,
+    mimeType: kind == "pdf" ? "application/pdf" : null,
+  });
+  workspace = addDocument(workspace, source);
+  workspace.updatedAt = new Date().toISOString();
+  saveWorkspace();
+  selectDocument(source);
+  render();
+}
+
+function selectDocument(source) {
+  const viewer = document.getElementById("sourceViewer");
+  document.getElementById("sourceTitle").textContent = source.title;
+  document.getElementById("sourceLocation").textContent = source.kind.toUpperCase();
+  viewer.src = source.sourceRef || "about:blank";
 }
 
 function addExcerpt() {
@@ -140,7 +175,11 @@ function clearWorkspace() {
 window.addEventListener("DOMContentLoaded", () => {
   workspace = loadWorkspace();
   document.getElementById("newNoteButton").addEventListener("click", addNote);
+  document.getElementById("openDocumentButton").addEventListener("click", openDocument);
   document.getElementById("addExcerptButton").addEventListener("click", addExcerpt);
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   render();
+  if (workspace.documents[0]) {
+    selectDocument(workspace.documents[0]);
+  }
 });
