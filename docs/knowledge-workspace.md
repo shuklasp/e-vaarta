@@ -139,3 +139,8 @@ Collections can now optionally contain a smart rule. Rules can match document ty
 ## Phase 25: Search and collections integration
 
 Unified Search now shows the collections containing each matched document. A search can also be saved as a smart collection from the Search pane. The saved collection uses a text rule over document title, description, and tags, so its membership remains dynamic as document metadata changes.
+
+
+## Phase 26: Collection-aware workspace cards
+
+Source-backed workspace cards now expose the collections containing their source. Collection chips are interactive: selecting one switches the Document Library to that collection. Smart collections use their dynamically calculated membership, so the context stays current as document metadata changes. The collection manager also reports dynamic counts for smart collections.
