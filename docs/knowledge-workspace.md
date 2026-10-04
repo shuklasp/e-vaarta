@@ -90,3 +90,10 @@ The next ingestion extension is OCR for scanned/image-only PDFs and images, usin
 The ingestion pipeline now has a provider-neutral OCR contract. PDF sources with no usable native text and image sources can request OCR through `EvaartaOcr.sys.mjs`; OCR output is normalized into an `ocr-text` index entry with optional language, confidence, and page metadata. The workspace exposes whether an OCR backend is currently registered.
 
 No OCR engine or external service is bundled by this phase. This is intentional: the adapter boundary allows a future local OCR engine or a user-configured remote provider to be added without coupling the workspace, annotations, or search engine to that implementation.
+
+
+## Phase 14: Local Tesseract OCR backend
+
+A local Tesseract backend is now automatically registered when a Tesseract executable is detected. Supported default locations include common Linux, macOS Homebrew, and Windows installation paths; a custom executable can be supplied through the `mail.evaarta.ocr.tesseractPath` preference. The OCR language defaults to `eng` and can be changed with `mail.evaarta.ocr.language`.
+
+The backend currently OCRs local image documents. It runs Tesseract through Thunderbird's `Subprocess.sys.mjs` API and captures stdout directly, avoiding shell command construction. The workspace reports when the backend becomes ready. PDF OCR still requires a PDF-page rendering adapter before Tesseract can process scanned PDF pages.
