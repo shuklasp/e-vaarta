@@ -21,7 +21,7 @@
         <button id="openDocumentButton">Open document</button>
         <button id="addExcerptButton">Add excerpt</button>
         <button id="captureSelectionButton">Capture selection</button>
-        <button id="annotateSelectionButton">Highlight selection</button>
+        <button id="annotateSelectionButton">Highlight selection</button><button id="annotationPanelButton">Annotations</button>
       </div>
     </header>
 
@@ -80,6 +80,10 @@
           </div>
         </div>
       </section>
+      <aside id="annotationPane" class="annotation-pane" hidden="hidden">
+        <div class="pane-heading"><h2>Annotations</h2><button id="closeAnnotationPanelButton" class="quiet">Close</button></div>
+        <div id="annotationList" class="annotation-list"></div>
+      </aside>
     </section>
   </main>
   <dialog id="itemEditor" class="item-editor">
@@ -100,7 +104,12 @@
         <button type="button" id="editorCancelButton" class="quiet">Cancel</button>
         <button type="submit" id="editorSaveButton" class="primary">Save</button>
       </div>
-    </form>
+    <div id="annotationEditorFields" hidden="hidden">
+        <label for="annotationType">Type</label>
+        <select id="annotationType"><option value="highlight">Highlight</option><option value="underline">Underline</option><option value="strikethrough">Strikethrough</option><option value="comment">Comment</option></select>
+        <label for="annotationColor">Color</label><input id="annotationColor" type="color" value="#ffdc00" />
+      </div>
+      </form>
   </dialog>
   <script src="chrome://messenger/content/evartaWorkspace.js"></script>
 </body>
