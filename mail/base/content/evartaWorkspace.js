@@ -1410,8 +1410,10 @@ function selectDocument(source, page = null, anchor = null) {
     attachSourceSelectionBridge(source);
     if (anchor?.quote) {
       setTimeout(() => {
+        restoringSourceAnchor = true;
         restorePdfHighlight(anchor);
         restorePdfAnchor(anchor);
+        window.setTimeout(() => { restoringSourceAnchor = false; }, 100);
       }, 250);
     }
   }, { once: true });
