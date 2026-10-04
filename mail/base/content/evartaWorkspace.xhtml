@@ -97,6 +97,29 @@
       </aside>
     </section>
   </main>
+  <dialog id="collectionRuleEditor" class="item-editor">
+    <form method="dialog">
+      <div class="editor-heading">
+        <div><div class="eyebrow">e-Vaarta</div><h2>Smart collection rule</h2></div>
+        <button type="button" id="ruleEditorCloseButton" class="quiet">Close</button>
+      </div>
+      <label for="ruleKind">Document type</label>
+      <select id="ruleKind">
+        <option value="">Any type</option><option value="pdf">PDF</option><option value="word">Word</option><option value="powerpoint">PowerPoint</option><option value="email">Email</option><option value="image">Image</option><option value="web">Web</option><option value="other">Other</option>
+      </select>
+      <label for="ruleTag">Tag equals</label>
+      <input id="ruleTag" type="text" placeholder="e.g. research" />
+      <label for="ruleText">Contains text</label>
+      <input id="ruleText" type="text" placeholder="title, description or tag" />
+      <label for="ruleDays">Updated within days</label>
+      <input id="ruleDays" type="number" min="1" step="1" placeholder="e.g. 7" />
+      <small>All filled conditions must match. Leave everything blank to make this a manual collection again.</small>
+      <div class="editor-actions">
+        <button type="button" id="ruleCancelButton" class="quiet">Cancel</button>
+        <button type="submit" id="ruleSaveButton" class="primary">Save rule</button>
+      </div>
+    </form>
+  </dialog>
   <dialog id="collectionManager" class="item-editor">
     <form method="dialog">
       <div class="editor-heading">
