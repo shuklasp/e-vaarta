@@ -275,3 +275,8 @@ The Offline Storage manager now supports explicit vault maintenance. A repair op
 ## Phase 51: Offline ingestion normalization
 
 Pending email sources now carry explicit ingestion metadata. Email messages remain message-backed sources, while attachments are marked as deferred offline materialization rather than being falsely treated as local files. Existing local-file imports continue through the content-addressed vault pipeline, ensuring hashing, deduplication, and integrity metadata are applied consistently wherever a real filesystem source is available.
+
+
+## Phase 52: Native email-attachment materialization
+
+The Add to e-Vaarta email workflow now materializes message attachments through Thunderbird's attachment URL into a temporary local file, routes that file through the same SHA-256/content-addressed vault importer used by ordinary documents, and removes the temporary staging file afterward. Attachments that cannot be materialized remain explicitly deferred rather than being represented as falsely offline-ready sources. Email messages themselves remain backed by Thunderbird's local message store.
