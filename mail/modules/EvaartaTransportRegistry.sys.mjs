@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export class EvaartaTransportRegistry { constructor(){this.adapters=new Map();} register(adapter){if(!adapter?.id||typeof adapter.send!=="function")throw new TypeError("invalid transport");this.adapters.set(adapter.id,adapter);return adapter.id;} get(id){return this.adapters.get(id)||null;} list(){return [...this.adapters.values()].map(a=>({id:a.id,available:!!a.isAvailable?.()}));} async send(id,envelope,context={}){const a=this.get(id);if(!a)throw new Error("transport unavailable: "+id);return a.send(envelope,context);} }

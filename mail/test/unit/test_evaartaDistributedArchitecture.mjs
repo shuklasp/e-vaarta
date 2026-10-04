@@ -1,0 +1,17 @@
+import { strict as assert } from "node:assert";
+import {createIdentityDescriptor} from "../../modules/EvaartaDistributedIdentity.sys.mjs";
+import {createEnvelope,validateEnvelope} from "../../modules/EvaartaSecureEnvelope.sys.mjs";
+import {createCapability,allows} from "../../modules/EvaartaCapability.sys.mjs";
+import {createEvent} from "../../modules/EvaartaProjectEvents.sys.mjs";
+import {EvaartaEventJournal} from "../../modules/EvaartaEventJournal.sys.mjs";
+import {compareManifests,detectConflicts} from "../../modules/EvaartaMergeEngine.sys.mjs";
+import {EvaartaTransportRegistry} from "../../modules/EvaartaTransportRegistry.sys.mjs";
+import {createFileTransport} from "../../modules/EvaartaTransportAdapters.sys.mjs";
+import {EvaartaTransportRouter} from "../../modules/EvaartaTransportRouter.sys.mjs";
+import {EvaartaStoreForwardQueue} from "../../modules/EvaartaStoreForwardQueue.sys.mjs";
+add_task(async function test_identity(){const i=createIdentityDescriptor({actorId:"a",publicKey:"pk"});assert.equal(i.version,1);assert.equal(i.fingerprint.length,8);});
+add_task(async function test_envelope(){const e=createEnvelope({messageId:"m",source:"a",destination:"b",type:"task.created",payload:{}});assert.equal(validateEnvelope(e).valid,true);});
+add_task(async function test_capability(){assert.equal(allows(createCapability({id:"c",projectId:"p",subject:"b",actions:["task.assign"]}),"task.assign"),true);});
+add_task(async function test_journal_and_manifest(){const j=new EvaartaEventJournal();j.append(createEvent({eventId:"1",projectId:"p",actorId:"a",type:"task.created",payload:{taskId:"t"}}));assert.deepEqual(compareManifests(j.manifest(),["1","2"]).needFromRemote,["2"]);});
+add_task(async function test_router_queues_without_route(){const r=new EvaartaTransportRegistry();const router=new EvaartaTransportRouter(r,["file-bundle"]);const q=new EvaartaStoreForwardQueue();const result=await router.deliver({messageId:"m"});assert.equal(result.status,"queued");q.enqueue({messageId:"m"});assert.equal(q.snapshot().length,1);});
+add_task(async function test_conflicts(){const xs=[createEvent({eventId:"1",projectId:"p",actorId:"a",type:"task.completed",payload:{taskId:"t"}}),createEvent({eventId:"2",projectId:"p",actorId:"b",type:"task.reopened",payload:{taskId:"t"}})];assert.equal(detectConflicts(xs).length,1);});
