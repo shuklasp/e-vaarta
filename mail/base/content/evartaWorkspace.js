@@ -19,7 +19,7 @@ const {
 const { createIndex, createIndexEntry, upsertIndexEntry, serializeIndex, deserializeIndex, searchIndex, upsertExtractedContent, needsReindex, fingerprintText } = ChromeUtils.importESModule("resource:///modules/EvaartaContentIndex.sys.mjs");
 const { extractOfficeText } = ChromeUtils.importESModule("resource:///modules/EvaartaOfficeExtractor.sys.mjs");
 const { extractOcrText, isOcrAvailable } = ChromeUtils.importESModule("resource:///modules/EvaartaOcr.sys.mjs");
-const { getEvidenceForDocument, getEvidenceGroupsForDocument, getEvidenceSummary } = ChromeUtils.importESModule("resource:///modules/EvaartaEvidenceNavigator.sys.mjs");
+const { getEvidenceForDocument, getEvidenceGroupsForDocument } = ChromeUtils.importESModule("resource:///modules/EvaartaEvidenceNavigator.sys.mjs");
 
 const PREF = "mail.evaarta.workspace.json";
 const INDEX_PREF = "mail.evaarta.contentIndex.json";
