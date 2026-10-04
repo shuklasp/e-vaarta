@@ -97,7 +97,9 @@ async function scanVault() {
   const modified = records.filter(item => item.vault.health === "modified");
   const bytes = healthy.reduce((sum, item) => sum + Number(item.vault.size || 0), 0);
   const shared = records.filter(item => records.some(other => other !== item && other.vault?.sha256 === item.vault.sha256));
-  const orphaned = Object.values(vaultManifest.blobs).filter(blob => !records.some(item => item.vault?.sha256 === Object.keys(vaultManifest.blobs).find(hash => vaultManifest.blobs[hash] === blob)));
+  const orphaned = Object.keys(vaultManifest.blobs).filter(hash =>
+    !records.some(item => item.vault?.sha256 === hash)
+  );
   return { total: records.length, healthy: healthy.length, missing: missing.length, modified: modified.length, bytes, shared: new Set(shared.map(item => item.vault.sha256)).size, orphaned: orphaned.length };
 }
 
