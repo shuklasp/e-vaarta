@@ -554,6 +554,7 @@ function render() {
   count.textContent = workspace.items.length + " item" + (workspace.items.length === 1 ? "" : "s") + " • " + workspace.links.length + " relationship" + (workspace.links.length === 1 ? "" : "s");
 
   sourceList.replaceChildren();
+  sourceList.classList.toggle("library-grid", libraryView === "grid");
   const libraryToolbar = document.createElement("div");
   libraryToolbar.className = "library-toolbar";  const viewButton = document.createElement("button");
   viewButton.type = "button";
