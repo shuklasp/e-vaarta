@@ -30,7 +30,7 @@ messenger.jar:
     content/messenger/editContactPanel.js           (content/editContactPanel.js)
 *   content/messenger/evartaWorkspace.xhtml          (content/evartaWorkspace.xhtml)
     content/messenger/evartaWorkspace.js             (content/evartaWorkspace.js)
-    skin/classic/messenger/evartaWorkspace.css       (content/evartaWorkspace.css)
+    content/messenger/evartaWorkspace.css             (content/evartaWorkspace.css)
     content/messenger/FilterListDialog.js           (content/FilterListDialog.js)
     content/messenger/FilterListDialog.xhtml        (content/FilterListDialog.xhtml)
     content/messenger/globalOverlay.js              (content/globalOverlay.js)
