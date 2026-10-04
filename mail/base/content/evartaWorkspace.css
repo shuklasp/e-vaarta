@@ -612,3 +612,7 @@ select:focus-visible,
 .collection-create input { flex: 1; }
 .collection-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 7px; align-items: center; padding: 8px 0; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
 .collection-row small { opacity: .65; }
+
+.search-toolbar { display: flex; gap: 7px; margin-bottom: 8px; }
+.search-toolbar input { flex: 1; min-width: 0; }
+.search-collections { margin-top: 5px; font-size: .75em; opacity: .7; }
