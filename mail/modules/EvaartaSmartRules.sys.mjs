@@ -1,0 +1,3 @@
+/* MPL-2.0 */
+export function evaluateRule(item,rule){if(!rule||!rule.field)return false;const value=item?.[rule.field];switch(rule.operator){case"equals":return value===rule.value;case"contains":return String(value??"").toLocaleLowerCase().includes(String(rule.value??"").toLocaleLowerCase());case"exists":return value!==undefined&&value!==null&&value!=="";case"startsWith":return String(value??"").startsWith(String(rule.value??""));default:return false;}}
+export function classify(items,rules){return items.map(item=>({...item,collections:rules.filter(r=>evaluateRule(item,r)).map(r=>r.collection).filter(Boolean)}));}
