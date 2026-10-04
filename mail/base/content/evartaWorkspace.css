@@ -673,3 +673,16 @@ select:focus-visible,
 .evidence-group-manager-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent); }
 .evidence-group-manager-row strong, .evidence-group-manager-row small { display: block; }
 .evidence-group-manager-row small { opacity: .68; margin-top: 2px; }
+
+
+.evidence-group-card {
+  border-style: dashed;
+  border-width: 2px;
+  background: color-mix(in srgb, Highlight 6%, Canvas);
+}
+.evidence-group-card .card-kind { letter-spacing: .08em; }
+.evidence-group-card.card-selected { outline: 2px solid Highlight; outline-offset: 2px; }
+.card-group-member { outline: 1px solid color-mix(in srgb, Highlight 45%, transparent); outline-offset: 2px; }
+.evidence-group-members { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+.evidence-group-member-chip { font-size: .78em; border: 1px solid color-mix(in srgb, CanvasText 18%, transparent); border-radius: 999px; padding: 3px 7px; }
+.evidence-group-member-chip:hover { text-decoration: underline; }
