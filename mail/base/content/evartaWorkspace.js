@@ -23,6 +23,7 @@ const PREF = "mail.evaarta.workspace.json";
 const INDEX_PREF = "mail.evaarta.contentIndex.json";
 const EVAARTA_DATA_DIR = PathUtils.join(PathUtils.profileDir, "evaarta");
 const WORKSPACE_FILE = PathUtils.join(EVAARTA_DATA_DIR, "workspace.json");
+const VAULT_DIR = PathUtils.join(EVAARTA_DATA_DIR, "vault");
 const INDEX_FILE = PathUtils.join(EVAARTA_DATA_DIR, "content-index.json");
 let offlineStorageReady = false;
 let workspaceSavePromise = Promise.resolve();
@@ -30,6 +31,7 @@ let indexSavePromise = Promise.resolve();
 
 async function ensureOfflineStorage() {
   await IOUtils.makeDirectory(EVAARTA_DATA_DIR, { ignoreExisting: true });
+  await IOUtils.makeDirectory(VAULT_DIR, { ignoreExisting: true });
   offlineStorageReady = true;
 }
 
@@ -46,6 +48,32 @@ async function writeOfflineJson(path, value) {
   await ensureOfflineStorage();
   const tempPath = path + ".tmp";
   await IOUtils.writeUTF8(tempPath, JSON.stringify(value), { tmpPath: path });
+}
+
+async function importIntoLocalVault(sourcePath, originalName, mimeType = null) {
+  await ensureOfflineStorage();
+  const vaultId = "vault-" + crypto.randomUUID();
+  const safeName = String(originalName || PathUtils.filename(sourcePath) || "document").replace(/[^a-zA-Z0-9._-]/g, "_");
+  const relativePath = PathUtils.join("vault", vaultId + "-" + safeName);
+  const destination = PathUtils.join(EVAARTA_DATA_DIR, relativePath);
+  await IOUtils.copy(sourcePath, destination);
+  const stat = await IOUtils.stat(destination);
+  return {
+    vaultId,
+    relativePath,
+    originalName: originalName || safeName,
+    size: stat.size,
+    mimeType,
+    importedAt: new Date().toISOString(),
+  };
+}
+
+function attachVaultRecord(document, vault) {
+  if (!document || !vault) return document;
+  document.vault = vault;
+  document.sourceRef = "evaarta-vault:" + vault.relativePath;
+  document.updatedAt = new Date().toISOString();
+  return document;
 }
 
 function updateOfflineStatus(message, ready = offlineStorageReady) {
