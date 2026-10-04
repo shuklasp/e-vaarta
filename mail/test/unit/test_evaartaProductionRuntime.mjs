@@ -6,7 +6,7 @@ import {
   requireRuntimeOperation,
   createProductRuntimePlan,
   buildEvidenceActionTrace,
-} from "../../modules/EvaartaProductionRuntime.sys.mjs";
+} from "resource:///modules/EvaartaProductionRuntime.sys.mjs";
 
 add_task(function testRuntimeAdapter() {
   const adapter = createRuntimeAdapter(EvaartaRuntimeCapability.PDF, {
