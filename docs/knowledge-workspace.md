@@ -216,3 +216,8 @@ Evidence groups now have a dedicated navigator. Opening Navigate for a group pre
 ## Phase 40: Evidence-group member management
 
 Existing evidence groups can now be edited from the group manager. Multi-selected evidence can be added to or removed from a group without recreating it. Group source metadata is recalculated after membership changes: a group retains a single source only when all of its members resolve to that source; mixed-source groups become source-neutral.
+
+
+## Phase 41: Evidence-group intelligence
+
+Evidence-group cards now expose a live intelligence summary derived from their members and graph relationships. The summary reports evidence count, distinct source count, relationship count, and the distribution of evidence item kinds. This gives a group immediate structural context without changing the underlying evidence or graph model.
