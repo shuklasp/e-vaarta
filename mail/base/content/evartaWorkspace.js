@@ -116,6 +116,23 @@ function linkItem(item) {
   render();
 }
 
+function openSelectedEmailSource() {
+  const source = workspace.documents.find(document => document.id === selectedDocumentId);
+  if (!source?.sourceRef || source.kind !== "email") {
+    return;
+  }
+  try {
+    window.openDialog(
+      "chrome://messenger/content/messageWindow.xhtml",
+      "_blank",
+      "chrome,dialog=no,all",
+      source.sourceRef
+    );
+  } catch (error) {
+    console.error("e-Vaarta: unable to open email source", error);
+  }
+}
+
 function render() {
   const sourceList = document.getElementById("sourceList");
   const canvas = document.getElementById("workspaceCanvas");
