@@ -15,6 +15,7 @@ const {
 
 const { createIndex, createIndexEntry, upsertIndexEntry, serializeIndex, deserializeIndex, searchIndex, upsertExtractedContent, needsReindex, fingerprintText } = ChromeUtils.importESModule("resource:///modules/EvaartaContentIndex.sys.mjs");
 const { extractOfficeText } = ChromeUtils.importESModule("resource:///modules/EvaartaOfficeExtractor.sys.mjs");
+const { extractOcrText, isOcrAvailable } = ChromeUtils.importESModule("resource:///modules/EvaartaOcr.sys.mjs");
 
 const PREF = "mail.evaarta.workspace.json";
 const INDEX_PREF = "mail.evaarta.contentIndex.json";
@@ -707,6 +708,8 @@ async function openDocument() {
   selectDocument(source);
   if (source.kind === "word" || source.kind === "powerpoint") {
     indexOfficeSource(source);
+  } else if (source.kind === "image") {
+    indexOcrSource(source);
   }
 }
 
@@ -770,6 +773,39 @@ function pdfSelector(range, page) {
     };
   } catch (error) {
     return null;
+  }
+}
+
+async function indexOcrSource(source) {
+  if (!source || !["pdf", "image"].includes(source.kind) || !isOcrAvailable()) return;
+  try {
+    const result = await extractOcrText({
+      id: source.id,
+      sourceRef: source.sourceRef,
+      title: source.title,
+      kind: source.kind,
+      mimeType: source.mimeType,
+    });
+    if (!result?.text?.trim()) return;
+    const fingerprint = fingerprintText(result.text);
+    if (!needsReindex(contentIndex, source.id, "ocr-text", fingerprint)) return;
+    contentIndex = upsertExtractedContent(contentIndex, {
+      documentId: source.id,
+      sourceRef: source.sourceRef,
+      title: source.title,
+      kind: "ocr-text",
+      text: result.text,
+      metadata: {
+        mimeType: source.mimeType,
+        language: result.language,
+        confidence: result.confidence,
+        pages: result.pages,
+      },
+      fingerprint,
+    });
+    saveContentIndex();
+  } catch (error) {
+    console.warn("e-Vaarta: OCR indexing unavailable", error);
   }
 }
 
@@ -879,6 +915,7 @@ function attachSourceSelectionBridge(source) {
   try {
     attachSelectionBridge(source, viewer.contentWindow);
     indexPdfSource(source, viewer.contentWindow);
+    if (source.kind === "pdf") indexOcrSource(source);
   } catch (error) {
     console.warn("e-Vaarta: PDF selection bridge unavailable", error);
   }
