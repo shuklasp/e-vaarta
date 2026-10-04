@@ -37,14 +37,14 @@ let indexSavePromise = Promise.resolve();
 async function ensureOfflineStorage() {
   await IOUtils.makeDirectory(EVAARTA_DATA_DIR, { ignoreExisting: true });
   await IOUtils.makeDirectory(VAULT_DIR, { ignoreExisting: true });
-  offlineStorageReady = true;
-}
   await IOUtils.makeDirectory(VAULT_BLOB_DIR, { createAncestors: true });
   try {
     vaultManifest = JSON.parse(await IOUtils.readUTF8(VAULT_MANIFEST_FILE));
   } catch (error) {
     vaultManifest = { version: 1, blobs: {} };
   }
+  offlineStorageReady = true;
+}
 
 
 async function readOfflineJson(path) {
