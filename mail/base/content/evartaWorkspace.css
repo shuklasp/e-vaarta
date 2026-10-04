@@ -494,3 +494,45 @@ select:focus-visible,
   background: rgba(255, 220, 0, 0.45) !important;
   border-radius: 2px;
 }
+
+
+.annotation-pane {
+  min-width: 280px;
+  max-width: 340px;
+  padding: 12px;
+  border-left: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  overflow: auto;
+}
+
+.annotation-list { display: grid; gap: 10px; }
+
+.annotation-row {
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 8px;
+}
+
+.annotation-row strong,
+.annotation-row p,
+.annotation-row span { display: block; margin-bottom: 6px; }
+
+.annotation-row p { white-space: pre-wrap; }
+
+.annotation-row button { margin-right: 5px; }
+
+.evaarta-persistent-highlight {
+  background: var(--evaarta-annotation-color, rgba(255, 220, 0, 0.45)) !important;
+  border-radius: 2px;
+}
+
+.evaarta-persistent-underline {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--evaarta-annotation-color, currentColor);
+}
+
+.evaarta-persistent-strikethrough {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--evaarta-annotation-color, currentColor);
+}
