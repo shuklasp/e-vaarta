@@ -7,7 +7,7 @@ const { Services } = ChromeUtils.importESModule(
   "resource://gre/modules/Services.sys.mjs"
 );
 const {
-  createWorkspace, createNote, createExcerpt, createDocument,
+  createWorkspace, createNote, createExcerpt, createAnnotation, createDocument,
   createSourceAnchor, createLink, addDocument, addItem, addLink,
 } = ChromeUtils.importESModule(
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
@@ -414,6 +414,42 @@ function captureSelection() {
   render();
 }
 
+function annotateSelection() {
+  const source = workspace.documents.find(document => document.id === selectedDocumentId) || workspace.documents[0];
+  const viewer = document.getElementById("sourceViewer");
+  if (!source || !viewer?.contentWindow) {
+    alert("Open a document first.");
+    return;
+  }
+
+  let selectedText = "";
+  let page = null;
+  try {
+    selectedText = viewer.contentWindow.getSelection()?.toString().trim() || "";
+    const match = viewer.contentWindow.location.hash.replace(/^#/, "").match(/(?:^|&)page=(\d+)/);
+    page = match ? Number(match[1]) : null;
+  } catch (error) {
+    console.warn("e-Vaarta: unable to read source selection", error);
+  }
+
+  if (!selectedText) {
+    alert("Select text in the source reader first.");
+    return;
+  }
+
+  workspace = addItem(workspace, createAnnotation({
+    anchor: createSourceAnchor({
+      documentId: source.id,
+      page,
+      quote: selectedText,
+    }),
+    annotationType: "highlight",
+    text: selectedText,
+  }));
+  saveWorkspace();
+  render();
+}
+
 function addExcerpt() {
   const source = workspace.documents.find(document => document.id === selectedDocumentId) || workspace.documents[0];
   if (!source) {
@@ -442,6 +478,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("openDocumentButton").addEventListener("click", openDocument);
   document.getElementById("addExcerptButton").addEventListener("click", addExcerpt);
   document.getElementById("captureSelectionButton").addEventListener("click", captureSelection);
+  document.getElementById("annotateSelectionButton").addEventListener("click", annotateSelection);
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
   document.getElementById("editorCloseButton").addEventListener("click", closeEditor);
