@@ -23,6 +23,7 @@ EXTRA_JS_MODULES += [
     "EvaartaContentIndex.sys.mjs",
     "EvaartaOfficeExtractor.sys.mjs",
     "EvaartaOcr.sys.mjs",
+    "EvaartaPdfReaderModel.sys.mjs",
     "EvaartaSpatialWorkspace.sys.mjs",
     "EvaartaHybridSearch.sys.mjs",
     "EvaartaCitation.sys.mjs",
