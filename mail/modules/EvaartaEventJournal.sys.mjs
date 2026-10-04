@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export class EvaartaEventJournal { constructor(events=[]){this.events=new Map(events.map(e=>[e.eventId,e]));} append(event){if(this.events.has(event.eventId))return false;this.events.set(event.eventId,structuredClone(event));return true;} has(id){return this.events.has(id);} list(){return [...this.events.values()].sort((a,b)=>a.sequence-b.sequence||a.timestamp.localeCompare(b.timestamp)||a.eventId.localeCompare(b.eventId));} missing(remoteIds){return remoteIds.filter(id=>!this.events.has(id));} manifest(){return this.list().map(e=>e.eventId);} }
