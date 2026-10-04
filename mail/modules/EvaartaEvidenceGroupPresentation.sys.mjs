@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function presentEvidenceGroups(workspace,documentId=null){return(workspace?.evidenceGroups||[]).filter(g=>!documentId||!g.documentId||g.documentId===documentId).map(g=>({...g,itemCount:g.itemIds?.length||0}));}
