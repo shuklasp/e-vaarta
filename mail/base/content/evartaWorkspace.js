@@ -157,21 +157,23 @@ async function removeVaultReference(document) {
   const references = workspace.documents.filter(item =>
     item !== document && item.vault?.relativePath === document.vault.relativePath
   );
-  if (references.length) {
-    document.vault = null;
-    saveWorkspace();
-    render();
-    return false;
-  }
-  try {
-    await IOUtils.remove(PathUtils.join(EVAARTA_DATA_DIR, document.vault.relativePath));
-  } catch (error) {
-    console.warn("e-Vaarta vault cleanup failed", error);
+  const hash = document.vault.sha256;
+  if (hash && vaultManifest.blobs[hash]) {
+    vaultManifest.blobs[hash].refCount = Math.max(0, Number(vaultManifest.blobs[hash].refCount || 0) - 1);
+    if (vaultManifest.blobs[hash].refCount === 0) {
+      try { await IOUtils.remove(PathUtils.join(EVAARTA_DATA_DIR, vaultManifest.blobs[hash].relativePath)); } catch (error) {}
+      delete vaultManifest.blobs[hash];
+      await saveVaultManifest();
+    } else {
+      await saveVaultManifest();
+    }
+  } else if (!references.length) {
+    try { await IOUtils.remove(PathUtils.join(EVAARTA_DATA_DIR, document.vault.relativePath)); } catch (error) {}
   }
   document.vault = null;
   saveWorkspace();
   render();
-  return true;
+  return !references.length;
 }
 
 
