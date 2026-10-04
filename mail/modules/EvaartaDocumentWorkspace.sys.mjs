@@ -404,9 +404,12 @@ export function addItem(workspace, item) {
 }
 
 export function addLink(workspace, link) {
-  const knownIds = new Set(workspace.items.map(item => item.id));
+  const knownIds = new Set([
+    ...workspace.items.map(item => item.id),
+    ...(workspace.evidenceGroups || []).map(group => group.id),
+  ]);
   if (!knownIds.has(link.fromId) || !knownIds.has(link.toId)) {
-    throw new TypeError("Both link endpoints must exist in the workspace.");
+    throw new TypeError("Both graph endpoints must exist in the workspace.");
   }
   if (!Object.values(LinkKind).includes(link.kind)) {
     throw new TypeError(`Unsupported relationship kind: ${link.kind}`);
