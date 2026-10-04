@@ -14,7 +14,9 @@ const {
 );
 
 const PREF = "mail.evaarta.workspace.json";
+const INDEX_PREF = "mail.evaarta.contentIndex.json";
 let workspace;
+let contentIndex;
 let selectedDocumentId = null;
 let selectedItemId = null;
 let linkSourceId = null;
@@ -45,6 +47,46 @@ function loadWorkspace() {
 }
 
 function saveWorkspace() { Services.prefs.setStringPref(PREF, JSON.stringify(workspace)); }
+
+function loadContentIndex() {
+  try {
+    const value = Services.prefs.getStringPref(INDEX_PREF, "");
+    return value ? deserializeIndex(value) : createIndex();
+  } catch (error) {
+    console.error("e-Vaarta: failed to load content index", error);
+    return createIndex();
+  }
+}
+
+function saveContentIndex() {
+  Services.prefs.setStringPref(INDEX_PREF, serializeIndex(contentIndex));
+}
+
+function indexWorkspace() {
+  for (const source of workspace.documents) {
+    contentIndex = upsertIndexEntry(contentIndex, createIndexEntry({
+      documentId: source.id,
+      sourceRef: source.sourceRef,
+      title: source.title,
+      kind: source.kind,
+      text: [source.description, ...(source.tags || [])].join(" "),
+      metadata: { mimeType: source.mimeType, tags: source.tags || [] },
+    }));
+  }
+  for (const item of workspace.items) {
+    const source = sourceForItem(item);
+    contentIndex = upsertIndexEntry(contentIndex, createIndexEntry({
+      documentId: source?.id || item.id,
+      sourceRef: source?.sourceRef || null,
+      title: item.title || item.kind,
+      kind: item.kind,
+      text: [item.text, item.anchor?.quote].filter(Boolean).join(" "),
+      metadata: { page: item.anchor?.page, annotationType: item.annotationType },
+    }));
+  }
+  saveContentIndex();
+}
+
 function findItem(itemId) { return workspace.items.find(item => item.id === itemId) || null; }
 function itemLabel(item) { return item?.title || (item?.kind === "note" ? "Note" : "Excerpt"); }
 function linkLabel(kind) { return kind.replaceAll("-", " "); }
@@ -480,7 +522,8 @@ function render() {
 function renderSearchResults(query = "") {
   const list = document.getElementById("searchResults");
   list.replaceChildren();
-  const results = searchWorkspace(workspace, query);
+  const indexed = searchIndex(contentIndex, query);
+  const results = indexed.length ? indexed : searchWorkspace(workspace, query);
   if (!query.trim()) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
@@ -815,6 +858,8 @@ function clearWorkspace() {
 
 window.addEventListener("DOMContentLoaded", () => {
   workspace = loadWorkspace();
+  contentIndex = loadContentIndex();
+  indexWorkspace();
   saveWorkspace();
   document.getElementById("newNoteButton").addEventListener("click", addNote);
   document.getElementById("openEmailSourceButton").addEventListener("click", openSelectedEmailSource);
