@@ -545,6 +545,64 @@ function collectionsForSource(source) {
   );
 }
 
+let sourceContextDocumentId = null;
+
+function openSourceContextMenu(source) {
+  if (!source) return;
+  sourceContextDocumentId = source.id;
+  document.getElementById("sourceContextTitle").textContent = source.title || "Source";
+  document.getElementById("sourceContextMenu").showModal();
+}
+
+function closeSourceContextMenu() {
+  document.getElementById("sourceContextMenu").close();
+  sourceContextDocumentId = null;
+}
+
+function sourceContextDocument() {
+  return workspace.documents.find(document => document.id === sourceContextDocumentId) || null;
+}
+
+function sourceContextOpen() {
+  const source = sourceContextDocument();
+  closeSourceContextMenu();
+  if (source) selectDocument(source);
+}
+
+function sourceContextMetadata() {
+  const source = sourceContextDocument();
+  closeSourceContextMenu();
+  if (source) openDocumentMetadataEditor(source);
+}
+
+function sourceContextCollection() {
+  const source = sourceContextDocument();
+  closeSourceContextMenu();
+  if (source) toggleDocumentCollection(source);
+}
+
+function sourceContextAddExcerpt() {
+  const source = sourceContextDocument();
+  closeSourceContextMenu();
+  if (!source) return;
+  selectDocument(source);
+  addExcerpt();
+}
+
+function sourceContextRemoveCard() {
+  const source = sourceContextDocument();
+  closeSourceContextMenu();
+  if (!source) return;
+  const card = workspace.items.find(item => item.metadata?.libraryCard && item.anchor?.documentId === source.id);
+  if (!card) return;
+  workspace.items = workspace.items.filter(item => item.id !== card.id);
+  workspace.updatedAt = new Date().toISOString();
+  selectedItemId = null;
+  saveWorkspace();
+  indexWorkspace();
+  render();
+}
+
 function showSourceCollection(collection) {
   if (!collection) return;
   selectedCustomCollectionId = collection.id;
@@ -827,6 +885,11 @@ function render() {
       });
       row.append(icon, info, collectionButton, edit);
       row.addEventListener("click", () => selectDocument(source));
+      row.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        openSourceContextMenu(source);
+      });
       row.addEventListener("dragstart", event => {
         event.dataTransfer.setData("application/x-evaarta-document", source.id);
         event.dataTransfer.effectAllowed = "copy";
@@ -848,6 +911,13 @@ function render() {
     if (item.id === linkSourceId) card.classList.add("card-link-source");
     if (selectedItemId && workspace.links.some(link => (link.fromId === item.id || link.toId === item.id))) card.classList.add("card-linked");
     card.addEventListener("click", () => selectItem(item));
+    if (sourceForItem(item) && item.metadata?.libraryCard) {
+      card.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        openSourceContextMenu(sourceForItem(item));
+      });
+    }
     card.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectItem(item); } });
 
     const kind = document.createElement("span");
@@ -1593,6 +1663,12 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
   document.getElementById("collectionManagerButton").addEventListener("click", openCollectionManager);
+  document.getElementById("sourceContextCloseButton").addEventListener("click", closeSourceContextMenu);
+  document.getElementById("sourceContextOpenButton").addEventListener("click", sourceContextOpen);
+  document.getElementById("sourceContextMetadataButton").addEventListener("click", sourceContextMetadata);
+  document.getElementById("sourceContextCollectionButton").addEventListener("click", sourceContextCollection);
+  document.getElementById("sourceContextExcerptButton").addEventListener("click", sourceContextAddExcerpt);
+  document.getElementById("sourceContextRemoveButton").addEventListener("click", sourceContextRemoveCard);
   document.getElementById("collectionManagerCloseButton").addEventListener("click", closeCollectionManager);
   document.getElementById("newCollectionButton").addEventListener("click", createCustomCollection);
   document.getElementById("ruleEditorCloseButton").addEventListener("click", () => document.getElementById("collectionRuleEditor").close());
