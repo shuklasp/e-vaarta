@@ -144,3 +144,8 @@ Unified Search now shows the collections containing each matched document. A sea
 ## Phase 26: Collection-aware workspace cards
 
 Source-backed workspace cards now expose the collections containing their source. Collection chips are interactive: selecting one switches the Document Library to that collection. Smart collections use their dynamically calculated membership, so the context stays current as document metadata changes. The collection manager also reports dynamic counts for smart collections.
+
+
+## Phase 27: First-class source cards
+
+Library-backed cards on the workspace canvas are now treated as first-class source cards. They identify themselves as SOURCE, show document type and tags, expose collection context, and provide Open, Metadata, and Remove actions. Remove only removes the canvas card; the underlying document and its collection membership remain intact. Normal excerpts retain source-jump behavior.
