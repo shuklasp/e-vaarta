@@ -498,6 +498,10 @@ function renderGraphEdges() {
     line.setAttribute("d", curve);
     line.classList.add("edge-line");
     if (selectedLinkId === link.id) line.classList.add("edge-active");
+    if (link.kind === "derived-from") {
+      group.classList.add("edge-derived");
+      if (selectedItemId === link.fromId || selectedItemId === link.toId) group.classList.add("edge-derived-active");
+    }
     const label = document.createElementNS(ns, "text");
     label.setAttribute("x", String((x1 + x2) / 2));
     label.setAttribute("y", String((y1 + y2) / 2 - 6));
@@ -936,6 +940,13 @@ function render() {
     if (item.id === selectedItemId) card.classList.add("card-selected");
     if (item.id === linkSourceId) card.classList.add("card-link-source");
     if (selectedItemId && workspace.links.some(link => (link.fromId === item.id || link.toId === item.id))) card.classList.add("card-linked");
+    if (item.metadata?.sourceAware) card.classList.add("card-source-aware");
+    if (selectedItemId) {
+      const selectedLinks = workspace.links.filter(link => link.fromId === selectedItemId || link.toId === selectedItemId);
+      if (selectedLinks.some(link => link.kind === "derived-from" && (link.fromId === item.id || link.toId === item.id))) {
+        card.classList.add("card-evidence-related");
+      }
+    }
     card.addEventListener("click", () => {
       selectItem(item);
       const source = sourceForItem(item);
@@ -961,6 +972,12 @@ function render() {
     const body = document.createElement("p");
     body.textContent = item.text || "";
     card.append(kind, title, body);
+    if (item.metadata?.sourceAware) {
+      const evidence = document.createElement("span");
+      evidence.className = "card-evidence-label";
+      evidence.textContent = "Evidence excerpt";
+      card.append(evidence);
+    }
 
     const source = sourceForItem(item);
     if (source) {
