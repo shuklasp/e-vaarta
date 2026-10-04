@@ -102,7 +102,7 @@ function restorePdfHighlight(anchor) {
       for (const index of selector.spanIndexes) {
         const span = spans[index];
         if (!span) continue;
-        span.classList.add("evaarta-persistent-highlight");
+        span.classList.add("evaarta-persistent-" + (anchor.annotationType || "highlight")); if (anchor.color) span.style.setProperty("--evaarta-annotation-color", anchor.color);
       }
       if (selector.spanIndexes.some(index => spans[index])) {
         const first = spans[selector.spanIndexes[0]];
@@ -732,6 +732,7 @@ function annotateSelection() {
       quote: selection.quote,
     }),
     annotationType: "highlight",
+    color: document.getElementById("annotationColor")?.value || "#ffdc00",
     text: selection.quote,
   }));
   saveWorkspace();
