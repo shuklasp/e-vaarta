@@ -24,6 +24,7 @@ e‑Vaarta is not complete when it is merely broader than competing products. Ev
 | Automation | DEVONthink/Obsidian/plugin ecosystems | Best auditable local automation |
 | Interoperability | open document/research ecosystems | No vendor lock-in |
 | Security/privacy | enterprise document systems + local-first | Local-first, auditable, cryptographically sound |
+| Semantic evidence system | e‑Vaarta's differentiator | Canonical evidence-to-action graph with provenance and revision traceability |
 
 ## PDF reader: zero-gap contract
 The PDF reader is a first-class product, not merely a document surface.
@@ -174,6 +175,14 @@ The reader must support a true LiquidText-class workspace: document beside works
 - accessibility tags;
 - incremental save;
 - deterministic export.
+
+## Canonical semantic graph
+
+The evidence-to-action workflow is represented by one cross-platform typed graph. Desktop, Android and iOS share the same node and edge vocabulary and validation rules, while remaining free to use native storage and UI.
+
+Core node types: communication, document, evidence, claim, finding, decision, task, project, report and citation.
+
+Core edge types: derived-from, supports, contradicts, references, results-in, assigned-to, reports and communicates.
 
 ## Evidence-to-action superlayer
 This is where e‑Vaarta must go beyond every benchmark:
