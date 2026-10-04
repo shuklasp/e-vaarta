@@ -233,10 +233,12 @@ function restorePdfAnchor(anchor) {
 
 let editorMode = null;
 let editorItemId = null;
+let editorOptions = {};
 
-function openEditor(mode, item = null) {
+function openEditor(mode, item = null, options = {}) {
   editorMode = mode;
   editorItemId = item?.id || null;
+  editorOptions = options || {};
   annotationEditorItemId = null;
   document.getElementById("annotationEditorFields").hidden = mode !== "annotation";
   const editor = document.getElementById("itemEditor");
@@ -255,6 +257,7 @@ function closeEditor() {
   document.getElementById("itemEditor").close();
   editorMode = null;
   editorItemId = null;
+  editorOptions = {};
   annotationEditorItemId = null;
   document.getElementById("annotationEditorFields").hidden = true;
 }
@@ -296,7 +299,7 @@ function saveEditor() {
     }
     const pageValue = document.getElementById("editorPage").value.trim();
     const page = pageValue ? Number(pageValue) : null;
-    workspace = addItem(workspace, createExcerpt({
+    const excerpt = createExcerpt({
       anchor: createSourceAnchor({
         documentId: source.id,
         page: Number.isInteger(page) && page > 0 ? page : null,
@@ -304,7 +307,27 @@ function saveEditor() {
       }),
       title: title || "Source excerpt",
       text,
-    }));
+    });
+    if (editorOptions.sourceCard) {
+      excerpt.metadata = { ...(excerpt.metadata || {}), sourceAware: true };
+    }
+    workspace = addItem(workspace, excerpt);
+    if (editorOptions.sourceCard) {
+      const sourceCard = workspace.items.find(candidate =>
+        candidate.metadata?.libraryCard && candidate.anchor?.documentId === source.id
+      );
+      if (sourceCard) {
+        try {
+          workspace = addLink(workspace, createLink({
+            fromId: excerpt.id,
+            toId: sourceCard.id,
+            kind: "derived-from",
+          }));
+        } catch (error) {
+          console.warn("e-Vaarta: unable to connect source-aware excerpt", error);
+        }
+      }
+    }
   }
   saveWorkspace();
   closeEditor();
@@ -586,7 +609,7 @@ function sourceContextAddExcerpt() {
   closeSourceContextMenu();
   if (!source) return;
   selectDocument(source);
-  addExcerpt();
+  addExcerpt({ sourceCard: true });
 }
 
 function sourceContextRemoveCard() {
@@ -1632,13 +1655,13 @@ function annotateSelection() {
   render();
 }
 
-function addExcerpt() {
+function addExcerpt(options = {}) {
   const source = workspace.documents.find(document => document.id === selectedDocumentId) || workspace.documents[0];
   if (!source) {
     alert("Open a document first.");
     return;
   }
-  openEditor("excerpt");
+  openEditor("excerpt", null, options);
 }
 
 function clearWorkspace() {
