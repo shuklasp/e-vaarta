@@ -12,8 +12,10 @@ const {
   createExcerpt,
   createDocument,
   createSourceAnchor,
+  createLink,
   addDocument,
   addItem,
+  addLink,
 } = ChromeUtils.importESModule(
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
 );
@@ -21,6 +23,8 @@ const {
 const PREF = "mail.evaarta.workspace.json";
 
 let workspace;
+let selectedDocumentId = null;
+let linkSourceId = null;
 
 function loadWorkspace() {
   try {
@@ -36,6 +40,64 @@ function loadWorkspace() {
 
 function saveWorkspace() {
   Services.prefs.setStringPref(PREF, JSON.stringify(workspace));
+}
+
+function findItem(itemId) {
+  return workspace.items.find(item => item.id === itemId) || null;
+}
+
+function jumpToSource(item) {
+  if (!item.anchor?.documentId) {
+    return;
+  }
+  const source = workspace.documents.find(document => document.id === item.anchor.documentId);
+  if (!source) {
+    return;
+  }
+  selectDocument(source, item.anchor.page);
+}
+
+function editNote(item) {
+  const title = window.prompt("Note title:", item.title || "Note");
+  if (title === null) return;
+  const text = window.prompt("Note:", item.text || "");
+  if (text === null) return;
+  item.title = title.trim() || "Note";
+  item.text = text;
+  item.updatedAt = new Date().toISOString();
+  workspace.updatedAt = item.updatedAt;
+  saveWorkspace();
+  render();
+}
+
+function linkItem(item) {
+  if (!linkSourceId) {
+    linkSourceId = item.id;
+    render();
+    return;
+  }
+  if (linkSourceId === item.id) {
+    linkSourceId = null;
+    render();
+    return;
+  }
+  const kind = window.prompt(
+    "Relationship (relates-to, supports, contradicts, derived-from, references):",
+    "relates-to"
+  );
+  if (!kind) return;
+  try {
+    workspace = addLink(workspace, createLink({
+      fromId: linkSourceId,
+      toId: item.id,
+      kind: kind.trim(),
+    }));
+    saveWorkspace();
+  } catch (error) {
+    alert(error.message);
+  }
+  linkSourceId = null;
+  render();
 }
 
 function render() {
@@ -78,6 +140,27 @@ function render() {
     const body = document.createElement("p");
     body.textContent = item.text || "";
     card.append(kind, title, body);
+
+    const controls = document.createElement("div");
+    controls.className = "card-controls";
+    if (item.kind === "note") {
+      const edit = document.createElement("button");
+      edit.textContent = "Edit";
+      edit.addEventListener("click", () => editNote(item));
+      controls.append(edit);
+    }
+    if (item.anchor?.documentId) {
+      const jump = document.createElement("button");
+      jump.textContent = "Jump to source";
+      jump.addEventListener("click", () => jumpToSource(item));
+      controls.append(jump);
+    }
+    const link = document.createElement("button");
+    link.textContent = linkSourceId === item.id ? "Select target…" : "Link";
+    link.className = linkSourceId === item.id ? "link-active" : "";
+    link.addEventListener("click", () => linkItem(item));
+    controls.append(link);
+    card.append(controls);
 
     if (item.anchor?.page) {
       const source = document.createElement("span");
@@ -128,15 +211,17 @@ async function openDocument() {
   render();
 }
 
-function selectDocument(source) {
+function selectDocument(source, page = null) {
+  selectedDocumentId = source.id;
   const viewer = document.getElementById("sourceViewer");
   document.getElementById("sourceTitle").textContent = source.title;
   document.getElementById("sourceLocation").textContent = source.kind.toUpperCase();
-  viewer.src = source.sourceRef || "about:blank";
+  const sourceRef = source.sourceRef || "about:blank";
+  viewer.src = page && source.kind === "pdf" ? `${sourceRef}#page=${page}` : sourceRef;
 }
 
 function addExcerpt() {
-  const source = workspace.documents[0];
+  const source = workspace.documents.find(document => document.id === selectedDocumentId) || workspace.documents[0];
   if (!source) {
     alert("Open a document first.");
     return;
