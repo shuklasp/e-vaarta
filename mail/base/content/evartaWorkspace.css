@@ -67,7 +67,7 @@ button.primary {
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(420px, 2fr);
+  grid-template-columns: minmax(180px, 0.7fr) minmax(320px, 1.4fr) minmax(360px, 1.8fr);
   gap: var(--workspace-gap);
   max-width: 1500px;
   margin: 0 auto;
@@ -184,4 +184,35 @@ button.primary {
 
 .source-anchor {
   margin-top: 10px;
+}
+
+
+.reader-pane {
+  min-height: 560px;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 12px;
+  overflow: hidden;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+.reader-pane .pane-heading {
+  padding: 14px 18px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.reader-pane iframe {
+  display: block;
+  width: 100%;
+  height: calc(100% - 58px);
+  min-height: 500px;
+  border: 0;
+  background: white;
+}
+
+.source-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  margin-bottom: 5px;
 }
