@@ -1,37 +1,27 @@
 # e-Vaarta
 
-e-Vaarta is a privacy-focused, open-source email client for desktop, built from the Thunderbird codebase and developed as an independent product.
+**e-Vaarta** is a privacy-focused, open-source email and personal information client for desktop, with a strong local/offline-first product direction.
 
-> **e-Vaarta** — आधुनिक, सुरक्षित और भरोसेमंद ई-मेल अनुभव।
+The project builds on the mature Mozilla mail application architecture while developing an independent e-Vaarta identity, user experience, offline workspace, integrations, and release process.
 
-## Project direction
+> **e-Vaarta — modern, secure and dependable communication.**
 
-e-Vaarta retains the mature mail, security, account, calendar, contacts, and extension foundations of Thunderbird while developing its own product identity, user experience, integrations, and release strategy.
+## Project identity
 
-The desktop client targets a consistent e-Vaarta experience across Windows, macOS, and Linux.
+e-Vaarta is the product name used in the application, documentation, builds, installers, and release materials.
 
-## Getting Started
+The product-facing documentation and branding in this repository are maintained for e-Vaarta. References to Mozilla or Thunderbird are retained only where they describe upstream technology, inherited architecture, licensing, compatibility, or historical design decisions.
 
-Because e-Vaarta is based on the Thunderbird desktop codebase, the Mozilla platform and Thunderbird developer documentation remain useful references for setting up a development environment.
+## Development
 
-- [Thunderbird Developer Website](https://developer.thunderbird.net)
-- [Thunderbird Source Tree Documentation](https://source-docs.thunderbird.net/en/latest/)
-- [Building Thunderbird](https://developer.thunderbird.net/thunderbird-development/building-thunderbird)
+The desktop client targets Windows, macOS, and Linux.
 
-### Mozilla Code Base
+Start with the e-Vaarta source documentation and build guide in the docs directory.
 
-Thunderbird is built on the Mozilla platform, the same base that Firefox is built from. The e-Vaarta desktop tree preserves that architecture while adding the product-specific work described above.
+### Upstream technology
 
-### Firefox vs Thunderbird Source Code
+e-Vaarta uses the Mozilla platform and inherits substantial mail-client architecture from the Thunderbird project. Upstream Mozilla/Thunderbird documentation can therefore be useful when working on inherited subsystems, but e-Vaarta documentation is authoritative for e-Vaarta-specific behavior and product decisions.
 
-The Firefox repository contains the Firefox codebase and platform code. Thunderbird provides the mail-client application layer under `comm/`. e-Vaarta continues to build on that separation.
+### Licensing
 
-## Contributing
-
-e-Vaarta welcomes engineering, testing, design, documentation, localization, accessibility, and community contributions.
-
-Please use GitHub Issues and Pull Requests for project-specific work.
-
-## License
-
-This repository contains substantial code originating from the Thunderbird/Mozilla project. Please see the repository's license files for the applicable licensing terms.
+This repository contains substantial code originating from the Mozilla/Thunderbird project as well as e-Vaarta-specific work. Consult the repository license files and source-file notices for the applicable terms.
