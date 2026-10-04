@@ -996,12 +996,19 @@ function attachSourceSelectionBridge(source) {
     indexPdfSource(source, viewer.contentWindow);
     if (source.kind === "pdf") {
       const pages = [...viewer.contentWindow.document.querySelectorAll(".page[data-page-number]")];
-      const hasNativeText = pages.some(page => (page.innerText || "").trim());
-      if (!hasNativeText) {
-        renderPdfPagesForOcr(viewer.contentWindow)
-          .then(renderedPages => indexOcrSource(source, renderedPages))
-          .catch(error => console.warn("e-Vaarta: PDF OCR rendering failed", error));
-      }
+      const nativePages = new Set(
+        pages
+          .filter(page => (page.innerText || "").trim())
+          .map(page => Number(page.dataset.pageNumber))
+      );
+      renderPdfPagesForOcr(viewer.contentWindow)
+        .then(renderedPages =>
+          indexOcrSource(
+            source,
+            renderedPages.filter(({ pageNumber }) => !nativePages.has(pageNumber))
+          )
+        )
+        .catch(error => console.warn("e-Vaarta: PDF OCR rendering failed", error));
     }
   } catch (error) {
     console.warn("e-Vaarta: PDF selection bridge unavailable", error);
