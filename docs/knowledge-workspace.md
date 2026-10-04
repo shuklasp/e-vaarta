@@ -149,3 +149,8 @@ Source-backed workspace cards now expose the collections containing their source
 ## Phase 27: First-class source cards
 
 Library-backed cards on the workspace canvas are now treated as first-class source cards. They identify themselves as SOURCE, show document type and tags, expose collection context, and provide Open, Metadata, and Remove actions. Remove only removes the canvas card; the underlying document and its collection membership remain intact. Normal excerpts retain source-jump behavior.
+
+
+## Phase 28: Visual source previews
+
+First-class source cards now include lightweight visual previews. Image documents render their image thumbnail, PDFs render page one through the existing PDF viewer, and Office, email, and other document types use a compact type marker. Preview failures fall back to the document type without affecting source actions or workspace data.
