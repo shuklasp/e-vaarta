@@ -1181,6 +1181,50 @@ var messageProgressListener = {
 /**
  * Update the flagged (starred) state of the currently selected message.
  */
+/**
+ * Add the attachments of the currently displayed message to e-Vaarta.
+ * Thunderbird already provides normalized AttachmentInfo objects here, so this
+ * integration deliberately reuses the native attachment pipeline.
+ */
+function addCurrentMessageAttachmentsToEvaarta() {
+  if (!currentAttachments.length) {
+    Services.prompt.alert(window, "e-Vaarta", "This message has no attachments.");
+    return;
+  }
+
+  const documents = currentAttachments.map(attachment => ({
+    title: attachment.name || "Email attachment",
+    kind: attachment.contentType == "application/pdf"
+      ? "pdf"
+      : attachment.contentType?.startsWith("image/")
+        ? "image"
+        : attachment.contentType?.includes("word")
+          ? "word"
+          : attachment.contentType?.includes("presentation")
+            ? "powerpoint"
+            : "other",
+    sourceRef: attachment.url || attachment.uri?.spec || null,
+    mimeType: attachment.contentType || null,
+  })).filter(document => document.sourceRef);
+
+  if (!documents.length) {
+    Services.prompt.alert(window, "e-Vaarta", "The attachments are not available as readable sources yet.");
+    return;
+  }
+
+  Services.prefs.setStringPref(
+    "mail.evaarta.pendingAttachments",
+    JSON.stringify(documents)
+  );
+
+  const tabmail = top.document.getElementById("tabmail");
+  if (tabmail) {
+    top.openTab("contentTab", {
+      url: "chrome://messenger/content/evartaWorkspace.xhtml",
+    }, "tab");
+  }
+}
+
 function updateStarButton() {
   if (!gMessage || !gFolder) {
     // No msgHdr to update, or we're dealing with an .eml.
