@@ -10,7 +10,7 @@ const { IOUtils } = ChromeUtils.importESModule("resource://gre/modules/IOUtils.s
 const { PathUtils } = ChromeUtils.importESModule("resource://gre/modules/PathUtils.sys.mjs");
 const {
   createWorkspace, createNote, createExcerpt, createAnnotation, createDocument,
-  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace,
+  createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace, createCollection, addCollection, updateCollection, removeCollection, setDocumentCollections,
 } = ChromeUtils.importESModule(
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
 );
@@ -26,6 +26,7 @@ let contentIndex;
 let selectedDocumentId = null;
 let libraryFilter = "";
 let libraryCollection = "all";
+let selectedCustomCollectionId = null;
 let libraryView = "list";
 let metadataEditorDocumentId = null;
 let selectedItemId = null;
@@ -535,6 +536,90 @@ function saveDocumentMetadata() {
   if (source.id === selectedDocumentId) selectDocument(source);
 }
 
+function customCollectionForSource(source) {
+  return workspace.collections.find(collection => collection.documentIds.includes(source.id)) || null;
+}
+
+function openCollectionManager() {
+  renderCollectionManager();
+  document.getElementById("collectionManager").showModal();
+}
+
+function closeCollectionManager() {
+  document.getElementById("collectionManager").close();
+}
+
+function renderCollectionManager() {
+  const list = document.getElementById("customCollectionList");
+  list.replaceChildren();
+  for (const collection of workspace.collections) {
+    const row = document.createElement("div");
+    row.className = "collection-row";
+    const name = document.createElement("strong");
+    name.textContent = collection.name;
+    const count = document.createElement("small");
+    count.textContent = collection.documentIds.length + " document" + (collection.documentIds.length === 1 ? "" : "s");
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.textContent = "Edit";
+    edit.addEventListener("click", () => {
+      const nameValue = prompt("Collection name", collection.name);
+      if (!nameValue?.trim()) return;
+      updateCollection(workspace, collection.id, { name: nameValue });
+      saveWorkspace();
+      renderCollectionManager();
+      render();
+    });
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "Delete";
+    remove.addEventListener("click", () => {
+      if (!confirm("Delete this collection? Documents will not be deleted.")) return;
+      removeCollection(workspace, collection.id);
+      if (selectedCustomCollectionId === collection.id) selectedCustomCollectionId = null;
+      saveWorkspace();
+      renderCollectionManager();
+      render();
+    });
+    row.append(name, count, edit, remove);
+    list.append(row);
+  }
+}
+
+function createCustomCollection() {
+  const name = document.getElementById("newCollectionName").value.trim();
+  if (!name) return;
+  const collection = createCollection({ name });
+  workspace = addCollection(workspace, collection);
+  document.getElementById("newCollectionName").value = "";
+  saveWorkspace();
+  renderCollectionManager();
+  render();
+}
+
+function toggleDocumentCollection(source) {
+  const collectionIds = workspace.collections
+    .filter(collection => collection.documentIds.includes(source.id))
+    .map(collection => collection.id);
+  const options = workspace.collections.map(collection =>
+    (collectionIds.includes(collection.id) ? "[x] " : "[ ] ") + collection.name
+  );
+  if (!options.length) {
+    openCollectionManager();
+    return;
+  }
+  const answer = prompt("Toggle collection membership:\n" + options.map((option, index) => (index + 1) + ". " + option).join("\n"));
+  const index = Number(answer) - 1;
+  if (!Number.isInteger(index) || index < 0 || index >= workspace.collections.length) return;
+  const collection = workspace.collections[index];
+  if (collectionIds.includes(collection.id)) collectionIds.splice(collectionIds.indexOf(collection.id), 1);
+  else collectionIds.push(collection.id);
+  setDocumentCollections(workspace, source.id, collectionIds);
+  saveWorkspace();
+  indexWorkspace();
+  render();
+}
+
 function sourceKindLabel(kind) {
   return ({ pdf: "PDF", word: "Word", powerpoint: "PowerPoint", image: "Image", email: "Email", web: "Web" }[kind] || "Document");
 }
@@ -550,6 +635,7 @@ function sourceMatchesCollection(source) {
 }
 
 function sourceMatchesFilter(source) {
+  if (selectedCustomCollectionId && !workspace.collections.find(c => c.id === selectedCustomCollectionId)?.documentIds.includes(source.id)) return false;
   if (!sourceMatchesCollection(source)) return false;
   const query = libraryFilter.trim().toLocaleLowerCase();
   if (!query) return true;
@@ -568,7 +654,20 @@ function render() {
   sourceList.replaceChildren();
   sourceList.classList.toggle("library-grid", libraryView === "grid");
   const libraryToolbar = document.createElement("div");
-  libraryToolbar.className = "library-toolbar";  document.querySelectorAll(".library-filter").forEach(button => {
+  libraryToolbar.className = "library-toolbar";  for (const collection of workspace.collections) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "library-filter";
+    button.classList.toggle("active", selectedCustomCollectionId === collection.id);
+    button.textContent = collection.name;
+    button.addEventListener("click", () => {
+      selectedCustomCollectionId = collection.id;
+      libraryCollection = "all";
+      render();
+    });
+    document.getElementById("libraryCollections").append(button);
+  }
+    document.querySelectorAll(".library-filter").forEach(button => {
     button.classList.toggle("active", button.dataset.libraryFilter === libraryCollection);
     button.addEventListener("click", () => {
       libraryCollection = button.dataset.libraryFilter;
@@ -654,6 +753,12 @@ function render() {
         description.textContent = source.description;
         info.append(description);
       }
+      const collectionButton = document.createElement("button");
+      collectionButton.type = "button";
+      collectionButton.className = "source-edit";
+      collectionButton.textContent = customCollectionForSource(source) ? "Collection" : "Add";
+      collectionButton.title = "Assign to collection";
+      collectionButton.addEventListener("click", event => { event.stopPropagation(); toggleDocumentCollection(source); });
       const edit = document.createElement("button");
       edit.type = "button";
       edit.className = "source-edit";
@@ -663,7 +768,7 @@ function render() {
         event.stopPropagation();
         openDocumentMetadataEditor(source);
       });
-      row.append(icon, info, edit);
+      row.append(icon, info, collectionButton, edit);
       row.addEventListener("click", () => selectDocument(source));
       row.addEventListener("dragstart", event => {
         event.dataTransfer.setData("application/x-evaarta-document", source.id);
@@ -1308,6 +1413,9 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("closeAnnotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(false));
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
+  document.getElementById("collectionManagerButton").addEventListener("click", openCollectionManager);
+  document.getElementById("collectionManagerCloseButton").addEventListener("click", closeCollectionManager);
+  document.getElementById("newCollectionButton").addEventListener("click", createCustomCollection);
   document.getElementById("metadataCloseButton").addEventListener("click", closeDocumentMetadataEditor);
   document.getElementById("metadataCancelButton").addEventListener("click", closeDocumentMetadataEditor);
   document.getElementById("documentMetadataForm").addEventListener("submit", event => {
