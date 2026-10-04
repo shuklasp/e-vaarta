@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function workspaceAccessibilityModel(workspace){return{label:workspace?.name||"e-Vaarta workspace",documentCount:workspace?.documents?.length||0,itemCount:workspace?.items?.length||0,keyboardNavigation:true,announcements:["Source selected","Evidence captured","Search results updated"]}}
