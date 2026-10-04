@@ -12,7 +12,7 @@
  * keeping the original source context addressable.
  */
 
-export const EVAARTA_DOCUMENT_MODEL_VERSION = 5;
+export const EVAARTA_DOCUMENT_MODEL_VERSION = 6;
 
 export const DocumentKind = Object.freeze({
   PDF: "pdf",
@@ -22,12 +22,24 @@ export const DocumentKind = Object.freeze({
   WEB: "web",
   EMAIL: "email",
   OTHER: "other",
+  EPUB: "epub",
+  SPREADSHEET: "spreadsheet",
+  TEXT: "text",
+  MARKDOWN: "markdown",
+  AUDIO: "audio",
+  VIDEO: "video",
+  ARCHIVE: "archive",
 });
 
 export const WorkspaceItemKind = Object.freeze({
   EXCERPT: "excerpt",
   NOTE: "note",
   ANNOTATION: "annotation",
+  EVIDENCE: "evidence",
+  CLAIM: "claim",
+  FINDING: "finding",
+  DECISION: "decision",
+  TASK: "task",
 });
 
 export const LinkKind = Object.freeze({
@@ -36,10 +48,20 @@ export const LinkKind = Object.freeze({
   CONTRADICTS: "contradicts",
   DERIVED_FROM: "derived-from",
   REFERENCES: "references",
+  QUALIFIES: "qualifies",
+  ANSWERS: "answers",
+  RAISES: "raises",
+  DEPENDS_ON: "depends-on",
+  IMPLEMENTS: "implements",
+  RESULTS_IN: "results-in",
+  ASSIGNED_TO: "assigned-to",
+  VERIFIED_BY: "verified-by",
+  SUPERSEDES: "supersedes",
 });
 
 function id(prefix) {
-  return `${prefix}-${crypto.randomUUID()}`;
+  const uuid = globalThis.crypto?.randomUUID?.();
+  return `${prefix}-${uuid || Math.random().toString(36).slice(2)}-${Date.now().toString(36)}`;
 }
 
 function now() {
@@ -468,7 +490,7 @@ export function serializeWorkspace(workspace) {
 
 export function deserializeWorkspace(serialized) {
   const workspace = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
-  if (workspace?.modelVersion === 1 || workspace?.modelVersion === 2 || workspace?.modelVersion === 3 || workspace?.modelVersion === 4) {
+  if (workspace?.modelVersion >= 1 && workspace?.modelVersion <= 5) {
     workspace.modelVersion = EVAARTA_DOCUMENT_MODEL_VERSION;
     workspace.collections ||= [];
     workspace.evidenceGroups ||= [];
