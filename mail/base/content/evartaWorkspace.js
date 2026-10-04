@@ -13,7 +13,7 @@ const {
   "resource:///modules/EvaartaDocumentWorkspace.sys.mjs"
 );
 
-const { createIndex, createIndexEntry, upsertIndexEntry, serializeIndex, deserializeIndex, searchIndex } = ChromeUtils.importESModule("resource:///modules/EvaartaContentIndex.sys.mjs");
+const { createIndex, createIndexEntry, upsertIndexEntry, serializeIndex, deserializeIndex, searchIndex, upsertExtractedContent, needsReindex, fingerprintText } = ChromeUtils.importESModule("resource:///modules/EvaartaContentIndex.sys.mjs");
 
 const PREF = "mail.evaarta.workspace.json";
 const INDEX_PREF = "mail.evaarta.contentIndex.json";
@@ -66,26 +66,42 @@ function saveContentIndex() {
 
 function indexWorkspace() {
   for (const source of workspace.documents) {
+    const metadataText = [source.description, ...(source.tags || [])].join(" ").trim();
     contentIndex = upsertIndexEntry(contentIndex, createIndexEntry({
-      documentId: source.id,
-      sourceRef: source.sourceRef,
-      title: source.title,
-      kind: source.kind,
-      text: [source.description, ...(source.tags || [])].join(" "),
+      documentId: source.id, sourceRef: source.sourceRef, title: source.title,
+      kind: source.kind, text: metadataText,
       metadata: { mimeType: source.mimeType, tags: source.tags || [] },
     }));
+    const fingerprint = fingerprintText(metadataText);
+    if (needsReindex(contentIndex, source.id, "document-content", fingerprint)) {
+      contentIndex = upsertExtractedContent(contentIndex, {
+        documentId: source.id, sourceRef: source.sourceRef, title: source.title,
+        kind: "document-content", text: metadataText,
+        metadata: { mimeType: source.mimeType }, fingerprint,
+      });
+    }
   }
   for (const item of workspace.items) {
     const source = sourceForItem(item);
     contentIndex = upsertIndexEntry(contentIndex, createIndexEntry({
-      documentId: source?.id || item.id,
-      sourceRef: source?.sourceRef || null,
-      title: item.title || item.kind,
-      kind: item.kind,
+      documentId: source?.id || item.id, sourceRef: source?.sourceRef || null,
+      title: item.title || item.kind, kind: item.kind,
       text: [item.text, item.anchor?.quote].filter(Boolean).join(" "),
       metadata: { page: item.anchor?.page, annotationType: item.annotationType, itemId: item.id, itemKind: item.kind },
     }));
   }
+  saveContentIndex();
+}
+
+function indexEmailSource(source, bodyText) {
+  if (!source?.id || source.kind !== "email" || !bodyText?.trim()) return;
+  const fingerprint = fingerprintText(bodyText);
+  if (!needsReindex(contentIndex, source.id, "email-body", fingerprint)) return;
+  contentIndex = upsertExtractedContent(contentIndex, {
+    documentId: source.id, sourceRef: source.sourceRef, title: source.title,
+    kind: "email-body", text: bodyText,
+    metadata: { mimeType: "message/rfc822" }, fingerprint,
+  });
   saveContentIndex();
 }
 
