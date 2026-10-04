@@ -188,7 +188,10 @@ export function createWorkspace({name, description = ""}) {
  * Adds a document to a workspace without duplicating it.
  */
 export function addDocument(workspace, document) {
-  if (workspace.documents.some(existing => existing.id === document.id)) {
+  if (workspace.documents.some(existing =>
+    existing.id === document.id ||
+    (document.sourceRef && existing.sourceRef === document.sourceRef && existing.kind === document.kind)
+  )) {
     return workspace;
   }
   workspace.documents.push(document);
