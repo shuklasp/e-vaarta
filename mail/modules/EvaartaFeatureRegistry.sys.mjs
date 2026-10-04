@@ -87,6 +87,7 @@ const CAPABILITIES = Object.freeze([
   { id: "mobile-evidence-workspace", area: "mobile", status: FeatureStatus.CONTRACTED },
   { id: "camera-scanning", area: "mobile", status: FeatureStatus.CONTRACTED },
   { id: "voice-capture", area: "mobile", status: FeatureStatus.CONTRACTED },
+  { id: "best-in-class-program", area: "quality", status: FeatureStatus.IMPLEMENTED },
 ]);
 
 export function listFeatureCapabilities() {
