@@ -56,7 +56,7 @@ const CONTRACTS = Object.freeze([
   ]],
   ["communication", [
     "email", "attachments", "conversations", "offline-mail", "calendar",
-    "contacts", "capture", "message-intelligence", "universal-message-model", "identity-resolution", "provider-adapters", "unified-inbox", "threading", "team-chat", "offline-send-queue", "notifications", "meeting-workspace", "availability", "external-channel-adapters", "communication-ai", "reply-grounding", "communication-to-task", "communication-to-decision", "workflow-automation", "encryption-boundary", "dlp", "retention", "legal-hold", "audit", "interoperability",
+    "contacts", "capture", "message-intelligence", "universal-message-model", "identity-resolution", "provider-adapters", "unified-inbox", "threading", "team-chat", "offline-send-queue", "notifications", "meeting-workspace", "availability", "external-channel-adapters", "communication-ai", "reply-grounding", "communication-to-task", "communication-to-decision", "workflow-automation", "encryption-boundary", "dlp", "retention", "legal-hold", "audit", "interoperability", "production-integration", "provider-transport", "calendar-provider-boundary", "credential-isolation", "capability-authorization", "end-to-end-validation",
   ]],
   ["search", [
     "lexical", "hybrid", "semantic", "metadata", "ocr", "annotations",
