@@ -171,6 +171,75 @@ function toggleEvidenceGroupItem(group, item) {
   saveWorkspace();
   render();
 }
+
+function renderEvidenceGroups() {
+  const list = document.getElementById("evidenceGroupList");
+  list.replaceChildren();
+  const groups = workspace.evidenceGroups || [];
+  if (!groups.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No evidence groups yet.";
+    list.append(empty);
+    return;
+  }
+  for (const group of groups) {
+    const row = document.createElement("div");
+    row.className = "evidence-group-manager-row";
+    const info = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = group.name;
+    const meta = document.createElement("small");
+    meta.textContent = group.itemIds.length + " evidence item" + (group.itemIds.length === 1 ? "" : "s");
+    info.append(title, meta);
+    const select = document.createElement("button");
+    select.textContent = "Open";
+    select.addEventListener("click", () => {
+      selectEvidenceGroup(group);
+      document.getElementById("evidenceGroupsPane").close();
+    });
+    const add = document.createElement("button");
+    add.textContent = "Add selected";
+    add.addEventListener("click", () => {
+      const item = findItem(selectedItemId);
+      if (!item) return;
+      toggleEvidenceGroupItem(group, item);
+      renderEvidenceGroups();
+    });
+    const remove = document.createElement("button");
+    remove.textContent = "Delete";
+    remove.className = "quiet";
+    remove.addEventListener("click", () => {
+      if (!confirm("Delete this evidence group? Items will not be deleted.")) return;
+      removeEvidenceGroup(workspace, group.id);
+      saveWorkspace();
+      renderEvidenceGroups();
+      render();
+    });
+    row.append(info, select, add, remove);
+    list.append(row);
+  }
+}
+
+function openEvidenceGroups() {
+  renderEvidenceGroups();
+  document.getElementById("evidenceGroupsPane").showModal();
+}
+
+function createEvidenceGroupFromManager() {
+  const input = document.getElementById("newEvidenceGroupName");
+  const name = input.value.trim();
+  if (!name) return;
+  const item = findItem(selectedItemId);
+  const source = sourceForItem(item);
+  const group = createEvidenceGroup({ name, documentId: source?.id || item?.anchor?.documentId || null });
+  workspace = addEvidenceGroup(workspace, group);
+  if (item) addItemToEvidenceGroup(workspace, group.id, item.id);
+  input.value = "";
+  saveWorkspace();
+  renderEvidenceGroups();
+  render();
+}
 function linkLabel(kind) { return kind.replaceAll("-", " "); }
 
 function jumpToSource(item) {
@@ -1842,6 +1911,9 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("captureSelectionButton").addEventListener("click", captureSelection);
   document.getElementById("annotateSelectionButton").addEventListener("click", annotateSelection);
   document.getElementById("annotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(true));
+  document.getElementById("evidenceGroupsButton").addEventListener("click", openEvidenceGroups);
+  document.getElementById("evidenceGroupsCloseButton").addEventListener("click", () => document.getElementById("evidenceGroupsPane").close());
+  document.getElementById("newEvidenceGroupButton").addEventListener("click", createEvidenceGroupFromManager);
   document.getElementById("searchButton").addEventListener("click", () => toggleSearch(true));
   document.getElementById("closeSearchButton").addEventListener("click", () => toggleSearch(false));
   document.getElementById("workspaceSearchInput").addEventListener("input", event => renderSearchResults(event.target.value));
