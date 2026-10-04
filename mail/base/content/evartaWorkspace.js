@@ -8,6 +8,7 @@ const { Services } = ChromeUtils.importESModule(
 );
 const { IOUtils } = ChromeUtils.importESModule("resource://gre/modules/IOUtils.sys.mjs");
 const { PathUtils } = ChromeUtils.importESModule("resource://gre/modules/PathUtils.sys.mjs");
+const { FileUtils } = ChromeUtils.importESModule("resource://gre/modules/FileUtils.sys.mjs");
 const {
   createWorkspace, createNote, createExcerpt, createAnnotation, createDocument,
   createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace, createCollection, addCollection, updateCollection, removeCollection, setDocumentCollections, setCollectionRule, getCollectionDocuments, createEvidenceGroup, addEvidenceGroup, updateEvidenceGroup, removeEvidenceGroup, addItemToEvidenceGroup, removeItemFromEvidenceGroup, getEvidenceGroupItems, evidenceGroupsForItem,
@@ -71,7 +72,7 @@ async function importIntoLocalVault(sourcePath, originalName, mimeType = null) {
 function attachVaultRecord(document, vault) {
   if (!document || !vault) return document;
   document.vault = vault;
-  document.sourceRef = "evaarta-vault:" + vault.relativePath;
+  document.sourceRef = Services.io.newFileURI(FileUtils.File(PathUtils.join(EVAARTA_DATA_DIR, vault.relativePath))).spec;
   document.updatedAt = new Date().toISOString();
   return document;
 }
