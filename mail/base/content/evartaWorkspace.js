@@ -927,6 +927,22 @@ function renderSearchResults(query = "") {
     const location = document.createElement("small");
     location.textContent = result.page ? `Page ${result.page}` : result.kind;
     row.append(title, type, location, text);
+    const source = result.documentId
+      ? workspace.documents.find(document => document.id === result.documentId)
+      : null;
+    if (source) {
+      const collections = workspace.collections.filter(collection =>
+        collection.smartRule
+          ? getCollectionDocuments(workspace, collection.id).some(document => document.id === source.id)
+          : collection.documentIds.includes(source.id)
+      );
+      if (collections.length) {
+        const badges = document.createElement("div");
+        badges.className = "search-collections";
+        badges.textContent = collections.map(collection => collection.name).join(" • ");
+        row.append(badges);
+      }
+    }
     row.addEventListener("click", () => {
       if (result.type === "document") {
         const source = workspace.documents.find(document => document.id === result.documentId);
@@ -951,6 +967,18 @@ function renderSearchResults(query = "") {
     });
     list.append(row);
   }
+}
+
+function saveCurrentSearchAsCollection() {
+  const query = document.getElementById("workspaceSearchInput").value.trim();
+  if (!query) return;
+  const name = prompt("Name for saved search", query);
+  if (!name?.trim()) return;
+  const collection = createCollection({ name: name.trim(), description: "Saved search: " + query });
+  workspace = addCollection(workspace, collection);
+  setCollectionRule(workspace, collection.id, { text: query });
+  saveWorkspace();
+  render();
 }
 
 function toggleSearch(open = true) {
