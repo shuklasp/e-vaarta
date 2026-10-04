@@ -98,7 +98,7 @@ const CAPABILITIES = Object.freeze([
   { id: "task-phase-b-workforce", area: "projects", status: FeatureStatus.IMPLEMENTED },
   { id: "task-phase-c-management", area: "projects", status: FeatureStatus.IMPLEMENTED },
   { id: "task-phase-d-evidence", area: "semantic", status: FeatureStatus.IMPLEMENTED },
-  { id: "task-phase-e-intelligence", area: "ai", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-phase-e-intelligence", area: "ai", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-phase-f-production-work-graph", area: "projects", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-phase-f-ux-projections", area: "projects", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-phase-f-assignment-scheduling", area: "projects", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-phase-f-workflow-notifications", area: "automation", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-phase-f-offline-reconciliation", area: "collaboration", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-phase-f-grounded-control", area: "ai", status: FeatureStatus.IMPLEMENTED },
 ]);
 
 export function listFeatureCapabilities() {
