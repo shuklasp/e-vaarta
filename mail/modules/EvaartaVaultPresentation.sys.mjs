@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function presentVaultStats(stats={}){return{total:stats.total||0,healthy:stats.healthy||0,missing:stats.missing||0,modified:stats.modified||0,orphaned:stats.orphaned||0,bytes:stats.bytes||0}}
