@@ -42,6 +42,19 @@ function importPendingAttachments(workspace) {
   return workspace;
 }
 
+function updateOcrStatus() {
+  const status = document.getElementById("ocrStatus");
+  if (!status) return;
+  status.textContent = isOcrAvailable() ? "OCR: ready" : "OCR: unavailable";
+  status.dataset.available = String(isOcrAvailable());
+}
+
+const evaartaOcrObserver = {
+  observe() {
+    updateOcrStatus();
+  },
+};
+
 function loadWorkspace() {
   try {
     const value = Services.prefs.getStringPref(PREF, "");
