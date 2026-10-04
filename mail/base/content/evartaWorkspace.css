@@ -686,3 +686,8 @@ select:focus-visible,
 .evidence-group-members { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
 .evidence-group-member-chip { font-size: .78em; border: 1px solid color-mix(in srgb, CanvasText 18%, transparent); border-radius: 999px; padding: 3px 7px; }
 .evidence-group-member-chip:hover { text-decoration: underline; }
+
+
+.selection-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 7px 10px; margin-bottom: 8px; border: 1px solid color-mix(in srgb, CanvasText 12%, transparent); border-radius: 8px; }
+.selection-toolbar span { flex: 1 1 auto; font-size: .86em; opacity: .72; }
+.card-multi-selected { outline: 2px solid Highlight; outline-offset: 3px; box-shadow: 0 0 0 4px color-mix(in srgb, Highlight 12%, transparent); }
