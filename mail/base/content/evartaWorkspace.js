@@ -1539,6 +1539,23 @@ function openSelectedEmailSource() {
   } catch (error) { console.error("e-Vaarta: unable to open email source", error); }
 }
 
+function evidenceForSource(source) {
+  if (!source) return [];
+  return workspace.items.filter(item =>
+    item.anchor?.documentId === source.id &&
+    !item.metadata?.libraryCard &&
+    (item.kind === "excerpt" || item.kind === "annotation")
+  );
+}
+
+function evidenceGroupsForSource(source) {
+  const groups = new Map();
+  for (const item of evidenceForSource(source)) {
+    for (const group of evidenceGroupsForItem(workspace, item.id) || []) groups.set(group.id, group);
+  }
+  return [...groups.values()];
+}
+
 function sourceForItem(item) {
   if (!item?.anchor?.documentId) return null;
   return workspace.documents.find(document => document.id === item.anchor.documentId) || null;
@@ -2610,6 +2627,15 @@ function renderSearchResults(query = "") {
     }
     const source = searchResultSource(result);
     if (source) {
+      const evidence = evidenceForSource(source);
+      const groups = evidenceGroupsForSource(source);
+      if (evidence.length || groups.length) {
+        const context = document.createElement("div");
+        context.className = "search-collections";
+        context.textContent = evidence.length + " evidence item" + (evidence.length === 1 ? "" : "s") +
+          (groups.length ? " • " + groups.length + " group" + (groups.length === 1 ? "" : "s") : "");
+        row.append(context);
+      }
       const collections = collectionsForSource(source);
       if (collections.length) {
         const badges = document.createElement("div");
