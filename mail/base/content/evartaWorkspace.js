@@ -136,27 +136,30 @@ function selectDocument(source) {
 }
 
 function addExcerpt() {
-  let document = workspace.documents[0];
-  if (!document) {
-    document = createDocument({
-      title: "Example source document",
-      kind: "pdf",
-      sourceRef: "demo://evarta/source",
-      mimeType: "application/pdf",
-    });
-    workspace = addDocument(workspace, document);
+  const source = workspace.documents[0];
+  if (!source) {
+    alert("Open a document first.");
+    return;
   }
+
+  const text = window.prompt("Paste or type the source excerpt:");
+  if (!text?.trim()) {
+    return;
+  }
+
+  const pageValue = window.prompt("Source page number (optional):", "1");
+  const page = pageValue && /^\\d+$/.test(pageValue) ? Number(pageValue) : null;
 
   workspace = addItem(
     workspace,
     createExcerpt({
       anchor: createSourceAnchor({
-        documentId: document.id,
-        page: 1,
-        quote: "Important source material",
+        documentId: source.id,
+        page,
+        quote: text.trim(),
       }),
-      title: "Example excerpt",
-      text: "This is the first source-bound excerpt. The next step will populate it from real PDF or email content.",
+      title: "Source excerpt",
+      text: text.trim(),
     })
   );
   saveWorkspace();
