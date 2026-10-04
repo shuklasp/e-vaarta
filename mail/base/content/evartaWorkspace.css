@@ -738,3 +738,44 @@ select:focus-visible,
 
 .search-provenance { opacity: .85; }
 .search-provenance-detail { display: block; opacity: .7; }
+
+
+.search-result { position: relative; }
+.search-preview-button { margin-top: 7px; }
+.search-preview {
+  margin-top: 9px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, CanvasText 3%, Canvas);
+  cursor: default;
+}
+.search-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.search-preview-heading strong { font-size: .82em; }
+.search-preview-quote {
+  margin: 0 0 8px;
+  padding-left: 9px;
+  border-left: 2px solid Highlight;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+.search-preview-details,
+.search-preview-source,
+.search-preview-context {
+  margin-top: 5px;
+  font-size: .74em;
+  opacity: .72;
+}
+.search-preview-source { font-weight: 600; }
+.search-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 9px;
+}
