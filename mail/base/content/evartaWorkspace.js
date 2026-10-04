@@ -476,6 +476,8 @@ const evaartaOcrObserver = {
 
 let ingestionWorkerRunning = false;
 let ingestionWorkerTimer = null;
+let ingestionCancelRequested = false;
+
 
 function updateIngestionStatusSummary() {
   const target = document.getElementById("ingestionStatusSummary");
@@ -491,7 +493,13 @@ function updateIngestionStatusSummary() {
   if (active) parts.push(active + " pending");
   if (counts.failed) parts.push(counts.failed + " failed");
   if (counts.deferred) parts.push(counts.deferred + " deferred");
+  const running = ingestionQueue.find(job => job.state === "running");
+  if (running) {
+    const progress = running.totalBytes ? Math.min(100, Math.round((running.processedBytes || 0) / running.totalBytes * 100)) : 0;
+    parts.unshift("Importing " + progress + "%");
+  }
   target.textContent = "Ingestion: " + parts.join(" • ");
+
 }
 
 async function retryIngestion(document) {
@@ -520,10 +528,22 @@ async function processIngestionQueue() {
       }
       job.state = "running";
       job.attempts = (job.attempts || 0) + 1;
+      job.totalBytes = job.size || 0;
+      job.processedBytes = 0;
       job.updatedAt = new Date().toISOString();
+      ingestionCancelRequested = false;
       await saveIngestionQueue();
+      updateIngestionStatusSummary();
       setIngestionState(document, IngestionState.MATERIALIZING);
       try {
+        if (ingestionCancelRequested) {
+          job.state = "queued";
+          job.updatedAt = new Date().toISOString();
+          await saveIngestionQueue();
+          break;
+        }
+        job.processedBytes = job.totalBytes;
+        updateIngestionStatusSummary();
         const vault = await importIntoLocalVault(job.localPath, job.title, job.mimeType || null);
         document.vault = vault;
         attachVaultRecord(document, vault);
@@ -553,6 +573,17 @@ async function processIngestionQueue() {
   } finally {
     ingestionWorkerRunning = false;
   }
+}
+
+function cancelIngestion() {
+  ingestionCancelRequested = true;
+  const job = ingestionQueue.find(item => item.state === "running");
+  if (job) {
+    job.state = "queued";
+    job.updatedAt = new Date().toISOString();
+    saveIngestionQueue();
+  }
+  updateIngestionStatusSummary();
 }
 
 function scheduleIngestionWorker(delay = 1000) {
