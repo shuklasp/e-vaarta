@@ -432,9 +432,9 @@ async function loadWorkspace() {
     updateOfflineStatus("Offline • recovery mode", false);
     try {
       const value = Services.prefs.getStringPref(PREF, "");
-      return value ? importPendingAttachments(deserializeWorkspace(value)) : importPendingAttachments(createWorkspace({ name: "My workspace" }));
+      return value ? await importPendingAttachments(deserializeWorkspace(value)) : await importPendingAttachments(createWorkspace({ name: "My workspace" }));
     } catch (fallbackError) {
-      return importPendingAttachments(createWorkspace({ name: "My workspace" }));
+      return await importPendingAttachments(createWorkspace({ name: "My workspace" }));
     }
   }
 }
