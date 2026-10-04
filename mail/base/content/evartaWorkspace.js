@@ -378,6 +378,24 @@ let annotationPanelOpen = false;
 let annotationEditorItemId = null;
 let restoringSourceAnchor = false;
 
+const IngestionState = Object.freeze({
+  QUEUED: "queued",
+  MATERIALIZING: "materializing",
+  VAULTED: "vaulted",
+  INDEXED: "indexed",
+  FAILED: "failed",
+  DEFERRED: "deferred",
+});
+
+function setIngestionState(document, state, error = null) {
+  document.metadata = {
+    ...(document.metadata || {}),
+    ingestionState: state,
+    ingestionError: error ? String(error) : null,
+    ingestionUpdatedAt: new Date().toISOString(),
+  };
+}
+
 async function importPendingAttachments(workspace) {
   try {
     const value = Services.prefs.getStringPref("mail.evaarta.pendingAttachments", "");
@@ -386,36 +404,35 @@ async function importPendingAttachments(workspace) {
     Services.prefs.clearUserPref("mail.evaarta.pendingAttachments");
     for (const source of pending) {
       if (!source?.title || !source?.sourceRef) continue;
-      let vault = null;
-      if (source.localPath) {
-        try {
-          vault = await importIntoLocalVault(
-            source.localPath,
-            source.title,
-            source.mimeType || null
-          );
-        } catch (error) {
-          console.error("e-Vaarta: failed to vault email attachment", error);
-        } finally {
-          try { await IOUtils.remove(source.localPath); } catch (error) {}
-        }
-      }
       const document = createDocument({
         ...source,
         metadata: {
           ...(source.metadata || {}),
           ingestion: source.kind === "email" ? "email-source" : "email-attachment",
-          offlineMaterialization: vault ? "vaulted" : (source.kind === "email" ? "message-backed" : "deferred")
-        },
-        vault
+          offlineMaterialization: source.kind === "email" ? "message-backed" : "deferred"
+        }
       });
-      if (vault) attachVaultRecord(document, vault);
+      setIngestionState(document, source.localPath ? IngestionState.QUEUED : (source.kind === "email" ? IngestionState.INDEXED : IngestionState.DEFERRED));
+      if (source.localPath) {
+        setIngestionState(document, IngestionState.MATERIALIZING);
+        try {
+          const vault = await importIntoLocalVault(source.localPath, source.title, source.mimeType || null);
+          document.vault = vault;
+          attachVaultRecord(document, vault);
+          document.metadata.offlineMaterialization = "vaulted";
+          setIngestionState(document, IngestionState.VAULTED);
+          setIngestionState(document, IngestionState.INDEXED);
+        } catch (error) {
+          setIngestionState(document, IngestionState.FAILED, error);
+        } finally {
+          try { await IOUtils.remove(source.localPath); } catch (error) {}
+        }
+      }
       workspace = addDocument(workspace, document);
     }
   } catch (error) { console.error("e-Vaarta: failed to import pending attachments", error); }
   return workspace;
 }
-
 function updateOcrStatus() {
   const status = document.getElementById("ocrStatus");
   if (!status) return;
