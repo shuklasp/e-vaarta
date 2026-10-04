@@ -2318,6 +2318,30 @@ sourceList.replaceChildren();
   requestAnimationFrame(renderGraphEdges);
 }
 
+function navigateSearchResult(result, query) {
+  const source = result.documentId
+    ? workspace.documents.find(item => item.id === result.documentId)
+    : null;
+  if (!source) return;
+  if (result.type === "email-body" || result.kind === "email-body") {
+    try {
+      window.openDialog("chrome://messenger/content/messageWindow.xhtml", "_blank", "chrome,dialog=no,all", result.sourceRef);
+    } catch (error) { console.error("e-Vaarta: unable to open indexed email", error); }
+    return;
+  }
+  const terms = String(query || "").trim().split(/\s+/).filter(term => term.length > 1);
+  const quote = terms[0] || result.excerpt || "";
+  if (source.kind === "pdf" && result.page) {
+    selectDocument(source, result.page, {
+      documentId: source.id,
+      page: result.page,
+      quote,
+    });
+    return;
+  }
+  selectDocument(source);
+}
+
 function renderSearchResults(query = "") {
   const list = document.getElementById("searchResults");
   list.replaceChildren();
@@ -2383,15 +2407,8 @@ function renderSearchResults(query = "") {
       if (result.type === "document") {
         const source = workspace.documents.find(document => document.id === result.documentId);
         if (source) selectDocument(source);
-      } else if (result.type === "email-body" || result.kind === "email-body") {
-        if (result.sourceRef) {
-          try {
-            window.openDialog("chrome://messenger/content/messageWindow.xhtml", "_blank", "chrome,dialog=no,all", result.sourceRef);
-          } catch (error) { console.error("e-Vaarta: unable to open indexed email", error); }
-        }
-      } else if (result.page && result.sourceRef) {
-        const source = workspace.documents.find(document => document.id === result.documentId);
-        if (source) selectDocument(source, result.page);
+      } else if (result.documentId) {
+        navigateSearchResult(result, query);
       } else {
         const item = findItem(result.id);
         if (item) {
