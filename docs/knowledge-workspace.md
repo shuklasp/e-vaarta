@@ -250,3 +250,8 @@ Vault-backed documents now carry SHA-256 content fingerprints and health metadat
 ## Phase 46: Vault recovery and lifecycle management
 
 The offline vault now supports lifecycle operations from the source context menu. A missing or damaged local copy can be recovered from a user-selected file only when its SHA-256 fingerprint matches the stored fingerprint. Removing a vault reference safely deletes the local blob only when no other document references the same path; otherwise it detaches only the current document. This prevents accidental deletion of shared offline content.
+
+
+## Phase 47: Offline Storage manager
+
+e-Vaarta now includes an Offline Storage panel in the Document Library. It performs an integrity scan of vault-backed documents, reports healthy/missing/modified files, and shows the total locally stored size. This provides a single place to inspect the health of the offline document store before recovery or cleanup actions.
