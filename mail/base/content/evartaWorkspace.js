@@ -2922,6 +2922,7 @@ function attachSourceSelectionBridge(source) {
   activeSourceSelection = null;
   document.getElementById("sourceSelectionStatus").textContent = "Select text in the source reader.";
   try {
+    source.__evaartaViewerWindow = viewer.contentWindow;
     attachSelectionBridge(source, viewer.contentWindow);
     if (source.kind === "pdf") {
       indexPdfUnified(source, viewer.contentWindow).catch(error =>
