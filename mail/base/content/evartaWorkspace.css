@@ -719,3 +719,9 @@ select:focus-visible,
 .vault-health { margin-left: 5px; font-size: .62em; letter-spacing: .05em; opacity: .8; }
 .vault-health-healthy { font-weight: 700; }
 .vault-health-missing, .vault-health-modified { font-weight: 700; text-decoration: underline; }
+
+.vault-manager-list { display: grid; gap: 6px; max-height: 45vh; overflow: auto; }
+.vault-manager-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--in-content-border-color, #ccc); border-radius: 6px; }
+.vault-manager-status { font-size: .8em; text-transform: uppercase; opacity: .75; }
+.vault-manager-healthy { font-weight: 700; }
+.vault-manager-missing, .vault-manager-modified { font-weight: 700; text-decoration: underline; }
