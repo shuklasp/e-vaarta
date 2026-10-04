@@ -83,3 +83,10 @@ DOCX and PPTX files can now be text-indexed directly from their OOXML ZIP payloa
 Legacy binary `.doc` and `.ppt` formats are intentionally not parsed by this lightweight extractor. They remain available as document sources and can be handled later through a dedicated conversion/extraction adapter.
 
 The next ingestion extension is OCR for scanned/image-only PDFs and images, using the same `upsertExtractedContent` contract.
+
+
+## Phase 13: OCR adapter
+
+The ingestion pipeline now has a provider-neutral OCR contract. PDF sources with no usable native text and image sources can request OCR through `EvaartaOcr.sys.mjs`; OCR output is normalized into an `ocr-text` index entry with optional language, confidence, and page metadata. The workspace exposes whether an OCR backend is currently registered.
+
+No OCR engine or external service is bundled by this phase. This is intentional: the adapter boundary allows a future local OCR engine or a user-configured remote provider to be added without coupling the workspace, annotations, or search engine to that implementation.
