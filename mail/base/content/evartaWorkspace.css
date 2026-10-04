@@ -735,3 +735,6 @@ select:focus-visible,
 
 .ingestion-status-summary { display: flex; align-items: center; gap: 8px; }
 .ingestion-status-summary .quiet { margin-left: auto; }
+
+.search-provenance { opacity: .85; }
+.search-provenance-detail { display: block; opacity: .7; }
