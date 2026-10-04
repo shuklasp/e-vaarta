@@ -19,6 +19,8 @@ let selectedDocumentId = null;
 let selectedItemId = null;
 let linkSourceId = null;
 let selectedLinkId = null;
+let annotationPanelOpen = false;
+let annotationEditorItemId = null;
 
 function importPendingAttachments(workspace) {
   try {
@@ -153,6 +155,8 @@ let editorItemId = null;
 function openEditor(mode, item = null) {
   editorMode = mode;
   editorItemId = item?.id || null;
+  annotationEditorItemId = null;
+  document.getElementById("annotationEditorFields").hidden = mode !== "annotation";
   const editor = document.getElementById("itemEditor");
   document.getElementById("editorHeading").textContent =
     mode === "note" ? (item ? "Edit note" : "New note") : "Add source excerpt";
@@ -169,6 +173,8 @@ function closeEditor() {
   document.getElementById("itemEditor").close();
   editorMode = null;
   editorItemId = null;
+  annotationEditorItemId = null;
+  document.getElementById("annotationEditorFields").hidden = true;
 }
 
 function saveEditor() {
@@ -187,6 +193,18 @@ function saveEditor() {
       workspace.updatedAt = item.updatedAt;
     } else {
       workspace = addItem(workspace, createNote({ title: title || "Note", text }));
+    }
+  } else if (editorMode === "annotation") {
+    const item = findItem(annotationEditorItemId);
+    if (item) {
+      item.title = title || "Annotation";
+      item.text = text;
+      item.annotationType = document.getElementById("annotationType").value;
+      item.color = document.getElementById("annotationColor").value;
+      const pageValue = document.getElementById("editorPage").value.trim();
+      if (item.anchor) item.anchor.page = pageValue ? Number(pageValue) : item.anchor.page;
+      item.updatedAt = new Date().toISOString();
+      workspace.updatedAt = item.updatedAt;
     }
   } else if (editorMode === "excerpt") {
     const source = workspace.documents.find(document => document.id === selectedDocumentId);
@@ -459,6 +477,76 @@ function render() {
   requestAnimationFrame(renderGraphEdges);
 }
 
+function annotations() {
+  return workspace.items.filter(item => item.kind === "annotation");
+}
+
+function toggleAnnotationPanel(open = !annotationPanelOpen) {
+  annotationPanelOpen = open;
+  document.getElementById("annotationPane").hidden = !open;
+  if (open) renderAnnotations();
+}
+
+function removeAnnotation(item) {
+  if (!item || !confirm("Remove this annotation?")) return;
+  workspace.items = workspace.items.filter(candidate => candidate.id !== item.id);
+  workspace.links = workspace.links.filter(link => link.fromId !== item.id && link.toId !== item.id);
+  workspace.updatedAt = new Date().toISOString();
+  saveWorkspace();
+  renderAnnotations();
+  render();
+}
+
+function editAnnotation(item) {
+  annotationEditorItemId = item.id;
+  editorMode = "annotation";
+  const editor = document.getElementById("itemEditor");
+  document.getElementById("editorHeading").textContent = "Edit annotation";
+  document.getElementById("editorTitle").value = item.title || "Annotation";
+  document.getElementById("editorText").value = item.text || "";
+  document.getElementById("editorPage").value = item.anchor?.page || "";
+  document.getElementById("annotationType").value = item.annotationType || "highlight";
+  document.getElementById("annotationColor").value = item.color || "#ffdc00";
+  document.getElementById("editorSourceFields").hidden = false;
+  document.getElementById("annotationEditorFields").hidden = false;
+  editor.showModal();
+}
+
+function renderAnnotations() {
+  const list = document.getElementById("annotationList");
+  list.replaceChildren();
+  const items = annotations();
+  if (!items.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No annotations yet.";
+    list.append(empty);
+    return;
+  }
+  for (const item of items) {
+    const row = document.createElement("article");
+    row.className = "annotation-row";
+    const title = document.createElement("strong");
+    title.textContent = item.title || item.annotationType || "Annotation";
+    const text = document.createElement("p");
+    text.textContent = item.text || item.anchor?.quote || "";
+    const meta = document.createElement("span");
+    meta.textContent = (item.annotationType || "highlight") + (item.anchor?.page ? " • page " + item.anchor.page : "");
+    const jump = document.createElement("button");
+    jump.textContent = "Jump";
+    jump.addEventListener("click", () => jumpToSource(item));
+    const edit = document.createElement("button");
+    edit.textContent = "Edit";
+    edit.addEventListener("click", () => editAnnotation(item));
+    const remove = document.createElement("button");
+    remove.textContent = "Delete";
+    remove.className = "quiet";
+    remove.addEventListener("click", () => removeAnnotation(item));
+    row.append(title, text, meta, jump, edit, remove);
+    list.append(row);
+  }
+}
+
 function addNote() {
   openEditor("note");
 }
@@ -679,6 +767,8 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("addExcerptButton").addEventListener("click", addExcerpt);
   document.getElementById("captureSelectionButton").addEventListener("click", captureSelection);
   document.getElementById("annotateSelectionButton").addEventListener("click", annotateSelection);
+  document.getElementById("annotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(true));
+  document.getElementById("closeAnnotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(false));
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
   document.getElementById("editorCloseButton").addEventListener("click", closeEditor);
