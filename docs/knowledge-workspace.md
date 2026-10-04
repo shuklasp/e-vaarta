@@ -240,3 +240,8 @@ This phase is deliberately local-only: no network service is required to create,
 Documents opened/imported through the desktop workspace are now copied into an e-Vaarta-managed local vault under the Thunderbird profile. Each vault-backed document records a stable vault ID, relative vault path, original filename, size, MIME type, and import timestamp. The document source reference is switched to the local vault copy, allowing the workspace reader to reopen the document without depending on the original file location or network availability.
 
 Existing documents without vault metadata remain compatible and continue using their existing source references.
+
+
+## Phase 45: Vault integrity and deduplication
+
+Vault-backed documents now carry SHA-256 content fingerprints and health metadata. When importing a file, e-Vaarta checks for an existing vault document with the same fingerprint and reuses that document instead of creating a duplicate local copy. Vault health can distinguish healthy, modified, missing, and unknown states by checking the local file and, when available, its fingerprint. The Document Library exposes the local vault state alongside the source.
