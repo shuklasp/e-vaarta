@@ -1,0 +1,3 @@
+/* MPL-2.0 */
+export function createCollectionSurface(workspace){ return {collections:(workspace?.collections||[]).slice(),selectedCollectionId:null}; }
+export function addWorkspaceToCollection(workspace,collectionId,workspaceId){ const c=(workspace?.collections||[]).find(x=>x.id===collectionId); if(!c) throw new Error("collection not found"); c.workspaceIds ||= []; if(!c.workspaceIds.includes(workspaceId)) c.workspaceIds.push(workspaceId); return c; }
