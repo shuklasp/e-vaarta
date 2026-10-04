@@ -715,3 +715,7 @@ select:focus-visible,
 
 #offlineStatus[data-ready="true"] { font-weight: 600; }
 #offlineStatus[data-ready="false"] { opacity: .8; }
+
+.vault-health { margin-left: 5px; font-size: .62em; letter-spacing: .05em; opacity: .8; }
+.vault-health-healthy { font-weight: 700; }
+.vault-health-missing, .vault-health-modified { font-weight: 700; text-decoration: underline; }
