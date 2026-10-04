@@ -21,11 +21,12 @@
         <button id="openDocumentButton">Open document</button>
         <button id="addExcerptButton">Add excerpt</button>
         <button id="captureSelectionButton">Capture selection</button>
-        <button id="annotateSelectionButton">Highlight selection</button><button id="annotationPanelButton">Annotations</button>
+        <button id="annotateSelectionButton">Highlight selection</button><button id="annotationPanelButton">Annotations</button><button id="searchButton">Search</button>
       </div>
     </header>
 
     <section class="workspace-grid">
+      <aside id="searchPane" class="search-pane" hidden="hidden"><div class="pane-heading"><h2>Search</h2><button id="closeSearchButton" class="quiet">Close</button></div><input id="workspaceSearchInput" type="search" placeholder="Search sources, excerpts, notes..." /><div id="searchResults" class="search-results"></div></aside>
       <aside class="document-pane">
         <h2>Sources</h2>
         <div id="sourceList" class="empty-state">
