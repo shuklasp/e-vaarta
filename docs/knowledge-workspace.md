@@ -35,3 +35,8 @@ Source anchors now support optional selector and rects metadata in addition to d
 The desktop workspace also reopens source-bound items using their stored page and quote. After the PDF viewer loads, e-Vaarta searches the PDF.js text layer for the saved quote, selects the matching range, and scrolls it into view. This provides an exact-passage fallback even when PDF.js does not expose a stable external selector.
 
 The next hardening step is to capture PDF.js text-layer coordinates/selectors when available and use those as the primary locator, with quote matching retained as a recovery mechanism.
+
+
+## Phase 6: Persistent PDF highlights
+
+PDF selections now capture optional PDF.js text-layer selectors and selection rectangles in addition to the source quote and page. When a source-bound annotation is reopened, e-Vaarta attempts to restore the highlight directly on the corresponding PDF.js text-layer spans and scrolls the first matched span into view. Quote-based range restoration remains active as the fallback. The source PDF itself is not modified; annotation state remains part of the e-Vaarta workspace model.
