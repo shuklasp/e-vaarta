@@ -119,3 +119,8 @@ Document Library entries are draggable using the `application/x-evaarta-document
 ## Phase 20: Visual Document Library
 
 The Document Library now supports list and grid views. Grid cards show a type-specific visual marker, title, type/tags metadata, description when available, and the existing metadata editor. The view is client-side and preserves the existing source selection, drag/drop, filtering, and search behavior.
+
+
+## Phase 21: Visual source previews
+
+Grid cards now render actual image thumbnails when the source is an image and a first-page PDF preview surface for PDF sources. Office, email, and other source kinds retain lightweight type markers so the Library avoids eagerly loading large document payloads. Preview failures fall back to the source type marker.
