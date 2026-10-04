@@ -164,3 +164,8 @@ Source previews on workspace cards are now explicit source-opening controls. Cli
 ## Phase 30: Source context actions
 
 Sources in the Document Library and first-class source cards on the workspace canvas now expose a native context menu. It provides Open source, Add excerpt, Edit metadata, Add/remove collection, and Remove from workspace actions. Removing a canvas source card does not remove the underlying Library document.
+
+
+## Phase 31: Source-centric navigation
+
+The Document Library and workspace canvas now provide bidirectional source navigation. Selecting a Library source focuses its corresponding source-backed canvas card when present; selecting a source card focuses the corresponding Library entry. Focus transitions use a brief visual pulse and do not alter document or collection data.
