@@ -96,7 +96,9 @@ async function scanVault() {
   const missing = records.filter(item => item.vault.health === "missing");
   const modified = records.filter(item => item.vault.health === "modified");
   const bytes = healthy.reduce((sum, item) => sum + Number(item.vault.size || 0), 0);
-  return { total: records.length, healthy: healthy.length, missing: missing.length, modified: modified.length, bytes };
+  const shared = records.filter(item => records.some(other => other !== item && other.vault?.sha256 === item.vault.sha256));
+  const orphaned = Object.values(vaultManifest.blobs).filter(blob => !records.some(item => item.vault?.sha256 === Object.keys(vaultManifest.blobs).find(hash => vaultManifest.blobs[hash] === blob)));
+  return { total: records.length, healthy: healthy.length, missing: missing.length, modified: modified.length, bytes, shared: new Set(shared.map(item => item.vault.sha256)).size, orphaned: orphaned.length };
 }
 
 function formatBytes(bytes) {
@@ -112,7 +114,8 @@ async function openVaultManager() {
   const stats = await scanVault();
   document.getElementById("vaultManagerSummary").textContent =
     stats.total + " local documents • " + stats.healthy + " healthy • " +
-    stats.missing + " missing • " + stats.modified + " modified • " + formatBytes(stats.bytes);
+    stats.missing + " missing • " + stats.modified + " modified • " +
+    stats.shared + " shared blobs • " + stats.orphaned + " orphaned • " + formatBytes(stats.bytes);
   const list = document.getElementById("vaultManagerList");
   list.replaceChildren();
   for (const source of workspace.documents.filter(item => item.vault)) {
