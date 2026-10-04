@@ -109,3 +109,8 @@ Temporary rendered images are deleted after OCR. OCR indexing therefore stores s
 ## Phase 16: Source-aware search navigation
 
 Search results now include a contextual excerpt generated around the first matched term and optional source location metadata. OCR page entries expose their PDF page number. Selecting a page-aware result opens the corresponding source directly at that page; email-body results continue to open the original Thunderbird message. Index version 3 migrates existing v1/v2 indexes automatically.
+
+
+## Phase 18: Library-to-canvas workflow
+
+Document Library entries are draggable using the `application/x-evaarta-document` payload. Dropping a source onto the workspace canvas creates a source-backed excerpt card containing the document title and metadata. The operation is persistent, selects the new card, and is idempotent for the same source/card. The canvas provides visual drop feedback during a drag operation.
