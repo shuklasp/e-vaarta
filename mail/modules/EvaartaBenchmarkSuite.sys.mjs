@@ -20,6 +20,7 @@ export const BenchmarkDomain = Object.freeze({
   INTEROPERABILITY: "interoperability",
   SECURITY: "security",
   END_TO_END: "evidence-to-action",
+  COMMUNICATION: "communication",
 });
 
 const TASKS = Object.freeze({
@@ -36,6 +37,7 @@ const TASKS = Object.freeze({
   accessibility: ["keyboard", "screen-reader", "reflow", "text-scale", "contrast", "focus"],
   interoperability: ["import", "edit-export", "re-import", "loss-report"],
   security: ["malformed-pdf", "malicious-attachment", "redaction-recovery", "signature-integrity", "encrypted-vault"],
+  communication: ["universal-message-model", "identity-resolution", "conversation-threading", "unified-inbox", "cross-channel-search", "offline-send", "team-chat", "calendar", "meeting-intelligence", "provider-adapters", "communication-ai", "message-to-task", "message-to-decision", "workflow-automation", "notification-policy", "security-policy", "interoperability"],
   "evidence-to-action": ["communication-to-evidence", "evidence-to-claim", "claim-to-decision", "decision-to-task", "task-to-project", "project-to-report", "report-to-citation", "citation-to-communication"],
 });
 
