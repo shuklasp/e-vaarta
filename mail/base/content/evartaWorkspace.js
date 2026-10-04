@@ -50,8 +50,70 @@ function linkLabel(kind) { return kind.replaceAll("-", " "); }
 function jumpToSource(item) {
   if (!item.anchor?.documentId) return;
   const source = workspace.documents.find(document => document.id === item.anchor.documentId);
-  if (source) selectDocument(source, item.anchor.page);
+  if (source) selectDocument(source, item.anchor.page, item.anchor);
 }
+
+function findTextRange(root, quote) {
+  if (!quote?.trim()) return null;
+  const walker = root.createTreeWalker(root.body || root, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) nodes.push(node);
+  const target = quote.trim();
+  for (let i = 0; i < nodes.length; i++) {
+    const text = nodes[i].nodeValue || "";
+    const offset = text.indexOf(target);
+    if (offset >= 0) return { node: nodes[i], start: offset, end: offset + target.length };
+  }
+  for (let i = 0; i < nodes.length; i++) {
+    const combined = (nodes[i].nodeValue || "") + (nodes[i + 1]?.nodeValue || "");
+    const offset = combined.indexOf(target);
+    if (offset >= 0) {
+      const first = nodes[i].nodeValue || "";
+      return {
+        node: nodes[i],
+        start: offset,
+        end: Math.min(first.length, offset + target.length),
+        secondNode: nodes[i + 1],
+        secondEnd: Math.max(0, offset + target.length - first.length),
+      };
+    }
+  }
+  return null;
+}
+
+function restorePdfAnchor(anchor) {
+  const viewer = document.getElementById("sourceViewer");
+  if (!viewer?.contentWindow || !anchor?.quote) return false;
+  const seen = new Set();
+  function visit(win) {
+    if (!win || seen.has(win)) return false;
+    seen.add(win);
+    try {
+      const page = anchor.page
+        ? win.document.querySelector(".page[data-page-number='" + anchor.page + "']")
+        : null;
+      const root = page || win.document;
+      const match = findTextRange(root, anchor.quote);
+      if (match) {
+        const range = win.document.createRange();
+        range.setStart(match.node, match.start);
+        if (match.secondNode) range.setEnd(match.secondNode, match.secondEnd);
+        else range.setEnd(match.node, match.end);
+        const selection = win.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        range.startContainer.parentElement?.scrollIntoView({ block: "center", behavior: "smooth" });
+        return true;
+      }
+      for (const frame of win.frames) if (visit(frame)) return true;
+    } catch (error) {}
+    return false;
+  }
+  return visit(viewer.contentWindow);
+}
+
+
 
 let editorMode = null;
 let editorItemId = null;
@@ -387,7 +449,7 @@ async function openDocument() {
   selectDocument(source);
 }
 
-function selectDocument(source, page = null) {
+function selectDocument(source, page = null, anchor = null) {
   selectedDocumentId = source.id;
   document.getElementById("sourceTitle").textContent = source.title;
   document.getElementById("sourceLocation").textContent = source.kind.toUpperCase();
@@ -395,7 +457,12 @@ function selectDocument(source, page = null) {
   const sourceRef = source.sourceRef || "about:blank";
   document.getElementById("sourceViewer").src = page && source.kind === "pdf" ? sourceRef + "#page=" + page : sourceRef;
   const viewer = document.getElementById("sourceViewer");
-  viewer.addEventListener("load", () => attachSourceSelectionBridge(source), { once: true });
+  viewer.addEventListener("load", () => {
+    attachSourceSelectionBridge(source);
+    if (anchor?.quote) {
+      setTimeout(() => restorePdfAnchor(anchor), 250);
+    }
+  }, { once: true });
   render();
 }
 
@@ -476,6 +543,8 @@ function captureSelection() {
       startOffset: selection.startOffset,
       endOffset: selection.endOffset,
       quote: selection.quote,
+      selector: null,
+      rects: null,
     }),
     title: "Selected excerpt",
     text: selection.quote,
