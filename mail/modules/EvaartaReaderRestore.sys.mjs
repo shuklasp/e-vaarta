@@ -1,0 +1,3 @@
+/* MPL-2.0 */
+export function createReaderRestoreState({documentId,itemId=null,page=null}={}){return{version:1,documentId,itemId,page,updatedAt:new Date().toISOString()}}
+export function restoreReaderState(state,workspace){if(!state?.documentId||!workspace?.documents?.some(d=>d.id===state.documentId))return null;return{documentId:state.documentId,itemId:state.itemId&&workspace.items.some(i=>i.id===state.itemId)?state.itemId:null,page:state.page??null}}

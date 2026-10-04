@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function presentRecovery(document,{available=false,verified=false}={}){return{id:document?.id||null,title:document?.title||"Source",available,verified,action:available&&verified?"open":"recover"}}

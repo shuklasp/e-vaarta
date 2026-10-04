@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function presentAnnotations(workspace,documentId=null){return(workspace?.items||[]).filter(i=>i.kind==="annotation"&&(!documentId||i.anchor?.documentId===documentId)).map(i=>({id:i.id,title:i.title||"Annotation",type:i.annotationType||i.annotation?.type||"highlight",page:i.anchor?.page??null,quote:i.anchor?.quote||i.text||""}));}

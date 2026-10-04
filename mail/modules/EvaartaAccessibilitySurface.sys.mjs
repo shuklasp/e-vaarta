@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function workspaceAccessibility(){ return {landmarks:["navigation","main","complementary"],keyboard:{nextDocument:"Alt+ArrowDown",previousDocument:"Alt+ArrowUp",focusSearch:"Ctrl+K"},announceSelection:true}; }

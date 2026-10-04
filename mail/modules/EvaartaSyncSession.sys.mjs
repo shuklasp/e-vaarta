@@ -1,0 +1,4 @@
+/* MPL-2.0 */
+export const SyncSessionState=Object.freeze({IDLE:"idle",DISCOVERING:"discovering",COMPARING:"comparing",CONFLICT:"conflict",READY:"ready",COMMITTED:"committed",FAILED:"failed"});
+export function createSyncSession(workspaceId,deviceId="local"){if(!workspaceId)throw new TypeError("workspaceId is required.");return{version:1,id:crypto.randomUUID(),workspaceId,deviceId,state:SyncSessionState.IDLE,startedAt:new Date().toISOString(),updatedAt:new Date().toISOString()};}
+export function transitionSyncSession(session,state,error=null){return{...session,state,error:error?String(error):null,updatedAt:new Date().toISOString()};}

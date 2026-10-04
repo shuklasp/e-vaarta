@@ -1,0 +1,9 @@
+/* MPL-2.0 */
+export function createLocalTransport(id,send){return {id,isAvailable:()=>true,send};}
+export function createCapabilityGatedTransport({id,capability,send,available=()=>false}){return {id,isAvailable:()=>!!available(),send:async(e,c={})=>{if(!available())throw new Error(id+" unavailable");if(c.capabilities&&!c.capabilities.includes(capability))throw new Error(id+" capability denied");return send(e,c);}};}
+export const createWiFiTransport=(impl)=>createCapabilityGatedTransport({id:"wifi-lan",capability:"local-peer",send:impl?.send||(()=>Promise.reject(new Error("Wi-Fi implementation unavailable"))),available:impl?.isAvailable||(()=>false)});
+export const createBluetoothTransport=(impl)=>createCapabilityGatedTransport({id:"bluetooth",capability:"nearby-peer",send:impl?.send||(()=>Promise.reject(new Error("Bluetooth implementation unavailable"))),available:impl?.isAvailable||(()=>false)});
+export const createEmailTransport=(impl)=>createCapabilityGatedTransport({id:"email",capability:"email-transport",send:impl?.send||(()=>Promise.reject(new Error("email implementation unavailable"))),available:impl?.isAvailable||(()=>false)});
+export const createWhatsAppTransport=(impl)=>createCapabilityGatedTransport({id:"whatsapp",capability:"official-whatsapp-api",send:impl?.send||(()=>Promise.reject(new Error("official WhatsApp API adapter unavailable"))),available:impl?.isAvailable||(()=>false)});
+export const createArattaiTransport=(impl)=>createCapabilityGatedTransport({id:"arattai",capability:"official-arattai-api",send:impl?.send||(()=>Promise.reject(new Error("official Arattai API adapter unavailable"))),available:impl?.isAvailable||(()=>false)});
+export const createFileTransport=(impl)=>createCapabilityGatedTransport({id:"file-bundle",capability:"file-transfer",send:impl?.send||(()=>Promise.reject(new Error("file transport unavailable"))),available:impl?.isAvailable||(()=>false)});

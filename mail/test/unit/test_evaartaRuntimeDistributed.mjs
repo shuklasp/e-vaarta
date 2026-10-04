@@ -1,0 +1,4 @@
+import {strict as assert} from "node:assert";import {EvaartaTrustStore} from "../../modules/EvaartaTrustStore.sys.mjs";import {EvaartaPairingSession} from "../../modules/EvaartaPairingSession.sys.mjs";import {createDeliveryReceipt,validateDeliveryReceipt} from "../../modules/EvaartaDeliveryReceipt.sys.mjs";import {EvaartaStoreForwardQueue} from "../../modules/EvaartaStoreForwardQueue.sys.mjs";
+add_task(async function test_pairing(){const t=new EvaartaTrustStore();const p=new EvaartaPairingSession({actorId:"a"},t);p.begin({actorId:"b",publicKey:"pk",fingerprint:"12345678"});p.approve();assert.equal(t.isTrusted("b"),true);});
+add_task(async function test_receipt(){const r=createDeliveryReceipt({messageId:"m",recipient:"b",status:"queued",transport:"email"});assert.equal(validateDeliveryReceipt(r),true);});
+add_task(async function test_queue(){const q=new EvaartaStoreForwardQueue();q.enqueue({messageId:"m"},"offline");assert.equal(q.snapshot()[0].reason,"offline");});

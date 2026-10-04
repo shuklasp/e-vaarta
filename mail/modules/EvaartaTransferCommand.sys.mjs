@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function createTransferCommand(action,workspaceId){if(!["import","export"].includes(action))throw new TypeError("Unsupported transfer action.");if(!workspaceId)throw new TypeError("workspaceId is required.");return{version:1,action,workspaceId,createdAt:new Date().toISOString()}}
