@@ -52,3 +52,10 @@ The workspace now includes an annotation panel with a source-bound list, jump-to
 The shared document model is now version 3 and supports document descriptions and tags. The model also provides a workspace search function covering source documents, notes, excerpts, and annotations, with source document context attached to item results. The desktop workspace exposes this through a unified Search panel; selecting a result opens the source or jumps to the corresponding source-bound item.
 
 This is the first library/search foundation rather than a full-text extraction service. PDF/Office content indexing should be added as a separate ingestion layer so large documents are not embedded wholesale in workspace JSON.
+
+
+## Phase 9: Content indexing foundation
+
+A separate `EvaartaContentIndex` module now stores searchable content outside workspace JSON. It supports versioned entries, upsert/remove operations, simple term-based scoring, and serialized persistence. The desktop workspace maintains an index preference and feeds it document metadata plus excerpts, notes, and annotations. Search prefers indexed results and falls back to the semantic workspace search when the index has no matches.
+
+The index intentionally exposes an adapter boundary: future ingestion services can add extracted PDF text, email bodies, Office text, attachment metadata, and OCR without changing the workspace/annotation model. The current phase indexes metadata and workspace-derived text; it does not yet attempt heavyweight PDF or Office extraction.
