@@ -64,3 +64,10 @@ The index intentionally exposes an adapter boundary: future ingestion services c
 ## Phase 10: Incremental content ingestion
 
 The content index now supports extracted-content entries, fingerprints, and `needsReindex()` checks so ingestion can be incremental instead of rebuilding all text on every workspace load. The desktop workspace adds an email-body ingestion hook and document-content metadata ingestion. Heavy extraction remains adapter-driven; the next integration can feed real Thunderbird message bodies and PDF text into these APIs without changing search or workspace semantics.
+
+
+## Phase 11: Live email-body ingestion
+
+The message header view now indexes the body text of the currently displayed Thunderbird message after MIME rendering completes. It reads the rendered message DOM, normalizes the visible text, fingerprints it, and writes an `email-body` entry only when the content has changed. Search results for indexed email bodies reopen the original message window using its message URI.
+
+This deliberately indexes the rendered body rather than attempting to duplicate Thunderbird's MIME parsing stack. It therefore respects the message representation Thunderbird has already resolved, while the existing attachment pipeline remains responsible for document attachments.
