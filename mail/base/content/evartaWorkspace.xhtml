@@ -17,6 +17,7 @@
       </div>
       <div class="workspace-actions">
         <button id="newNoteButton" class="primary">New note</button>
+        <button id="openDocumentButton">Open document</button>
         <button id="addExcerptButton">Add excerpt</button>
       </div>
     </header>
@@ -29,6 +30,11 @@
           <span>Documents and email attachments will appear here as sources.</span>
         </div>
       </aside>
+
+      <section class="reader-pane">
+        <div class="pane-heading"><h2 id="sourceTitle">Source</h2><span id="sourceLocation"></span></div>
+        <iframe id="sourceViewer" title="Document source"></iframe>
+      </section>
 
       <section class="canvas-pane">
         <div class="pane-heading">
