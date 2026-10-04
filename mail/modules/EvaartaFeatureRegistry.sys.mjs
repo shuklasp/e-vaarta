@@ -87,7 +87,18 @@ const CAPABILITIES = Object.freeze([
   { id: "mobile-evidence-workspace", area: "mobile", status: FeatureStatus.CONTRACTED },
   { id: "camera-scanning", area: "mobile", status: FeatureStatus.CONTRACTED },
   { id: "voice-capture", area: "mobile", status: FeatureStatus.CONTRACTED },
-  { id: "best-in-class-program", area: "quality", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-work-management-2", area: "projects", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-assignment", area: "projects", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-capacity", area: "projects", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-monitoring", area: "projects", status: FeatureStatus.IMPLEMENTED },\n  { id: "task-escalation-sla", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "best-in-class-program", area: "quality", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-work-management-2", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-assignment", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-capacity", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-monitoring", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-escalation-sla", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-work-operating-system", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-phase-a-execution", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-phase-b-workforce", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-phase-c-management", area: "projects", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-phase-d-evidence", area: "semantic", status: FeatureStatus.IMPLEMENTED },
+  { id: "task-phase-e-intelligence", area: "ai", status: FeatureStatus.IMPLEMENTED },
 ]);
 
 export function listFeatureCapabilities() {
