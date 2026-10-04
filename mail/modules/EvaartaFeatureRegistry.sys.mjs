@@ -1,14 +1,5 @@
 /* MPL-2.0 */
 
-/**
- * Product capability registry.
- *
- * This is deliberately small and dependency-free so every product surface can
- * ask the same question: is a capability implemented, contracted, integrated,
- * validated, or planned? It prevents documentation and UI from overstating
- * semantic prototypes as production integrations.
- */
-
 export const FeatureStatus = Object.freeze({
   PLANNED: "planned",
   CONTRACTED: "contracted",
@@ -44,8 +35,6 @@ const CAPABILITIES = Object.freeze([
   { id: "media-intelligence", area: "media", status: FeatureStatus.IMPLEMENTED },
   { id: "institutional-governance", area: "enterprise", status: FeatureStatus.CONTRACTED },
 
-  // Best-in-class PDF reader contract. The model is implemented; native
-  // rendering, platform integration, and acceptance validation remain separate.
   { id: "pdf-reader-model", area: "pdf", status: FeatureStatus.IMPLEMENTED },
   { id: "pdf-native-renderer", area: "pdf", status: FeatureStatus.CONTRACTED },
   { id: "pdf-reading-mode", area: "pdf", status: FeatureStatus.CONTRACTED },
@@ -61,6 +50,31 @@ const CAPABILITIES = Object.freeze([
   { id: "pdf-print-export-fidelity", area: "pdf", status: FeatureStatus.CONTRACTED },
   { id: "pdf-evidence-extraction", area: "pdf", status: FeatureStatus.CONTRACTED },
   { id: "pdf-multidocument-reading", area: "pdf", status: FeatureStatus.CONTRACTED },
+
+  { id: "knowledge-authoring", area: "knowledge", status: FeatureStatus.IMPLEMENTED },
+  { id: "block-references", area: "knowledge", status: FeatureStatus.IMPLEMENTED },
+  { id: "transclusion", area: "knowledge", status: FeatureStatus.IMPLEMENTED },
+  { id: "json-canvas", area: "knowledge", status: FeatureStatus.IMPLEMENTED },
+  { id: "auditable-automation", area: "automation", status: FeatureStatus.IMPLEMENTED },
+  { id: "accessibility-profile", area: "accessibility", status: FeatureStatus.IMPLEMENTED },
+  { id: "interoperability-matrix", area: "interoperability", status: FeatureStatus.IMPLEMENTED },
+
+  { id: "markdown-vault", area: "knowledge", status: FeatureStatus.CONTRACTED },
+  { id: "scholarly-metadata", area: "citations", status: FeatureStatus.CONTRACTED },
+  { id: "citation-word-integration", area: "citations", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-editing", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-production", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-digital-signing", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "pdf-form-engine", area: "pdf", status: FeatureStatus.CONTRACTED },
+  { id: "large-document-engine", area: "documents", status: FeatureStatus.CONTRACTED },
+  { id: "local-model-runtime", area: "ai", status: FeatureStatus.CONTRACTED },
+  { id: "provider-ai-abstraction", area: "ai", status: FeatureStatus.CONTRACTED },
+  { id: "evidence-agent", area: "ai", status: FeatureStatus.CONTRACTED },
+  { id: "semantic-collaboration", area: "collaboration", status: FeatureStatus.CONTRACTED },
+  { id: "mobile-pdf-reader", area: "mobile", status: FeatureStatus.CONTRACTED },
+  { id: "mobile-evidence-workspace", area: "mobile", status: FeatureStatus.CONTRACTED },
+  { id: "camera-scanning", area: "mobile", status: FeatureStatus.CONTRACTED },
+  { id: "voice-capture", area: "mobile", status: FeatureStatus.CONTRACTED },
 ]);
 
 export function listFeatureCapabilities() {
@@ -85,6 +99,5 @@ export function hasFeatureStatus(id, minimumStatus) {
     FeatureStatus.VALIDATED,
   ];
   const actual = featureStatus(id);
-  return actual != null &&
-    order.indexOf(actual) >= order.indexOf(minimumStatus);
+  return actual != null && order.indexOf(actual) >= order.indexOf(minimumStatus);
 }
