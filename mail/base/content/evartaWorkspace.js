@@ -960,7 +960,7 @@ function renderEvidenceNavigator() {
     row.addEventListener("click", () => {
       activeEvidenceIndex = index;
       selectItem(item);
-      selectedGroupId = group.id;
+      selectedGroupId = activeSourceEvidenceId ? null : group?.id || null;
       renderEvidenceNavigator();
     });
     list.append(row);
