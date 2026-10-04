@@ -1,7 +1,10 @@
-# C++ in Thunderbird
+# C++ in e-Vaarta
 
-C++ development in Thunderbird follows the [Firefox C++ Coding style](https://firefox-source-docs.mozilla.org/code-quality/coding-style/coding_style_cpp.html), which adopts much of the [Google C++ guide](https://google.github.io/styleguide/cppguide.html).
+e-Vaarta uses C++ extensively in the inherited mail and platform layers.
 
-```{toctree}
-reference
-```
+Follow the e-Vaarta source conventions first. For Gecko-specific C++ APIs and
+toolchain behavior, the Mozilla C++ coding guidance remains an upstream
+technical reference.
+
+The e-Vaarta application layer should not introduce Thunderbird-specific
+product branding into diagnostics, documentation, or user-visible strings.
