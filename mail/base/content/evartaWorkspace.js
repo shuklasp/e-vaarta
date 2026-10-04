@@ -1251,6 +1251,18 @@ function sourceContextCollection() {
   if (source) toggleDocumentCollection(source);
 }
 
+function sourceContextVaultRecover() {
+  const source = sourceContextDocument();
+  closeSourceContextMenu();
+  if (source) recoverVaultDocument(source);
+}
+
+function sourceContextVaultDetach() {
+  const source = sourceContextDocument();
+  closeSourceContextMenu();
+  if (source) removeVaultReference(source);
+}
+
 function sourceContextAddExcerpt() {
   const source = sourceContextDocument();
   closeSourceContextMenu();
@@ -1607,13 +1619,6 @@ function render() {
         openDocumentMetadataEditor(source);
       });
       row.append(icon, info, collectionButton, edit);
-      row.addEventListener("contextmenu", event => {
-        event.preventDefault();
-        if (!source.vault) return;
-        const choice = Services.prompt.select(window, "e-Vaarta vault", "Choose a vault action:", ["Recover local copy", "Remove local vault reference"]);
-        if (choice === 0) recoverVaultDocument(source);
-        else if (choice === 1) removeVaultReference(source);
-      });
       row.addEventListener("click", () => {
         selectDocument(source);
         focusCanvasSource(source);
@@ -2502,6 +2507,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("sourceContextOpenButton").addEventListener("click", sourceContextOpen);
   document.getElementById("sourceContextMetadataButton").addEventListener("click", sourceContextMetadata);
   document.getElementById("sourceContextCollectionButton").addEventListener("click", sourceContextCollection);
+document.getElementById("sourceContextVaultRecoverButton").addEventListener("click", sourceContextVaultRecover);
+  document.getElementById("sourceContextVaultDetachButton").addEventListener("click", sourceContextVaultDetach);
   document.getElementById("sourceContextExcerptButton").addEventListener("click", sourceContextAddExcerpt);
   document.getElementById("sourceContextRemoveButton").addEventListener("click", sourceContextRemoveCard);
   document.getElementById("collectionManagerCloseButton").addEventListener("click", closeCollectionManager);
