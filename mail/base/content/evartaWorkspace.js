@@ -25,6 +25,7 @@ let workspace;
 let contentIndex;
 let selectedDocumentId = null;
 let libraryFilter = "";
+let libraryView = "list";
 let metadataEditorDocumentId = null;
 let selectedItemId = null;
 let linkSourceId = null;
@@ -554,7 +555,13 @@ function render() {
 
   sourceList.replaceChildren();
   const libraryToolbar = document.createElement("div");
-  libraryToolbar.className = "library-toolbar";
+  libraryToolbar.className = "library-toolbar";  const viewButton = document.createElement("button");
+  viewButton.type = "button";
+  viewButton.className = "quiet";
+  viewButton.textContent = libraryView === "list" ? "Grid" : "List";
+  viewButton.title = "Switch library view";
+  viewButton.addEventListener("click", () => { libraryView = libraryView === "list" ? "grid" : "list"; render(); });
+
   const filter = document.createElement("input");
   filter.type = "search";
   filter.placeholder = "Filter documents...";
@@ -567,7 +574,7 @@ function render() {
   const visibleSources = workspace.documents.filter(sourceMatchesFilter)
     .sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")));
   summary.textContent = visibleSources.length + " of " + workspace.documents.length;
-  libraryToolbar.append(filter, summary);
+  libraryToolbar.append(filter, summary, viewButton);
   sourceList.append(libraryToolbar);
   if (!workspace.documents.length) {
     const state = document.createElement("div");
@@ -582,12 +589,13 @@ function render() {
   } else {
     for (const source of visibleSources) {
       const row = document.createElement("button");
-      row.className = "source-row";
+      row.className = libraryView === "grid" ? "source-row source-card" : "source-row";
       row.draggable = true;
       row.setAttribute("aria-current", source.id === selectedDocumentId ? "true" : "false");
       const icon = document.createElement("span");
       icon.className = "source-icon";
-      icon.textContent = sourceKindLabel(source.kind);
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = source.kind === "pdf" ? "PDF" : source.kind === "word" ? "DOCX" : source.kind === "powerpoint" ? "PPTX" : source.kind === "email" ? "✉" : source.kind === "image" ? "IMG" : "DOC";
       const info = document.createElement("span");
       info.className = "source-info";
       const title = document.createElement("strong");
@@ -595,6 +603,12 @@ function render() {
       const meta = document.createElement("small");
       meta.textContent = [sourceKindLabel(source.kind), ...(source.tags || []).slice(0, 2)].join(" • ");
       info.append(title, meta);
+      if (libraryView === "grid" && source.description) {
+        const description = document.createElement("span");
+        description.className = "source-description";
+        description.textContent = source.description;
+        info.append(description);
+      }
       const edit = document.createElement("button");
       edit.type = "button";
       edit.className = "source-edit";
