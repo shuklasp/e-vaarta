@@ -49,10 +49,12 @@ h1 {
 
 .workspace-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-button {
+button,
+select {
   border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
   border-radius: 8px;
   padding: 8px 12px;
@@ -63,6 +65,13 @@ button {
 
 button.primary {
   font-weight: 700;
+}
+
+button:focus-visible,
+select:focus-visible,
+.workspace-card:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .workspace-grid {
@@ -98,9 +107,19 @@ button.primary {
 }
 
 .source-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  margin-bottom: 5px;
   padding: 10px 12px;
   border-radius: 8px;
   background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.source-row[aria-current="true"] {
+  font-weight: 700;
+  box-shadow: inset 3px 0 currentColor;
 }
 
 .pane-heading {
@@ -123,11 +142,86 @@ button.primary {
   font-size: 12px;
 }
 
+.graph-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 14px;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.graph-toolbar > span {
+  flex: 1 1 160px;
+  opacity: 0.7;
+}
+
+.graph-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.graph-toolbar select {
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.relationship-inspector {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-left: 3px solid currentColor;
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  font-size: 12px;
+}
+
 .workspace-canvas {
   position: relative;
   min-height: 470px;
-  margin-top: 18px;
+  margin-top: 12px;
+  overflow: auto;
   padding: 8px;
+}
+
+.workspace-edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.edge-group {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.edge-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.35;
+}
+
+.edge-line.edge-active {
+  stroke-width: 3;
+  opacity: 0.85;
+}
+
+.edge-label {
+  font-size: 10px;
+  paint-order: stroke;
+  stroke: Canvas;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  fill: currentColor;
+  opacity: 0.75;
 }
 
 .canvas-empty {
@@ -150,14 +244,29 @@ button.primary {
 }
 
 .workspace-card {
-  display: inline-block;
-  vertical-align: top;
-  width: min(360px, 100%);
-  margin: 0 12px 12px 0;
+  position: absolute;
+  width: min(300px, calc(100% - 20px));
   padding: 16px;
   border-radius: 12px;
   background: color-mix(in srgb, currentColor 7%, transparent);
   border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.workspace-card:hover,
+.workspace-card.card-selected {
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
+  box-shadow: 0 5px 18px color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.workspace-card.card-link-source {
+  border-style: dashed;
+  border-width: 2px;
+}
+
+.workspace-card.card-linked {
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .workspace-card h3 {
@@ -167,10 +276,13 @@ button.primary {
 .workspace-card p {
   white-space: pre-wrap;
   line-height: 1.45;
+  max-height: 150px;
+  overflow: hidden;
 }
 
 .card-kind,
-.source-anchor {
+.source-anchor,
+.card-source {
   display: block;
   font-size: 11px;
   opacity: 0.6;
@@ -182,10 +294,54 @@ button.primary {
   letter-spacing: 0.06em;
 }
 
+.card-source {
+  margin-top: 8px;
+  font-weight: 600;
+}
+
 .source-anchor {
   margin-top: 10px;
 }
 
+.link-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.link-chip {
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 10px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.link-chip[data-kind="supports"] {
+  font-weight: 700;
+}
+
+.link-chip[data-kind="contradicts"] {
+  text-decoration: underline;
+  text-decoration-style: wavy;
+}
+
+.card-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.card-controls button {
+  font-size: 11px;
+  padding: 5px 8px;
+}
+
+.card-controls .link-active {
+  font-weight: 700;
+  border-style: dashed;
+}
 
 .reader-pane {
   min-height: 560px;
@@ -209,34 +365,36 @@ button.primary {
   background: white;
 }
 
-.source-row {
-  display: block;
-  width: 100%;
-  text-align: left;
-  border: 0;
-  margin-bottom: 5px;
-}
-
-
 .workspace-hint {
   margin-top: 6px;
   font-size: 12px;
   opacity: 0.65;
 }
 
-.card-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 12px;
+@media (max-width: 1050px) {
+  .workspace-grid {
+    grid-template-columns: minmax(170px, 0.7fr) minmax(320px, 1.3fr);
+  }
+
+  .canvas-pane {
+    grid-column: 1 / -1;
+  }
 }
 
-.card-controls button {
-  font-size: 11px;
-  padding: 5px 8px;
-}
+@media (max-width: 720px) {
+  .workspace-shell {
+    padding: 12px;
+  }
 
-.card-controls .link-active {
-  font-weight: 700;
-  border-style: dashed;
+  .workspace-header {
+    flex-direction: column;
+  }
+
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .canvas-pane {
+    grid-column: auto;
+  }
 }
