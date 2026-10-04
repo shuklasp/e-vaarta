@@ -536,3 +536,34 @@ select:focus-visible,
   text-decoration-thickness: 2px;
   text-decoration-color: var(--evaarta-annotation-color, currentColor);
 }
+
+
+.search-pane {
+  min-width: 270px;
+  max-width: 330px;
+  padding: 12px;
+  border-right: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  overflow: auto;
+}
+
+.search-pane input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.search-results { display: grid; gap: 8px; }
+
+.search-result {
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.search-result:hover { background: color-mix(in srgb, currentColor 7%, transparent); }
+.search-result strong,
+.search-result span,
+.search-result p { display: block; margin-bottom: 5px; }
+.search-result span { font-size: 11px; opacity: .65; text-transform: uppercase; }
+.search-result p { white-space: pre-wrap; }
