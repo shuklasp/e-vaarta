@@ -581,8 +581,10 @@ function renderSearchResults(query = "") {
     const type = document.createElement("span");
     type.textContent = result.type;
     const text = document.createElement("p");
-    text.textContent = result.text;
-    row.append(title, type, text);
+    text.textContent = result.excerpt || result.text;
+    const location = document.createElement("small");
+    location.textContent = result.page ? `Page ${result.page}` : result.kind;
+    row.append(title, type, location, text);
     row.addEventListener("click", () => {
       if (result.type === "document") {
         const source = workspace.documents.find(document => document.id === result.documentId);
@@ -593,6 +595,9 @@ function renderSearchResults(query = "") {
             window.openDialog("chrome://messenger/content/messageWindow.xhtml", "_blank", "chrome,dialog=no,all", result.sourceRef);
           } catch (error) { console.error("e-Vaarta: unable to open indexed email", error); }
         }
+      } else if (result.page && result.sourceRef) {
+        const source = workspace.documents.find(document => document.id === result.documentId);
+        if (source) selectDocument(source, result.page);
       } else {
         const item = findItem(result.id);
         if (item) {
