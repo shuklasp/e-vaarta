@@ -6,6 +6,8 @@
 const { Services } = ChromeUtils.importESModule(
   "resource://gre/modules/Services.sys.mjs"
 );
+const { IOUtils } = ChromeUtils.importESModule("resource://gre/modules/IOUtils.sys.mjs");
+const { PathUtils } = ChromeUtils.importESModule("resource://gre/modules/PathUtils.sys.mjs");
 const {
   createWorkspace, createNote, createExcerpt, createAnnotation, createDocument,
   createSourceAnchor, createLink, addDocument, addItem, addLink, deserializeWorkspace, searchWorkspace,
@@ -789,9 +791,51 @@ function pdfSelector(range, page) {
   }
 }
 
-async function indexOcrSource(source) {
+async function indexOcrSource(source, pageCanvases = null) {
   if (!source || !["pdf", "image"].includes(source.kind) || !isOcrAvailable()) return;
   try {
+    if (source.kind === "pdf" && pageCanvases?.length) {
+      for (const { pageNumber, canvas } of pageCanvases) {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        if (!blob) continue;
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const tempPath = PathUtils.join(PathUtils.tempDir, `evaarta-ocr-${crypto.randomUUID()}.png`);
+        await IOUtils.write(tempPath, bytes);
+        try {
+          const sourceRef = Services.io.newFileURI(new (Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile))(tempPath)).spec;
+          const result = await extractOcrText({
+            id: source.id + "-page-" + pageNumber,
+            sourceRef,
+            title: source.title + " — page " + pageNumber,
+            kind: "image",
+            mimeType: "image/png",
+          });
+          if (!result?.text?.trim()) continue;
+          const fingerprint = fingerprintText(result.text);
+          const kind = "ocr-text-page";
+          if (!needsReindex(contentIndex, source.id + "-page-" + pageNumber, kind, fingerprint)) continue;
+          contentIndex = upsertExtractedContent(contentIndex, {
+            documentId: source.id + "-page-" + pageNumber,
+            sourceRef: source.sourceRef,
+            title: source.title,
+            kind,
+            text: result.text,
+            metadata: {
+              mimeType: "application/pdf",
+              page: pageNumber,
+              language: result.language,
+              confidence: result.confidence,
+            },
+            fingerprint,
+          });
+        } finally {
+          await IOUtils.remove(tempPath, { ignoreAbsent: true });
+        }
+      }
+      saveContentIndex();
+      return;
+    }
+
     const result = await extractOcrText({
       id: source.id,
       sourceRef: source.sourceRef,
@@ -928,7 +972,16 @@ function attachSourceSelectionBridge(source) {
   try {
     attachSelectionBridge(source, viewer.contentWindow);
     indexPdfSource(source, viewer.contentWindow);
-    if (source.kind === "pdf") indexOcrSource(source);
+    if (source.kind === "pdf") {
+      const pages = [...viewer.contentWindow.document.querySelectorAll(".page[data-page-number]")];
+      const hasNativeText = pages.some(page => (page.innerText || "").trim());
+      if (!hasNativeText) {
+        indexOcrSource(source, pages.map(page => ({
+          pageNumber: Number(page.dataset.pageNumber) || 1,
+          canvas: page.querySelector("canvas"),
+        })).filter(item => item.canvas));
+      }
+    }
   } catch (error) {
     console.warn("e-Vaarta: PDF selection bridge unavailable", error);
   }
