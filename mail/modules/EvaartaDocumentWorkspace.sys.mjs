@@ -55,6 +55,8 @@ export function createLocalVaultRecord(options = {}) {
     mimeType: options.mimeType || null,
     sha256: options.sha256 || null,
     importedAt: options.importedAt || now(),
+    sha256: options.sha256 || null,
+    health: options.health || "unknown",
   };
 }
 
