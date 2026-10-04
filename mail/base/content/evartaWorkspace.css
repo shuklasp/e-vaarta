@@ -633,3 +633,8 @@ select:focus-visible,
 .workspace-source-preview:hover { transform: translateY(-1px); box-shadow: 0 3px 12px rgba(0,0,0,.16); }
 .workspace-source-preview:focus-visible { box-shadow: 0 0 0 2px Highlight; }
 .workspace-card[data-source-card="true"] .source-card-meta { padding-bottom: 2px; }
+
+.source-context-menu { min-width: 320px; }
+.source-context-actions { display: grid; gap: 8px; }
+.source-context-actions button { width: 100%; text-align: left; }
+.source-context-actions .danger { margin-top: 6px; }
