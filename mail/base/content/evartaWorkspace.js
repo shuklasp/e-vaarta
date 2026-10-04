@@ -236,6 +236,45 @@ function selectDocument(source, page = null) {
   viewer.src = page && source.kind === "pdf" ? `${sourceRef}#page=${page}` : sourceRef;
 }
 
+function captureSelection() {
+  const source = workspace.documents.find(document => document.id === selectedDocumentId) || workspace.documents[0];
+  const viewer = document.getElementById("sourceViewer");
+  if (!source || !viewer?.contentWindow) {
+    alert("Open a document first.");
+    return;
+  }
+
+  let selectedText = "";
+  let page = null;
+  try {
+    selectedText = viewer.contentWindow.getSelection()?.toString().trim() || "";
+    const match = viewer.contentWindow.location.hash.match(/(?:^|&)page=(\\d+)/);
+    page = match ? Number(match[1]) : null;
+  } catch (error) {
+    console.warn("e-Vaarta: unable to read source selection", error);
+  }
+
+  if (!selectedText) {
+    alert("Select text in the source reader first.");
+    return;
+  }
+
+  workspace = addItem(
+    workspace,
+    createExcerpt({
+      anchor: createSourceAnchor({
+        documentId: source.id,
+        page,
+        quote: selectedText,
+      }),
+      title: "Selected excerpt",
+      text: selectedText,
+    })
+  );
+  saveWorkspace();
+  render();
+}
+
 function addExcerpt() {
   const source = workspace.documents.find(document => document.id === selectedDocumentId) || workspace.documents[0];
   if (!source) {
