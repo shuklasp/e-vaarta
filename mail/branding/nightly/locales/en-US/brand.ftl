@@ -2,20 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-## Thunderbird Brand
-##
-## Thunderbird must be treated as a brand, and kept in English.
-## It cannot be:
-## - Transliterated.
-## - Translated.
-##
-## Reference: https://www.mozilla.org/styleguide/communications/translation/
-
--brand-shorter-name = Daily
--brand-short-name = Daily
--brand-full-name = Thunderbird Daily
-# This brand name can be used in messages where the product name needs to
-# remain unchanged across different versions (Daily, Beta, etc.).
--brand-product-name = Thunderbird
--vendor-short-name = mozilla.org
+## e-Vaarta Brand
+-brand-shorter-name = e-Vaarta
+-brand-short-name = e-Vaarta
+-brand-full-name = e-Vaarta
+-brand-product-name = e-Vaarta
+-vendor-short-name = e-Vaarta
 trademarkInfo = { " " }

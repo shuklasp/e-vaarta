@@ -1,17 +1,15 @@
-# Building documentation locally
+# Building e-Vaarta documentation locally
 
-In the top directory (gecko):
+From the repository root:
 
-```sh
-./mach tb-doc
-```
+    ./mach tb-doc
 
-Command Arguments:
--  --format FMT          Documentation format to write.
--  --outdir DESTINATION  Where to write output.
--  --no-open             Don't automatically open HTML docs in a browser.
--  --no-serve            Don't serve the generated docs after building.
--  --http ADDRESS        Serve documentation on the specified host and port, default "localhost:5500".
--  -j JOBS, --jobs JOBS  Distribute the build over N processes in parallel.
--  --verbose             Run Sphinx in verbose mode
--  --no-autodoc          Disable generating Python/JS API documentation
+The command builds the e-Vaarta source documentation using the repository's Sphinx configuration.
+
+Useful options include --format, --outdir, --no-open, --no-serve, --http, --jobs, --verbose, and --no-autodoc.
+
+## Documentation policy
+
+Write new product documentation for e-Vaarta, not for Thunderbird. When a page explains inherited Mozilla technology, explicitly identify it as upstream technology and link to the appropriate upstream reference.
+
+Do not copy upstream product branding into e-Vaarta documentation.

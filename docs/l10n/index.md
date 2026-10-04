@@ -1,17 +1,11 @@
 # Localization
 
-At Mozilla, localization refers to adapting the user interface and messages
-to different cultural and regional needs. Localization is a broader term than
-translation because it involves extensive research into the target culture, and
-in result touches not only text and UI translation but also cultural adaptation
-of icons, communication styles, colors, and UX.
+e-Vaarta localization adapts the application's interface, messages, terminology,
+and product-specific UX for each supported locale.
 
-Questions about Thunderbird localization should be directed to the Localization
-Coordinator. Contact information is on the
-[Thunderbird Project page in Pontoon](https://pontoon.mozilla.org/projects/thunderbird/info/).
+The product name e-Vaarta is a protected brand string in prominent UI and
+should not be translated or transliterated.
 
-```{toctree}
-cross_channel
-fluent_migrations
-testing_migrations
-```
+Localization work uses Fluent and inherits parts of the Mozilla localization
+toolchain. Upstream Mozilla documentation is a technical reference; e-Vaarta
+strings and product terminology are authoritative in this repository.

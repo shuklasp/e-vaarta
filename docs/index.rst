@@ -1,7 +1,8 @@
-Thunderbird Source Tree Documentation
-=====================================
+e-Vaarta Source Documentation
+=============================
 
-.. If there's no other reason to order a toctree, use alphabetical (by page title) ordering.
+The e-Vaarta documentation describes the product, its architecture, development
+workflow, offline/local-first features, and inherited platform components.
 
 .. toctree::
    :caption: Overview
@@ -86,10 +87,3 @@ Thunderbird Source Tree Documentation
    /testing/axe
    /testing/helpers
    /testing/memory_leaks
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
