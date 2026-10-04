@@ -97,3 +97,10 @@ No OCR engine or external service is bundled by this phase. This is intentional:
 A local Tesseract backend is now automatically registered when a Tesseract executable is detected. Supported default locations include common Linux, macOS Homebrew, and Windows installation paths; a custom executable can be supplied through the `mail.evaarta.ocr.tesseractPath` preference. The OCR language defaults to `eng` and can be changed with `mail.evaarta.ocr.language`.
 
 The backend currently OCRs local image documents. It runs Tesseract through Thunderbird's `Subprocess.sys.mjs` API and captures stdout directly, avoiding shell command construction. The workspace reports when the backend becomes ready. PDF OCR still requires a PDF-page rendering adapter before Tesseract can process scanned PDF pages.
+
+
+## Phase 15: Scanned PDF OCR
+
+Scanned and mixed-content PDFs now use page-aware OCR. e-Vaarta obtains the PDF.js document, renders each page to an off-screen canvas at OCR resolution, writes a temporary PNG, and sends that image through the local OCR adapter. Each OCR result is indexed independently as `ocr-text-page` with its PDF page number. Pages that already contain native PDF text are skipped, allowing mixed PDFs to combine native extraction and OCR without duplicating content.
+
+Temporary rendered images are deleted after OCR. OCR indexing therefore stores searchable text and page metadata, not page image copies. Search results can use the recorded page number to reopen the PDF at the relevant page.
