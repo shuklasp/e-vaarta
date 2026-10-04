@@ -115,6 +115,33 @@ function formatBytes(bytes) {
   return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
 }
 
+async function migrateLegacyVaultRecords() {
+  await ensureOfflineStorage();
+  let migrated = false;
+  for (const document of workspace.documents) {
+    if (!document.vault?.sha256 || !document.vault.relativePath) continue;
+    if (document.vault.relativePath.startsWith("vault/blobs/")) continue;
+    try {
+      const sourcePath = PathUtils.join(EVAARTA_DATA_DIR, document.vault.relativePath);
+      const hash = document.vault.sha256;
+      const blobRelativePath = PathUtils.join("vault", "blobs", hash);
+      const blobPath = PathUtils.join(EVAARTA_DATA_DIR, blobRelativePath);
+      try {
+        await IOUtils.stat(blobPath);
+      } catch (error) {
+        await IOUtils.copy(sourcePath, blobPath);
+      }
+      document.vault.relativePath = blobRelativePath;
+      document.vault.vaultId = "blob-" + hash.slice(0, 16);
+      migrated = true;
+    } catch (error) {
+      console.warn("e-Vaarta legacy vault migration skipped", error);
+    }
+  }
+  if (migrated) await reconcileVaultManifest();
+  return migrated;
+}
+
 async function openVaultManager() {
   const dialog = document.getElementById("vaultManager");
   if (!dialog) return;
@@ -2609,6 +2636,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   updateOcrStatus();
   updateOfflineStatus("Offline storage: preparing…", false);
   try { await ensureOfflineStorage(); } catch (error) {
+    await migrateLegacyVaultRecords();
+    await reconcileVaultManifest();
     console.error("e-Vaarta: offline storage unavailable", error);
     updateOfflineStatus("Offline • recovery mode", false);
   }
