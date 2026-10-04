@@ -479,6 +479,13 @@ let ingestionWorkerTimer = null;
 let ingestionCancelRequested = false;
 
 
+function setIngestionStage(job, stage, progress) {
+  job.stage = stage;
+  job.progress = Math.max(0, Math.min(100, progress));
+  job.updatedAt = new Date().toISOString();
+  updateIngestionStatusSummary();
+}
+
 function updateIngestionStatusSummary() {
   const target = document.getElementById("ingestionStatusSummary");
   if (!target) return;
@@ -499,8 +506,8 @@ function updateIngestionStatusSummary() {
   if (counts.deferred) parts.push(counts.deferred + " deferred");
   const running = ingestionQueue.find(job => job.state === "running");
   if (running) {
-    const progress = running.totalBytes ? Math.min(100, Math.round((running.processedBytes || 0) / running.totalBytes * 100)) : 0;
-    parts.unshift("Importing " + progress + "%");
+    const progress = Number.isFinite(running.progress) ? running.progress : (running.totalBytes ? Math.min(100, Math.round((running.processedBytes || 0) / running.totalBytes * 100)) : 0);
+    parts.unshift("Importing " + progress + "% • " + (running.stage || "starting"));
   }
   target.hidden = false;
   if (textNode) textNode.textContent = "Ingestion: " + parts.join(" • ");
@@ -536,12 +543,15 @@ async function processIngestionQueue() {
       job.attempts = (job.attempts || 0) + 1;
       job.totalBytes = job.size || 0;
       job.processedBytes = 0;
+      job.progress = 0;
+      job.stage = "starting";
       job.updatedAt = new Date().toISOString();
       ingestionCancelRequested = false;
       await saveIngestionQueue();
       updateIngestionStatusSummary();
       setIngestionState(document, IngestionState.MATERIALIZING);
       try {
+        setIngestionStage(job, "materializing", 10);
         if (ingestionCancelRequested) {
           job.state = "queued";
           job.updatedAt = new Date().toISOString();
@@ -549,13 +559,17 @@ async function processIngestionQueue() {
           break;
         }
         job.processedBytes = job.totalBytes;
-        updateIngestionStatusSummary();
+        setIngestionStage(job, "vaulting", 40);
         const vault = await importIntoLocalVault(job.localPath, job.title, job.mimeType || null);
         document.vault = vault;
         attachVaultRecord(document, vault);
         document.metadata.offlineMaterialization = "vaulted";
         setIngestionState(document, IngestionState.VAULTED);
+        setIngestionStage(job, "extracting", 65);
+        if (document.kind === "word" || document.kind === "powerpoint") indexOfficeSource(document);
+        setIngestionStage(job, "indexing", 85);
         setIngestionState(document, IngestionState.INDEXED);
+        setIngestionStage(job, "complete", 100);
         job.state = "succeeded";
         job.lastError = null;
         job.updatedAt = new Date().toISOString();
