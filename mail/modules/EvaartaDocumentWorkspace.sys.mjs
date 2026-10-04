@@ -65,6 +65,7 @@ export function createDocument({
   mimeType = null,
   tags = [],
   description = "",
+  vault = null,
 }) {
   if (!title?.trim()) {
     throw new TypeError("A document title is required.");
@@ -80,7 +81,7 @@ export function createDocument({
     tags: [...new Set(tags.filter(Boolean).map(tag => String(tag).trim()).filter(Boolean))],
     createdAt: now(),
     updatedAt: now(),
-    vault: arguments[0]?.vault || null,
+    vault,
   };
 }
 
