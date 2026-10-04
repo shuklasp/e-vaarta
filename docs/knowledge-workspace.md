@@ -129,3 +129,8 @@ Grid cards now render actual image thumbnails when the source is an image and a 
 ## Phase 22: Library collections and smart filters
 
 The Document Library now provides built-in collections: All, Recent (last seven days), PDF, Office, Email, and Images. Collections combine with the existing free-text filter, so users can narrow a collection by title, description, type, or tags. The active collection is reflected in the Library UI while list/grid and drag/drop behavior remain unchanged.
+
+
+## Phase 24: Smart collections
+
+Collections can now optionally contain a smart rule. Rules can match document type, an exact tag, text in title/description/tags, and a recency window in days. Multiple filled conditions are combined with AND semantics. Smart collections calculate membership dynamically from canonical documents and do not duplicate document records. Clearing the rule returns the collection to manual membership mode. Workspace model version 4 migrates older collections automatically.
