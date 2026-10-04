@@ -278,6 +278,7 @@ function clearWorkspace() {
 
 window.addEventListener("DOMContentLoaded", () => {
   workspace = loadWorkspace();
+  saveWorkspace();
   document.getElementById("newNoteButton").addEventListener("click", addNote);
   document.getElementById("openDocumentButton").addEventListener("click", openDocument);
   document.getElementById("addExcerptButton").addEventListener("click", addExcerpt);
