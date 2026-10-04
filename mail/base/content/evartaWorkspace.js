@@ -1431,6 +1431,11 @@ function render() {
   if (clearSelectionButton) clearSelectionButton.hidden = selectedItemIds.size === 0;
   count.textContent = workspace.items.length + " item" + (workspace.items.length === 1 ? "" : "s") + " • " + workspace.links.length + " relationship" + (workspace.links.length === 1 ? "" : "s") + " • " + groupCount + " evidence group" + (groupCount === 1 ? "" : "s");
 
+  for (const source of workspace.documents) {
+    if (source.vault && (!source.vault.health || source.vault.health === "unknown")) {
+      source.vault.health = await vaultHealth(source);
+    }
+  }
   sourceList.replaceChildren();
   sourceList.classList.toggle("library-grid", libraryView === "grid");
   const libraryToolbar = document.createElement("div");
