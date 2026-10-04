@@ -25,6 +25,7 @@ let workspace;
 let contentIndex;
 let selectedDocumentId = null;
 let libraryFilter = "";
+let metadataEditorDocumentId = null;
 let selectedItemId = null;
 let linkSourceId = null;
 let selectedLinkId = null;
@@ -501,6 +502,37 @@ function layoutCards() {
   canvas.style.minHeight = Math.max(470, rows * rowHeight + 24) + "px";
 }
 
+function openDocumentMetadataEditor(source) {
+  metadataEditorDocumentId = source?.id || null;
+  if (!source) return;
+  document.getElementById("metadataTitle").value = source.title || "";
+  document.getElementById("metadataDescription").value = source.description || "";
+  document.getElementById("metadataTags").value = (source.tags || []).join(", ");
+  document.getElementById("documentMetadataEditor").showModal();
+}
+
+function closeDocumentMetadataEditor() {
+  document.getElementById("documentMetadataEditor").close();
+  metadataEditorDocumentId = null;
+}
+
+function saveDocumentMetadata() {
+  const source = workspace.documents.find(document => document.id === metadataEditorDocumentId);
+  if (!source) return closeDocumentMetadataEditor();
+  source.title = document.getElementById("metadataTitle").value.trim() || source.title;
+  source.description = document.getElementById("metadataDescription").value.trim();
+  source.tags = document.getElementById("metadataTags").value
+    .split(",").map(tag => tag.trim()).filter(Boolean)
+    .filter((tag, index, tags) => tags.indexOf(tag) === index);
+  source.updatedAt = new Date().toISOString();
+  workspace.updatedAt = source.updatedAt;
+  saveWorkspace();
+  indexWorkspace();
+  closeDocumentMetadataEditor();
+  render();
+  if (source.id === selectedDocumentId) selectDocument(source);
+}
+
 function sourceKindLabel(kind) {
   return ({ pdf: "PDF", word: "Word", powerpoint: "PowerPoint", image: "Image", email: "Email", web: "Web" }[kind] || "Document");
 }
@@ -563,7 +595,16 @@ function render() {
       const meta = document.createElement("small");
       meta.textContent = [sourceKindLabel(source.kind), ...(source.tags || []).slice(0, 2)].join(" • ");
       info.append(title, meta);
-      row.append(icon, info);
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "source-edit";
+      edit.textContent = "Edit";
+      edit.title = "Edit document metadata";
+      edit.addEventListener("click", event => {
+        event.stopPropagation();
+        openDocumentMetadataEditor(source);
+      });
+      row.append(icon, info, edit);
       row.addEventListener("click", () => selectDocument(source));
       row.addEventListener("dragstart", event => {
         event.dataTransfer.setData("application/x-evaarta-document", source.id);
@@ -1208,6 +1249,12 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("closeAnnotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(false));
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
+  document.getElementById("metadataCloseButton").addEventListener("click", closeDocumentMetadataEditor);
+  document.getElementById("metadataCancelButton").addEventListener("click", closeDocumentMetadataEditor);
+  document.getElementById("documentMetadataForm").addEventListener("submit", event => {
+    event.preventDefault();
+    saveDocumentMetadata();
+  });
   document.getElementById("editorCloseButton").addEventListener("click", closeEditor);
   document.getElementById("editorCancelButton").addEventListener("click", closeEditor);
   document.getElementById("itemEditorForm").addEventListener("submit", event => {
