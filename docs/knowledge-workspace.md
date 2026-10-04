@@ -300,3 +300,8 @@ The ingestion queue is processed asynchronously after workspace initialization r
 ## Phase 56: Ingestion progress and cancellation
 
 Background ingestion jobs now persist `processedBytes`, `totalBytes`, and running state. The Library displays aggregate progress for the active job and exposes a Cancel action. Cancellation returns the job to `queued` so it remains recoverable rather than being discarded; completed jobs continue through vault and index finalization.
+
+
+## Phase 57: Stage-aware ingestion progress
+
+Ingestion progress is now stage-based rather than a simple byte jump. Jobs persist a `stage` and `progress` value across starting, materializing, vaulting, extracting, indexing, and complete. Office sources invoke the existing Office extractor during the extraction stage. The Library status presents both percentage and current stage.
