@@ -260,3 +260,8 @@ e-Vaarta now includes an Offline Storage panel in the Document Library. It perfo
 ## Phase 48: Content-addressed vault
 
 New vault imports are now stored under SHA-256 content-addressed blob paths and tracked by a local vault manifest. Manifest entries record blob metadata and reference counts, allowing identical content to share one physical local copy. Removing a document decrements the reference count and removes the blob only when its last reference is released. The Offline Storage manager also reports shared and orphaned manifest entries.
+
+
+## Phase 49: Vault migration and manifest hardening
+
+The vault now maintains a backup manifest and uses transactional replacement for manifest writes. Startup can recover from a damaged primary manifest using the backup, migrate legacy Phase 44–47 vault paths into content-addressed SHA-256 blob paths, and reconcile manifest reference counts from the workspace's actual document records. This makes the manifest a recoverable index rather than the sole source of truth.
