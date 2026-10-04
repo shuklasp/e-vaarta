@@ -2546,6 +2546,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
   document.getElementById("collectionManagerButton").addEventListener("click", openCollectionManager);
+  document.getElementById("vaultManagerButton").addEventListener("click", openVaultManager);
+  document.getElementById("vaultManagerCloseButton").addEventListener("click", () => document.getElementById("vaultManager").close());
   document.getElementById("sourceContextCloseButton").addEventListener("click", closeSourceContextMenu);
   document.getElementById("sourceContextOpenButton").addEventListener("click", sourceContextOpen);
   document.getElementById("sourceContextMetadataButton").addEventListener("click", sourceContextMetadata);
