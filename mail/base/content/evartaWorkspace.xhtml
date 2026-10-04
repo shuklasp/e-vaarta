@@ -37,6 +37,7 @@
           <button type="button" data-library-filter="office" class="library-filter">Office</button>
           <button type="button" data-library-filter="email" class="library-filter">Email</button>
           <button type="button" data-library-filter="image" class="library-filter">Images</button>
+          <button type="button" id="collectionManagerButton" class="library-filter">Collections…</button>
         </div>
         <div id="sourceList" class="empty-state">
           <strong>No documents yet</strong>
@@ -96,6 +97,19 @@
       </aside>
     </section>
   </main>
+  <dialog id="collectionManager" class="item-editor">
+    <form method="dialog">
+      <div class="editor-heading">
+        <div><div class="eyebrow">e-Vaarta</div><h2>Collections</h2></div>
+        <button type="button" id="collectionManagerCloseButton" class="quiet">Close</button>
+      </div>
+      <div class="collection-create">
+        <input id="newCollectionName" type="text" maxlength="100" placeholder="New collection name" />
+        <button type="button" id="newCollectionButton" class="primary">Create</button>
+      </div>
+      <div id="customCollectionList" class="custom-collection-list"></div>
+    </form>
+  </dialog>
   <dialog id="documentMetadataEditor" class="item-editor">
     <form method="dialog" id="documentMetadataForm">
       <div class="editor-heading">
