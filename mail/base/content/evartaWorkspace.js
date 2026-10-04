@@ -139,6 +139,7 @@ function saveWorkspace() {
     })
     .catch(error => {
       console.error("e-Vaarta: failed to save offline workspace", error);
+      try { Services.prefs.setStringPref(PREF, JSON.stringify(snapshot)); } catch (fallbackError) {}
       updateOfflineStatus("Offline • save error", false);
     });
 }
@@ -2328,7 +2329,10 @@ function clearWorkspace() {
 window.addEventListener("DOMContentLoaded", async () => {
   updateOcrStatus();
   updateOfflineStatus("Offline storage: preparing…", false);
-  await ensureOfflineStorage();
+  try { await ensureOfflineStorage(); } catch (error) {
+    console.error("e-Vaarta: offline storage unavailable", error);
+    updateOfflineStatus("Offline • recovery mode", false);
+  }
   workspace = await loadWorkspace();
   contentIndex = await loadContentIndex();
   indexWorkspace();
