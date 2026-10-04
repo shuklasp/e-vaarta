@@ -392,6 +392,58 @@ function sourceForItem(item) {
   return workspace.documents.find(document => document.id === item.anchor.documentId) || null;
 }
 
+function addDocumentToCanvas(source) {
+  if (!source) return;
+  const existing = workspace.items.find(item =>
+    item.kind === "excerpt" &&
+    item.anchor?.documentId === source.id &&
+    item.anchor?.quote === null &&
+    item.metadata?.libraryCard === true
+  );
+  if (existing) {
+    selectedItemId = existing.id;
+    render();
+    return;
+  }
+  const anchor = createSourceAnchor({ documentId: source.id, quote: null });
+  const card = createExcerpt({
+    anchor,
+    title: source.title,
+    text: [source.description, source.tags?.length ? "Tags: " + source.tags.join(", ") : "", source.kind.toUpperCase()]
+      .filter(Boolean).join(" • "),
+  });
+  card.metadata = { ...(card.metadata || {}), libraryCard: true };
+  workspace = addItem(workspace, card);
+  selectedItemId = card.id;
+  workspace.updatedAt = new Date().toISOString();
+  saveWorkspace();
+  indexWorkspace();
+  render();
+}
+
+function installCanvasDropTarget() {
+  const canvas = document.getElementById("workspaceCanvas");
+  if (!canvas) return;
+  canvas.addEventListener("dragover", event => {
+    if (event.dataTransfer?.types.includes("application/x-evaarta-document")) {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "copy";
+      canvas.classList.add("canvas-drop-active");
+    }
+  });
+  canvas.addEventListener("dragleave", event => {
+    if (!canvas.contains(event.relatedTarget)) canvas.classList.remove("canvas-drop-active");
+  });
+  canvas.addEventListener("drop", event => {
+    const id = event.dataTransfer?.getData("application/x-evaarta-document");
+    canvas.classList.remove("canvas-drop-active");
+    if (!id) return;
+    event.preventDefault();
+    const source = workspace.documents.find(document => document.id === id);
+    addDocumentToCanvas(source);
+  });
+}
+
 function renderGraphEdges() {
   const canvas = document.getElementById("workspaceCanvas");
   const svg = document.getElementById("workspaceEdges");
@@ -1162,6 +1214,7 @@ window.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     saveEditor();
   });
+  installCanvasDropTarget();
   document.getElementById("editorCloseButton").addEventListener("click", closeEditor);
   document.getElementById("editorCancelButton").addEventListener("click", closeEditor);
   document.getElementById("itemEditorForm").addEventListener("submit", event => {
