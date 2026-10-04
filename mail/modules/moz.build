@@ -19,6 +19,7 @@ EXTRA_JS_MODULES += [
     "ConversationOpener.sys.mjs",
     "DBViewWrapper.sys.mjs",
     "DisplayNameUtils.sys.mjs",
+    "EvaartaDocumentWorkspace.sys.mjs",
     "DNS.sys.mjs",
     "DNS.worker.mjs",
     "ExtensionsUI.sys.mjs",
