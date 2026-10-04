@@ -723,9 +723,10 @@ function render() {
     });
     document.getElementById("libraryCollections").append(button);
   }
-    document.querySelectorAll(".library-filter").forEach(button => {
-    button.classList.toggle("active", button.dataset.libraryFilter === libraryCollection);
+    document.querySelectorAll(".library-filter[data-library-filter]").forEach(button => {
+    button.classList.toggle("active", !selectedCustomCollectionId && button.dataset.libraryFilter === libraryCollection);
     button.addEventListener("click", () => {
+      selectedCustomCollectionId = null;
       libraryCollection = button.dataset.libraryFilter;
       render();
     });
