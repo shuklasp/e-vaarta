@@ -26,3 +26,12 @@ This bridge deliberately lives on the e-Vaarta workspace side rather than patchi
 The **Capture selection** action creates a source-bound excerpt, while **Highlight selection** creates a source-bound annotation. Both retain the same source document and selection metadata, making them usable by the knowledge graph.
 
 The next refinement should add persistent text-layer selectors or PDF.js-specific page coordinates where available, followed by an actual Thunderbird build/runtime test of selection capture across representative PDFs.
+
+
+## Phase 5: Persistent source anchors
+
+Source anchors now support optional selector and rects metadata in addition to document ID, page, offsets, and quoted text. The model is version 2 and migrates version-1 workspaces by adding the new optional fields without changing existing evidence.
+
+The desktop workspace also reopens source-bound items using their stored page and quote. After the PDF viewer loads, e-Vaarta searches the PDF.js text layer for the saved quote, selects the matching range, and scrolls it into view. This provides an exact-passage fallback even when PDF.js does not expose a stable external selector.
+
+The next hardening step is to capture PDF.js text-layer coordinates/selectors when available and use those as the primary locator, with quote matching retained as a recovery mechanism.
