@@ -34,6 +34,7 @@ let linkSourceId = null;
 let selectedLinkId = null;
 let annotationPanelOpen = false;
 let annotationEditorItemId = null;
+let restoringSourceAnchor = false;
 
 function importPendingAttachments(workspace) {
   try {
@@ -134,7 +135,32 @@ function linkLabel(kind) { return kind.replaceAll("-", " "); }
 function jumpToSource(item) {
   if (!item.anchor?.documentId) return;
   const source = workspace.documents.find(document => document.id === item.anchor.documentId);
-  if (source) selectDocument(source, item.anchor.page, item.anchor);
+  if (!source) return;
+  selectedDocumentId = source.id;
+  focusLibrarySource(source);
+  selectDocument(source, item.anchor.page, item.anchor);
+  window.setTimeout(() => focusCanvasItem(item), 0);
+}
+
+function findAnnotationForSelection(source, selection) {
+  if (!source || !selection?.quote) return null;
+  return annotations().find(item => {
+    const anchor = item.anchor;
+    return anchor?.documentId === source.id
+      && anchor?.page === selection.page
+      && anchor?.quote === selection.quote;
+  }) || null;
+}
+
+function syncAnnotationFromSelection(source, selection) {
+  if (!source || !selection?.quote || restoringSourceAnchor) return;
+  const annotation = findAnnotationForSelection(source, selection);
+  if (!annotation) return;
+  selectedItemId = annotation.id;
+  selectedLinkId = null;
+  render();
+  focusCanvasItem(annotation);
+  if (annotationPanelOpen) renderAnnotations();
 }
 
 function findTextRange(root, quote) {
@@ -1305,9 +1331,18 @@ function renderAnnotations() {
     text.textContent = item.text || item.anchor?.quote || "";
     const meta = document.createElement("span");
     meta.textContent = (item.annotationType || "highlight") + (item.anchor?.page ? " • page " + item.anchor.page : "");
+    row.classList.toggle("annotation-selected", item.id === selectedItemId);
+    row.addEventListener("click", event => {
+      if (event.target instanceof HTMLButtonElement) return;
+      selectItem(item);
+      if (annotationPanelOpen) renderAnnotations();
+    });
     const jump = document.createElement("button");
-    jump.textContent = "Jump";
-    jump.addEventListener("click", () => jumpToSource(item));
+    jump.textContent = "Jump to annotation";
+    jump.addEventListener("click", () => {
+      selectItem(item);
+      if (annotationPanelOpen) renderAnnotations();
+    });
     const edit = document.createElement("button");
     edit.textContent = "Edit";
     edit.addEventListener("click", () => editAnnotation(item));
@@ -1596,13 +1631,15 @@ function inspectPdfSelection(frameWindow) {
 }
 
 function rememberSourceSelection(source, selection) {
-  if (!selection?.text) return;
+  if (!selection?.text || restoringSourceAnchor) return;
   activeSourceSelection = {
     documentId: source.id,
     page: selection.page,
     quote: selection.text,
     startOffset: selection.startOffset,
     endOffset: selection.endOffset,
+    selector: selection.selector || null,
+    rects: selection.rects || null,
   };
   document.getElementById("sourceSelectionStatus").textContent =
     selection.page ? "Selection ready • page " + selection.page : "Selection ready";
@@ -1613,7 +1650,10 @@ function attachSelectionBridge(source, frameWindow, seen = new Set()) {
   seen.add(frameWindow);
   const onSelectionChange = () => {
     const selection = inspectPdfSelection(frameWindow);
-    if (selection) rememberSourceSelection(source, selection);
+    if (selection) {
+      rememberSourceSelection(source, selection);
+      syncAnnotationFromSelection(source, selection);
+    }
   };
   try {
     frameWindow.document.addEventListener("selectionchange", onSelectionChange, true);
@@ -1668,8 +1708,8 @@ function captureSelection() {
       startOffset: selection.startOffset,
       endOffset: selection.endOffset,
       quote: selection.quote,
-      selector: null,
-      rects: null,
+      selector: selection.selector,
+      rects: selection.rects,
     }),
     title: "Selected excerpt",
     text: selection.quote,
@@ -1690,6 +1730,8 @@ function annotateSelection() {
       startOffset: selection.startOffset,
       endOffset: selection.endOffset,
       quote: selection.quote,
+      selector: selection.selector,
+      rects: selection.rects,
     }),
     annotationType: "highlight",
     color: document.getElementById("annotationColor")?.value || "#ffdc00",
