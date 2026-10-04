@@ -51,6 +51,33 @@ async function writeOfflineJson(path, value) {
   await IOUtils.writeUTF8(tempPath, JSON.stringify(value), { tmpPath: path });
 }
 
+async function sha256File(path) {
+  const bytes = await IOUtils.read(path);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function vaultDocumentsByHash(sha256) {
+  if (!sha256) return [];
+  return workspace.documents.filter(document => document.vault?.sha256 === sha256);
+}
+
+async function vaultHealth(document) {
+  if (!document?.vault?.relativePath) return "external";
+  try {
+    const path = PathUtils.join(EVAARTA_DATA_DIR, document.vault.relativePath);
+    const stat = await IOUtils.stat(path);
+    if (document.vault.size != null && stat.size !== document.vault.size) return "modified";
+    if (document.vault.sha256) {
+      const hash = await sha256File(path);
+      return hash === document.vault.sha256 ? "healthy" : "modified";
+    }
+    return "healthy";
+  } catch (error) {
+    return "missing";
+  }
+}
+
 async function importIntoLocalVault(sourcePath, originalName, mimeType = null) {
   await ensureOfflineStorage();
   const vaultId = "vault-" + crypto.randomUUID();
@@ -59,12 +86,15 @@ async function importIntoLocalVault(sourcePath, originalName, mimeType = null) {
   const destination = PathUtils.join(EVAARTA_DATA_DIR, relativePath);
   await IOUtils.copy(sourcePath, destination);
   const stat = await IOUtils.stat(destination);
+  const sha256 = await sha256File(destination);
   return {
     vaultId,
     relativePath,
     originalName: originalName || safeName,
     size: stat.size,
     mimeType,
+    sha256,
+    health: "healthy",
     importedAt: new Date().toISOString(),
   };
 }
@@ -1975,6 +2005,13 @@ async function openDocument() {
         : null;
   let vault = null;
   try {
+    const sourceHash = await sha256File(file.path);
+    const duplicate = vaultDocumentsByHash(sourceHash)[0];
+    if (duplicate?.vault) {
+      selectDocument(duplicate);
+      updateOfflineStatus("Offline • existing local copy");
+      return;
+    }
     vault = await importIntoLocalVault(file.path, file.leafName, mimeType);
   } catch (error) {
     console.error("e-Vaarta: failed to copy source into local vault", error);
