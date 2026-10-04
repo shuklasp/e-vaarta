@@ -1244,42 +1244,79 @@ var messageProgressListener = {
  * Thunderbird already provides normalized AttachmentInfo objects here, so this
  * integration deliberately reuses the native attachment pipeline.
  */
-function addCurrentMessageAttachmentsToEvaarta() {
+async function materializeEvaartaAttachment(attachment) {
+  if (!attachment?.url) return null;
+  try {
+    const tempDir = Services.dirsvc.get("TmpD", Ci.nsIFile);
+    const tempFile = tempDir.clone();
+    tempFile.append("evaarta-attachment-" + crypto.randomUUID());
+    const target = tempFile.path;
+    const channel = NetUtil.newChannel({
+      uri: attachment.url,
+      loadUsingSystemPrincipal: true,
+    });
+    const sink = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
+    sink.init(tempFile, 0x02 | 0x08 | 0x20, 0o600, 0);
+    await new Promise((resolve, reject) => {
+      NetUtil.asyncFetch(channel, (input, status) => {
+        if (!Components.isSuccessCode(status)) {
+          reject(status);
+          return;
+        }
+        const output = Cc["@mozilla.org/binaryoutputstream;1"].createInstance(Ci.nsIBinaryOutputStream);
+        output.setOutputStream(sink);
+        try {
+          output.writeInputStream(input, input.available());
+          resolve();
+        } catch (error) {
+          reject(error);
+        } finally {
+          output.close();
+        }
+      });
+    });
+    return target;
+  } catch (error) {
+    console.error("e-Vaarta: attachment materialization failed", error);
+    return null;
+  }
+}
+
+async function addCurrentMessageAttachmentsToEvaarta() {
   if (!gMessage || !gMessageURI) {
     Services.prompt.alert(window, "e-Vaarta", "No message is currently displayed.");
     return;
   }
-
   const messageDocument = {
     title: gMessage.mime2DecodedSubject || gMessage.subject || "Email message",
     kind: "email",
     sourceRef: gMessageURI,
     mimeType: "message/rfc822",
+    metadata: { ingestion: "email-source", offlineMaterialization: "message-backed" },
   };
-
-  const documents = [messageDocument, ...currentAttachments.map(attachment => ({
-    title: attachment.name || "Email attachment",
-    kind: attachment.contentType == "application/pdf"
-      ? "pdf"
-      : attachment.contentType?.startsWith("image/")
-        ? "image"
-        : attachment.contentType?.includes("word")
-          ? "word"
-          : attachment.contentType?.includes("presentation")
-            ? "powerpoint"
-            : "other",
-    sourceRef: attachment.url || attachment.uri?.spec || null,
-    mimeType: attachment.contentType || null,
-  })).filter(document => document.sourceRef)];
-
-  Services.prefs.setStringPref(
-    "mail.evaarta.pendingAttachments",
-    JSON.stringify(documents)
-  );
-
-  top.openTab("contentTab", {
-    url: "chrome://messenger/content/evartaWorkspace.xhtml",
-  }, "tab");
+  const documents = [messageDocument];
+  for (const attachment of currentAttachments) {
+    const source = {
+      title: attachment.name || "Email attachment",
+      kind: attachment.contentType == "application/pdf" ? "pdf"
+        : attachment.contentType?.startsWith("image/") ? "image"
+        : attachment.contentType?.includes("word") ? "word"
+        : attachment.contentType?.includes("presentation") ? "powerpoint" : "other",
+      sourceRef: attachment.url || attachment.uri?.spec || null,
+      mimeType: attachment.contentType || null,
+      metadata: { ingestion: "email-attachment", offlineMaterialization: "pending" }
+    };
+    if (attachment.url) {
+      const tempPath = await materializeEvaartaAttachment(attachment);
+      if (tempPath) {
+        source.localPath = tempPath;
+        source.metadata.offlineMaterialization = "materialized";
+      }
+    }
+    if (source.sourceRef) documents.push(source);
+  }
+  Services.prefs.setStringPref("mail.evaarta.pendingAttachments", JSON.stringify(documents));
+  top.openTab("contentTab", { url: "chrome://messenger/content/evartaWorkspace.xhtml" }, "tab");
 }
 
 function updateStarButton() {
