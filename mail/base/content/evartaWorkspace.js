@@ -536,6 +536,22 @@ function saveDocumentMetadata() {
   if (source.id === selectedDocumentId) selectDocument(source);
 }
 
+function collectionsForSource(source) {
+  if (!source) return [];
+  return workspace.collections.filter(collection =>
+    collection.smartRule
+      ? getCollectionDocuments(workspace, collection.id).some(document => document.id === source.id)
+      : collection.documentIds.includes(source.id)
+  );
+}
+
+function showSourceCollection(collection) {
+  if (!collection) return;
+  selectedCustomCollectionId = collection.id;
+  libraryCollection = "all";
+  render();
+}
+
 function customCollectionForSource(source) {
   return workspace.collections.find(collection =>
     collection.smartRule
@@ -562,7 +578,10 @@ function renderCollectionManager() {
     const name = document.createElement("strong");
     name.textContent = collection.name;
     const count = document.createElement("small");
-    count.textContent = collection.documentIds.length + " document" + (collection.documentIds.length === 1 ? "" : "s");
+    const documentCount = collection.smartRule
+      ? getCollectionDocuments(workspace, collection.id).length
+      : collection.documentIds.length;
+    count.textContent = documentCount + " document" + (documentCount === 1 ? "" : "s");
     const edit = document.createElement("button");
     edit.type = "button";
     edit.textContent = "Edit";
@@ -844,6 +863,25 @@ function render() {
       badge.className = "card-source";
       badge.textContent = "Source • " + source.title;
       card.append(badge);
+
+      const collections = collectionsForSource(source);
+      if (collections.length) {
+        const collectionRow = document.createElement("div");
+        collectionRow.className = "card-collection-row";
+        for (const collection of collections) {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "card-collection-chip";
+          chip.textContent = collection.name;
+          chip.title = "Show this collection in the Document Library";
+          chip.addEventListener("click", event => {
+            event.stopPropagation();
+            showSourceCollection(collection);
+          });
+          collectionRow.append(chip);
+        }
+        card.append(collectionRow);
+      }
     }
 
     const controls = document.createElement("div");
@@ -931,11 +969,7 @@ function renderSearchResults(query = "") {
       ? workspace.documents.find(document => document.id === result.documentId)
       : null;
     if (source) {
-      const collections = workspace.collections.filter(collection =>
-        collection.smartRule
-          ? getCollectionDocuments(workspace, collection.id).some(document => document.id === source.id)
-          : collection.documentIds.includes(source.id)
-      );
+      const collections = collectionsForSource(source);
       if (collections.length) {
         const badges = document.createElement("div");
         badges.className = "search-collections";
