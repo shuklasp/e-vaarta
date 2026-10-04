@@ -1,3 +1,9 @@
+<div align="center">
+
+<img src="./branding/e-vaarta-logo.svg" alt="e-Vaarta" width="360">
+
+</div>
+
 # Thunderbird
 Thunderbird is a powerful and customizable open source email client with many users. It is based on the same platform that Firefox uses.
 
