@@ -13,8 +13,75 @@
  */
 
 const { Services } = ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
+const { Subprocess } = ChromeUtils.importESModule("resource://gre/modules/Subprocess.sys.mjs");
+const { IOUtils } = ChromeUtils.importESModule("resource://gre/modules/IOUtils.sys.mjs");
 
 const OCR_BACKEND_PREF = "mail.evaarta.ocr.backend";
+const OCR_TESSERACT_PATH_PREF = "mail.evaarta.ocr.tesseractPath";
+const OCR_TESSERACT_LANG_PREF = "mail.evaarta.ocr.language";
+
+function sourceFile(sourceRef) {
+  try {
+    return Services.io.newURI(sourceRef).QueryInterface(Ci.nsIFileURL).file;
+  } catch {
+    return null;
+  }
+}
+
+async function findTesseract() {
+  const configured = Services.prefs.getStringPref(OCR_TESSERACT_PATH_PREF, "");
+  const candidates = [
+    configured,
+    "/usr/bin/tesseract",
+    "/usr/local/bin/tesseract",
+    "/opt/homebrew/bin/tesseract",
+    "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
+    "C:\\Program Files (x86)\\Tesseract-OCR\\tesseract.exe",
+  ].filter(Boolean);
+  for (const candidate of candidates) {
+    try {
+      if (await IOUtils.exists(candidate)) return candidate;
+    } catch {}
+  }
+  return "";
+}
+
+async function runTesseract(source, command) {
+  const file = sourceFile(source.sourceRef);
+  if (!file || !file.exists() || !file.isFile()) return null;
+  const language = Services.prefs.getStringPref(OCR_TESSERACT_LANG_PREF, "eng");
+  const process = await Subprocess.call({
+    command,
+    arguments: [file.path, "stdout", "-l", language, "--psm", "3"],
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const stdout = process.stdout.readString();
+  const stderr = process.stderr.readString();
+  const [text, errorText] = await Promise.all([stdout, stderr]);
+  const result = await process.wait();
+  if (result.exitCode !== 0) {
+    throw new Error(errorText || `Tesseract exited with code ${result.exitCode}`);
+  }
+  return {
+    text: text.replace(/\s+/g, " ").trim(),
+    pages: [],
+    language,
+    confidence: null,
+  };
+}
+
+async function initializeLocalBackend() {
+  const command = await findTesseract();
+  if (!command) return;
+  registerOcrBackend({
+    name: "tesseract",
+    async extractText(source) {
+      if (source.kind !== "image") return null;
+      return runTesseract(source, command);
+    },
+  });
+}
 
 let backend = null;
 
@@ -67,3 +134,10 @@ export async function extractOcrText(source) {
     confidence: result.confidence ?? null,
   };
 }
+
+
+// Auto-enable a local Tesseract backend when it is installed. This is
+// intentionally asynchronous so Thunderbird startup is not blocked.
+initializeLocalBackend().catch(error =>
+  console.warn("e-Vaarta: Tesseract backend initialization failed", error)
+);
