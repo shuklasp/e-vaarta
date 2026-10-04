@@ -25,6 +25,10 @@ const INDEX_PREF = "mail.evaarta.contentIndex.json";
 const EVAARTA_DATA_DIR = PathUtils.join(PathUtils.profileDir, "evaarta");
 const WORKSPACE_FILE = PathUtils.join(EVAARTA_DATA_DIR, "workspace.json");
 const VAULT_DIR = PathUtils.join(EVAARTA_DATA_DIR, "vault");
+const VAULT_BLOB_DIR = PathUtils.join(VAULT_DIR, "blobs");
+const VAULT_MANIFEST_FILE = PathUtils.join(VAULT_DIR, "manifest.json");
+let vaultManifest = { version: 1, blobs: {} };
+let vaultManifestSavePromise = Promise.resolve();
 const INDEX_FILE = PathUtils.join(EVAARTA_DATA_DIR, "content-index.json");
 let offlineStorageReady = false;
 let workspaceSavePromise = Promise.resolve();
@@ -35,6 +39,13 @@ async function ensureOfflineStorage() {
   await IOUtils.makeDirectory(VAULT_DIR, { ignoreExisting: true });
   offlineStorageReady = true;
 }
+  await IOUtils.makeDirectory(VAULT_BLOB_DIR, { createAncestors: true });
+  try {
+    vaultManifest = JSON.parse(await IOUtils.readUTF8(VAULT_MANIFEST_FILE));
+  } catch (error) {
+    vaultManifest = { version: 1, blobs: {} };
+  }
+
 
 async function readOfflineJson(path) {
   try {
@@ -164,24 +175,52 @@ async function removeVaultReference(document) {
 }
 
 
+async function saveVaultManifest() {
+  vaultManifestSavePromise = vaultManifestSavePromise.then(async () => {
+    const temp = VAULT_MANIFEST_FILE + ".tmp";
+    await IOUtils.writeUTF8(temp, JSON.stringify(vaultManifest, null, 2));
+    await IOUtils.move(temp, VAULT_MANIFEST_FILE, { noOverwrite: false });
+  });
+  return vaultManifestSavePromise;
+}
+
 async function importIntoLocalVault(sourcePath, originalName, mimeType = null) {
   await ensureOfflineStorage();
-  const vaultId = "vault-" + crypto.randomUUID();
-  const safeName = String(originalName || PathUtils.filename(sourcePath) || "document").replace(/[^a-zA-Z0-9._-]/g, "_");
-  const relativePath = PathUtils.join("vault", vaultId + "-" + safeName);
-  const destination = PathUtils.join(EVAARTA_DATA_DIR, relativePath);
-  await IOUtils.copy(sourcePath, destination);
-  const stat = await IOUtils.stat(destination);
-  const sha256 = await sha256File(destination);
+  const sourceHash = await sha256File(sourcePath);
+  const existing = vaultManifest.blobs[sourceHash];
+  const blobRelativePath = PathUtils.join("vault", "blobs", sourceHash);
+  const blobPath = PathUtils.join(EVAARTA_DATA_DIR, blobRelativePath);
+  if (!existing) {
+    await IOUtils.copy(sourcePath, blobPath);
+    vaultManifest.blobs[sourceHash] = {
+      relativePath: blobRelativePath,
+      originalName: originalName || PathUtils.filename(sourcePath) || "document",
+      mimeType,
+      size: (await IOUtils.stat(blobPath)).size,
+      createdAt: new Date().toISOString(),
+      refCount: 0
+    };
+    await saveVaultManifest();
+  } else {
+    try { await IOUtils.stat(blobPath); }
+    catch (error) {
+      await IOUtils.copy(sourcePath, blobPath);
+      vaultManifest.blobs[sourceHash].size = (await IOUtils.stat(blobPath)).size;
+      await saveVaultManifest();
+    }
+  }
+  const entry = vaultManifest.blobs[sourceHash];
+  entry.refCount = Number(entry.refCount || 0) + 1;
+  await saveVaultManifest();
   return {
-    vaultId,
-    relativePath,
-    originalName: originalName || safeName,
-    size: stat.size,
-    mimeType,
-    sha256,
+    vaultId: "blob-" + sourceHash.slice(0, 16),
+    relativePath: entry.relativePath,
+    originalName: originalName || entry.originalName,
+    size: entry.size,
+    mimeType: mimeType || entry.mimeType,
+    sha256: sourceHash,
     health: "healthy",
-    importedAt: new Date().toISOString(),
+    importedAt: new Date().toISOString()
   };
 }
 
