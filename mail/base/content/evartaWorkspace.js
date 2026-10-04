@@ -1475,6 +1475,7 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("searchButton").addEventListener("click", () => toggleSearch(true));
   document.getElementById("closeSearchButton").addEventListener("click", () => toggleSearch(false));
   document.getElementById("workspaceSearchInput").addEventListener("input", event => renderSearchResults(event.target.value));
+  document.getElementById("saveSearchButton").addEventListener("click", saveCurrentSearchAsCollection);
   document.getElementById("closeAnnotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(false));
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
