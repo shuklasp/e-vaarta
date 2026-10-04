@@ -351,3 +351,10 @@ This extends Phase 63 beyond search: evidence can now be inspected wherever it i
 Sources now expose reverse evidence usage in Search and on first-class workspace source cards. When a source has anchored excerpts or annotations, the UI reports how many evidence items and evidence groups reference that source. This makes the relationship bidirectional: users can move from evidence to its source and also see, from the source, how much evidence has been built from it.
 
 The reference counts are derived from the canonical workspace evidence model rather than stored as duplicated counters, so they remain consistent as evidence and group membership change.
+
+
+## Phase 66: Source-centric evidence navigation
+
+First-class source cards now provide **Browse evidence** when anchored excerpts or annotations reference that source. The action opens the existing evidence navigator in source mode and lists the source's evidence directly, without requiring the evidence to belong to a group. Previous/Next navigation uses the same synchronized evidence selection path, so each item can focus its Canvas card and reopen its source anchor while the source context remains active.
+
+The navigator derives its membership from the canonical workspace evidence model. No duplicate source-to-evidence index is stored, so adding, editing, or removing evidence immediately changes the browsable set.
