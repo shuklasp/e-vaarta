@@ -169,3 +169,8 @@ Sources in the Document Library and first-class source cards on the workspace ca
 ## Phase 31: Source-centric navigation
 
 The Document Library and workspace canvas now provide bidirectional source navigation. Selecting a Library source focuses its corresponding source-backed canvas card when present; selecting a source card focuses the corresponding Library entry. Focus transitions use a brief visual pulse and do not alter document or collection data.
+
+
+## Phase 32: Source-aware excerpts
+
+Excerpts created from a source card through its context actions are marked source-aware and automatically linked to the corresponding source card with a `derived-from` relationship when that card exists. Selecting any source-backed excerpt also focuses its originating document in the Library and Reader.
