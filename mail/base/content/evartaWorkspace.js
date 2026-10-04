@@ -249,6 +249,8 @@ function selectDocument(source, page = null) {
   const viewer = document.getElementById("sourceViewer");
   document.getElementById("sourceTitle").textContent = source.title;
   document.getElementById("sourceLocation").textContent = source.kind.toUpperCase();
+  const emailButton = document.getElementById("openEmailSourceButton");
+  emailButton.hidden = source.kind !== "email";
   const sourceRef = source.sourceRef || "about:blank";
   viewer.src = page && source.kind === "pdf" ? `${sourceRef}#page=${page}` : sourceRef;
 }
@@ -336,6 +338,7 @@ window.addEventListener("DOMContentLoaded", () => {
   workspace = loadWorkspace();
   saveWorkspace();
   document.getElementById("newNoteButton").addEventListener("click", addNote);
+  document.getElementById("openEmailSourceButton").addEventListener("click", openSelectedEmailSource);
   document.getElementById("openDocumentButton").addEventListener("click", openDocument);
   document.getElementById("addExcerptButton").addEventListener("click", addExcerpt);
   document.getElementById("clearButton").addEventListener("click", clearWorkspace);
