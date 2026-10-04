@@ -329,11 +329,45 @@ function createEvidenceGroupFromItem(item) {
   render();
 }
 
+function syncEvidenceGroupSource(group) {
+  if (!group) return;
+  const members = getEvidenceGroupItems(workspace, group.id);
+  const sourceIds = [...new Set(members.map(item => sourceForItem(item)?.id || item.anchor?.documentId).filter(Boolean))];
+  updateEvidenceGroup(workspace, group.id, {
+    documentId: sourceIds.length === 1 ? sourceIds[0] : null,
+    updatedAt: Date.now(),
+  });
+}
+
 function toggleEvidenceGroupItem(group, item) {
   if (!group || !item) return;
   if (group.itemIds.includes(item.id)) removeItemFromEvidenceGroup(workspace, group.id, item.id);
   else addItemToEvidenceGroup(workspace, group.id, item.id);
+  syncEvidenceGroupSource(group);
   saveWorkspace();
+  render();
+}
+
+function addSelectedItemsToEvidenceGroup(group) {
+  if (!group || !selectedItemIds.size) return;
+  for (const itemId of selectedItemIds) {
+    const item = findItem(itemId);
+    if (item && !group.itemIds.includes(item.id)) addItemToEvidenceGroup(workspace, group.id, item.id);
+  }
+  syncEvidenceGroupSource(group);
+  saveWorkspace();
+  renderEvidenceGroups();
+  render();
+}
+
+function removeSelectedItemsFromEvidenceGroup(group) {
+  if (!group || !selectedItemIds.size) return;
+  for (const itemId of selectedItemIds) {
+    if (group.itemIds.includes(itemId)) removeItemFromEvidenceGroup(workspace, group.id, itemId);
+  }
+  syncEvidenceGroupSource(group);
+  saveWorkspace();
+  renderEvidenceGroups();
   render();
 }
 
@@ -371,12 +405,12 @@ function renderEvidenceGroups() {
     });
     const add = document.createElement("button");
     add.textContent = "Add selected";
-    add.addEventListener("click", () => {
-      const item = findItem(selectedItemId);
-      if (!item) return;
-      toggleEvidenceGroupItem(group, item);
-      renderEvidenceGroups();
-    });
+    add.disabled = !selectedItemIds.size;
+    add.addEventListener("click", () => addSelectedItemsToEvidenceGroup(group));
+    const removeMembers = document.createElement("button");
+    removeMembers.textContent = "Remove selected";
+    removeMembers.disabled = !selectedItemIds.size;
+    removeMembers.addEventListener("click", () => removeSelectedItemsFromEvidenceGroup(group));
     const remove = document.createElement("button");
     remove.textContent = "Delete";
     remove.className = "quiet";
@@ -387,7 +421,7 @@ function renderEvidenceGroups() {
       renderEvidenceGroups();
       render();
     });
-    row.append(info, select, navigate, add, remove);
+    row.append(info, select, navigate, add, removeMembers, remove);
     list.append(row);
   }
 }
