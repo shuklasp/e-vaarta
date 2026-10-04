@@ -378,7 +378,7 @@ let annotationPanelOpen = false;
 let annotationEditorItemId = null;
 let restoringSourceAnchor = false;
 
-function importPendingAttachments(workspace) {
+async function importPendingAttachments(workspace) {
   try {
     const value = Services.prefs.getStringPref("mail.evaarta.pendingAttachments", "");
     if (!value) return workspace;
@@ -386,7 +386,15 @@ function importPendingAttachments(workspace) {
     Services.prefs.clearUserPref("mail.evaarta.pendingAttachments");
     for (const source of pending) {
       if (!source?.title || !source?.sourceRef) continue;
-      workspace = addDocument(workspace, createDocument(source));
+      const document = createDocument({
+        ...source,
+        metadata: {
+          ...(source.metadata || {}),
+          ingestion: source.kind === "email" ? "email-source" : "pending-attachment",
+          offlineMaterialization: source.kind === "email" ? "message-backed" : "deferred"
+        }
+      });
+      workspace = addDocument(workspace, document);
     }
   } catch (error) { console.error("e-Vaarta: failed to import pending attachments", error); }
   return workspace;
@@ -411,10 +419,10 @@ async function loadWorkspace() {
     if (fileValue) {
       offlineStorageReady = true;
       updateOfflineStatus("Offline • local workspace");
-      return importPendingAttachments(deserializeWorkspace(JSON.stringify(fileValue)));
+      return await importPendingAttachments(deserializeWorkspace(JSON.stringify(fileValue)));
     }
     const value = Services.prefs.getStringPref(PREF, "");
-    const loaded = value ? importPendingAttachments(deserializeWorkspace(value)) : importPendingAttachments(createWorkspace({ name: "My workspace" }));
+    const loaded = value ? await importPendingAttachments(deserializeWorkspace(value)) : await importPendingAttachments(createWorkspace({ name: "My workspace" }));
     await writeOfflineJson(WORKSPACE_FILE, JSON.parse(JSON.stringify(loaded)));
     offlineStorageReady = true;
     updateOfflineStatus("Offline • local workspace");
