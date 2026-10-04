@@ -10,9 +10,7 @@ const workspace = {
   documents: [{id:"doc-1", title:"Solar Plant", description:"energy", tags:["science"]}],
   evidenceGroups: [], items: [{id:"note-1", kind:"note", title:"Solar", text:"photovoltaic energy"}], links:[]
 };
-
-const results = searchWorkspace(workspace, "photovoltaic");
-assert.equal(results[0].id, "note-1");
+assert.equal(searchWorkspace(workspace, "photovoltaic")[0].id, "note-1");
 
 const mutation = createMutation({id:"m1", operation:"update", targetId:"note-1", before:{text:"old"}, after:{text:"new"}});
 assert.deepEqual(inverseMutation(mutation).before, mutation.after);
@@ -30,6 +28,8 @@ assert.equal(compareSyncManifests(local, {...local, checksum:"def"}), "conflict"
 
 const remote = {...record, writerId:"phone", checksum:"def", workspace:{...workspace, description:"remote"}};
 const merged = resolveConflict(record, remote, ConflictResolution.KEEP_BOTH);
-assert.match(merged.workspace.description, /remote conflict/);
+assert.equal(merged.record, null);
+assert.equal(merged.requiresNewRevision, true);
+assert.equal(merged.workspaces.length, 2);
 
 console.log("e-Vaarta phases 73-82 tests passed");
