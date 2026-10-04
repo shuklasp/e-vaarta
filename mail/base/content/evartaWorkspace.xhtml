@@ -81,6 +81,26 @@
       </section>
     </section>
   </main>
+  <dialog id="itemEditor" class="item-editor">
+    <form method="dialog" id="itemEditorForm">
+      <div class="editor-heading">
+        <div><div class="eyebrow">e-Vaarta</div><h2 id="editorHeading">New note</h2></div>
+        <button type="button" id="editorCloseButton" class="quiet">Close</button>
+      </div>
+      <label for="editorTitle">Title</label>
+      <input id="editorTitle" type="text" maxlength="200" />
+      <label for="editorText">Content</label>
+      <textarea id="editorText" rows="9"></textarea>
+      <div id="editorSourceFields" class="editor-source-fields">
+        <label for="editorPage">Source page</label>
+        <input id="editorPage" type="number" min="1" step="1" placeholder="Optional" />
+      </div>
+      <div class="editor-actions">
+        <button type="button" id="editorCancelButton" class="quiet">Cancel</button>
+        <button type="submit" id="editorSaveButton" class="primary">Save</button>
+      </div>
+    </form>
+  </dialog>
   <script src="chrome://messenger/content/evartaWorkspace.js"></script>
 </body>
 </html>
