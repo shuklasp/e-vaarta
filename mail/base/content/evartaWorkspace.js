@@ -2342,6 +2342,143 @@ function navigateSearchResult(result, query) {
   selectDocument(source);
 }
 
+function searchResultSource(result) {
+  return result?.documentId
+    ? workspace.documents.find(document => document.id === result.documentId) || null
+    : null;
+}
+
+function searchResultEvidenceItems(result, source) {
+  if (!source) return [];
+  const direct = result?.id ? findItem(result.id) : null;
+  if (direct) return [direct];
+  return workspace.items.filter(item => item.anchor?.documentId === source.id);
+}
+
+function renderEvidencePreview(result, row, query) {
+  const existing = row.querySelector(".search-preview");
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const preview = document.createElement("section");
+  preview.className = "search-preview";
+  preview.setAttribute("aria-label", "Evidence preview");
+
+  const heading = document.createElement("div");
+  heading.className = "search-preview-heading";
+  const headingTitle = document.createElement("strong");
+  headingTitle.textContent = "Evidence preview";
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "quiet";
+  close.textContent = "Hide";
+  close.addEventListener("click", event => {
+    event.stopPropagation();
+    preview.remove();
+  });
+  heading.append(headingTitle, close);
+
+  const quote = document.createElement("p");
+  quote.className = "search-preview-quote";
+  quote.textContent = result.excerpt || result.text || "No extracted text available.";
+  preview.append(heading, quote);
+
+  const source = searchResultSource(result);
+  const provenance = result.metadata?.provenance || {};
+  const details = document.createElement("div");
+  details.className = "search-preview-details";
+
+  const methodLabels = {
+    "pdf-native": "PDF text",
+    ocr: "OCR",
+    office: "Office text",
+    "email-body": "Email body",
+    legacy: "Legacy index",
+  };
+  const method = methodLabels[provenance.method] || provenance.method || result.kind || result.type || "Workspace";
+  const detailParts = [method];
+  if (result.page) detailParts.push("Page " + result.page);
+  if (provenance.confidence != null) detailParts.push("Confidence " + provenance.confidence);
+  if (provenance.extractedAt) {
+    detailParts.push("Extracted " + new Date(provenance.extractedAt).toLocaleString());
+  }
+  details.textContent = detailParts.join(" • ");
+  preview.append(details);
+
+  if (source) {
+    const sourceMeta = document.createElement("div");
+    sourceMeta.className = "search-preview-source";
+    sourceMeta.textContent = "Source: " + (source.title || "Untitled") + " • " + String(source.kind || "document").toUpperCase();
+    preview.append(sourceMeta);
+
+    const collections = collectionsForSource(source);
+    if (collections.length) {
+      const collectionLine = document.createElement("div");
+      collectionLine.className = "search-preview-context";
+      collectionLine.textContent = "Collections: " + collections.map(collection => collection.name).join(" • ");
+      preview.append(collectionLine);
+    }
+
+    const evidenceItems = searchResultEvidenceItems(result, source);
+    const evidenceGroups = new Map();
+    for (const item of evidenceItems) {
+      for (const group of (workspace.evidenceGroups || [])) {
+        if ((group.itemIds || []).includes(item.id)) evidenceGroups.set(group.id, group);
+      }
+    }
+    if (evidenceGroups.size) {
+      const groupLine = document.createElement("div");
+      groupLine.className = "search-preview-context";
+      groupLine.textContent = "Evidence groups: " + [...evidenceGroups.values()].map(group => group.name).join(" • ");
+      preview.append(groupLine);
+    }
+
+    const related = new Map();
+    for (const item of evidenceItems) {
+      for (const link of workspace.links) {
+        if (link.fromId !== item.id && link.toId !== item.id) continue;
+        const otherId = link.fromId === item.id ? link.toId : link.fromId;
+        const entity = findGraphEntity(otherId);
+        if (entity && otherId !== item.id) {
+          related.set(otherId, { entity, kind: link.kind });
+        }
+      }
+    }
+    if (related.size) {
+      const relatedLine = document.createElement("div");
+      relatedLine.className = "search-preview-context";
+      relatedLine.textContent = "Related evidence: " + [...related.values()]
+        .map(entry => graphEntityLabel(entry.entity) + " (" + linkLabel(entry.kind) + ")")
+        .join(" • ");
+      preview.append(relatedLine);
+    }
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "search-preview-actions";
+  const navigate = document.createElement("button");
+  navigate.type = "button";
+  navigate.className = "primary";
+  navigate.textContent = "Open evidence";
+  navigate.addEventListener("click", event => {
+    event.stopPropagation();
+    if (result.type === "document") {
+      const sourceDocument = searchResultSource(result);
+      if (sourceDocument) selectDocument(sourceDocument);
+    } else if (result.documentId) {
+      navigateSearchResult(result, query);
+    } else {
+      const item = findItem(result.id);
+      if (item) selectItem(item);
+    }
+  });
+  actions.append(navigate);
+  preview.append(actions);
+  row.append(preview);
+}
+
 function renderSearchResults(query = "") {
   const list = document.getElementById("searchResults");
   list.replaceChildren();
@@ -2391,9 +2528,7 @@ function renderSearchResults(query = "") {
         : `Extracted ${new Date(provenance.extractedAt).toLocaleString()}`;
       row.append(provenanceInfo);
     }
-    const source = result.documentId
-      ? workspace.documents.find(document => document.id === result.documentId)
-      : null;
+    const source = searchResultSource(result);
     if (source) {
       const collections = collectionsForSource(source);
       if (collections.length) {
@@ -2403,6 +2538,17 @@ function renderSearchResults(query = "") {
         row.append(badges);
       }
     }
+    const previewButton = document.createElement("button");
+    previewButton.type = "button";
+    previewButton.className = "search-preview-button quiet";
+    previewButton.textContent = "Preview";
+    previewButton.title = "Preview evidence without leaving the workspace";
+    previewButton.addEventListener("click", event => {
+      event.stopPropagation();
+      renderEvidencePreview(result, row, query);
+    });
+    row.append(previewButton);
+
     row.addEventListener("click", () => {
       if (result.type === "document") {
         const source = workspace.documents.find(document => document.id === result.documentId);
