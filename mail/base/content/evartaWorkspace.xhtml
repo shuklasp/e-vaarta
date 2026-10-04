@@ -13,7 +13,8 @@
       <div>
         <div class="eyebrow">e-Vaarta</div>
         <h1>Document Workspace</h1>
-        <p>Read, collect, connect and return to the source.</p><p class="workspace-hint">Select <strong>Link</strong> on two cards to create a semantic relationship.</p>
+        <p>Read, collect, connect and return to the source.</p>
+        <p class="workspace-hint">Select <strong>Link</strong> on two cards, choose a relationship, and e-Vaarta will draw the connection.</p>
       </div>
       <div class="workspace-actions">
         <button id="newNoteButton" class="primary">New note</button>
@@ -33,7 +34,13 @@
       </aside>
 
       <section class="reader-pane">
-        <div class="pane-heading"><h2 id="sourceTitle">Source</h2><span id="sourceLocation"></span><button id="openEmailSourceButton" class="quiet" hidden="hidden">Open email</button></div>
+        <div class="pane-heading">
+          <div>
+            <h2 id="sourceTitle">Source</h2>
+            <span id="sourceLocation"></span>
+          </div>
+          <button id="openEmailSourceButton" class="quiet" hidden="hidden">Open email</button>
+        </div>
         <iframe id="sourceViewer" title="Document source"></iframe>
       </section>
 
@@ -45,7 +52,26 @@
           </div>
           <button id="clearButton" class="quiet">Clear workspace</button>
         </div>
+
+        <div class="graph-toolbar" aria-label="Knowledge graph controls">
+          <span id="linkModeStatus">Choose two cards to connect.</span>
+          <label>
+            Relationship
+            <select id="relationshipSelect">
+              <option value="relates-to">Relates to</option>
+              <option value="supports">Supports</option>
+              <option value="contradicts">Contradicts</option>
+              <option value="derived-from">Derived from</option>
+              <option value="references">References</option>
+            </select>
+          </label>
+          <button id="cancelLinkButton" class="quiet" hidden="hidden">Cancel</button>
+        </div>
+
+        <div id="relationshipInspector" class="relationship-inspector" hidden="hidden"></div>
+
         <div id="workspaceCanvas" class="workspace-canvas">
+          <svg id="workspaceEdges" class="workspace-edges" aria-hidden="true"></svg>
           <div id="canvasEmpty" class="canvas-empty">
             <div class="canvas-mark">✦</div>
             <h3>Build your evidence space</h3>
