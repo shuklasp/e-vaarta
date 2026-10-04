@@ -365,11 +365,32 @@ function linkItem(item) {
   render();
 }
 
+function focusCanvasItem(item) {
+  const card = document.querySelector(`#workspaceCanvas .workspace-card[data-item-id="${CSS.escape(item.id)}"]`);
+  if (!card) return;
+  card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  card.classList.add("card-evidence-active");
+  window.setTimeout(() => card.classList.remove("card-evidence-active"), 1200);
+}
+
 function selectItem(item) {
   selectedItemId = item.id;
   selectedLinkId = null;
   renderRelationshipInspector();
   render();
+
+  const source = sourceForItem(item);
+  if (!source) return;
+
+  selectedDocumentId = source.id;
+  focusLibrarySource(source);
+
+  // Anchored items represent evidence in a source. Open the source at the
+  // stored page/quote after the canvas selection has been rendered.
+  if (item.anchor?.quote || item.anchor?.page != null) {
+    jumpToSource(item);
+    window.setTimeout(() => focusCanvasItem(item), 0);
+  }
 }
 
 function selectLink(link) {
@@ -1093,8 +1114,14 @@ function render() {
     }
     if (item.anchor?.documentId && !item.metadata?.libraryCard) {
       const jump = document.createElement("button");
-      jump.textContent = "Jump to source";
-      jump.addEventListener("click", event => { event.stopPropagation(); jumpToSource(item); });
+      jump.textContent = item.metadata?.sourceAware ? "Jump to evidence" : "Jump to source";
+      jump.title = item.metadata?.sourceAware
+        ? "Open the source at this evidence"
+        : "Open the source at this anchor";
+      jump.addEventListener("click", event => {
+        event.stopPropagation();
+        selectItem(item);
+      });
       controls.append(jump);
     }
     const link = document.createElement("button");
