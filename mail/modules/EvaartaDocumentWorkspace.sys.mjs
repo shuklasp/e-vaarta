@@ -12,7 +12,7 @@
  * keeping the original source context addressable.
  */
 
-export const EVAARTA_DOCUMENT_MODEL_VERSION = 3;
+export const EVAARTA_DOCUMENT_MODEL_VERSION = 4;
 
 export const DocumentKind = Object.freeze({
   PDF: "pdf",
@@ -211,11 +211,63 @@ export function createWorkspace({name, description = ""}) {
     name: name.trim(),
     description,
     documents: [],
+    collections: [],
     items: [],
     links: [],
     createdAt: now(),
     updatedAt: now(),
   };
+}
+
+export function createCollection({ name, description = "" } = {}) {
+  if (!name?.trim()) throw new TypeError("A collection name is required.");
+  return {
+    id: id("collection"),
+    name: name.trim(),
+    description: String(description || "").trim(),
+    documentIds: [],
+    createdAt: now(),
+    updatedAt: now(),
+  };
+}
+
+export function addCollection(workspace, collection) {
+  if (workspace.collections.some(existing => existing.id === collection.id || existing.name.toLocaleLowerCase() === collection.name.toLocaleLowerCase())) {
+    return workspace;
+  }
+  workspace.collections.push(collection);
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function updateCollection(workspace, collectionId, changes = {}) {
+  const collection = workspace.collections.find(item => item.id === collectionId);
+  if (!collection) return workspace;
+  if (changes.name?.trim()) collection.name = changes.name.trim();
+  if (changes.description !== undefined) collection.description = String(changes.description || "").trim();
+  collection.updatedAt = now();
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function removeCollection(workspace, collectionId) {
+  workspace.collections = workspace.collections.filter(collection => collection.id !== collectionId);
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function setDocumentCollections(workspace, documentId, collectionIds = []) {
+  const known = new Set(workspace.collections.map(collection => collection.id));
+  for (const collection of workspace.collections) {
+    collection.documentIds = collection.documentIds.filter(id => id !== documentId);
+  }
+  for (const collectionId of new Set(collectionIds)) {
+    if (known.has(collectionId)) {
+      workspace.collections.find(collection => collection.id === collectionId).documentIds.push(documentId);
+    }
+  }
+  workspace.updatedAt = now();
+  return workspace;
 }
 
 export function addDocument(workspace, document) {
@@ -275,6 +327,10 @@ export function serializeWorkspace(workspace) {
   return JSON.stringify(workspace, null, 2);
 }
 
+  if (workspace?.modelVersion === 3) {
+    workspace.modelVersion = EVAARTA_DOCUMENT_MODEL_VERSION;
+    workspace.collections ||= [];
+  }
 export function deserializeWorkspace(serialized) {
   const workspace = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
   if (workspace?.modelVersion === 1 || workspace?.modelVersion === 2) {
