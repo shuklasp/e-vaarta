@@ -46,6 +46,18 @@ function now() {
   return new Date().toISOString();
 }
 
+export function createLocalVaultRecord(options = {}) {
+  return {
+    vaultId: options.vaultId || id("vault"),
+    relativePath: options.relativePath || null,
+    originalName: options.originalName || null,
+    size: Number.isFinite(options.size) ? options.size : null,
+    mimeType: options.mimeType || null,
+    sha256: options.sha256 || null,
+    importedAt: options.importedAt || now(),
+  };
+}
+
 export function createDocument({
   title,
   kind = DocumentKind.OTHER,
@@ -68,6 +80,7 @@ export function createDocument({
     tags: [...new Set(tags.filter(Boolean).map(tag => String(tag).trim()).filter(Boolean))],
     createdAt: now(),
     updatedAt: now(),
+    vault: arguments[0]?.vault || null,
   };
 }
 
