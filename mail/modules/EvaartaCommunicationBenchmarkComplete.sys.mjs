@@ -1,0 +1,4 @@
+/* MPL-2.0 */
+const CASES=["provider-coverage","credential-isolation","unified-inbox","cross-provider-search","identity-merge","identity-split","attachment-security","attachment-dedupe","offline-send","sync-cursor","sync-gap","sync-conflict","message-edit","reaction","receipt","notification-priority","notification-dedupe","meeting-trace","calendar-freebusy","meeting-decision","meeting-action","ai-grounding","ai-action-authorization","e2ee-key-rotation","device-revocation","migration-provenance","migration-loss-report","eml","mbox","ics","vcard","accessibility-keyboard","accessibility-screen-reader","accessibility-reflow","governance-retention","legal-hold","audit","release-provenance","interoperability-roundtrip"];
+export function communicationBenchmarkCases(){return CASES.map(id=>({id,required:true}));}
+export function communicationBenchmarkPassed(results=[]){const m=new Map(results.map(r=>[r.id,r]));return CASES.every(id=>m.get(id)?.pass===true);}
