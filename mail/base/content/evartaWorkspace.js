@@ -851,7 +851,7 @@ function render() {
 
     const kind = document.createElement("span");
     kind.className = "card-kind";
-    kind.textContent = item.kind;
+    kind.textContent = item.metadata?.libraryCard ? "SOURCE" : item.kind;
     const title = document.createElement("h3");
     title.textContent = itemLabel(item);
     const body = document.createElement("p");
@@ -860,10 +860,22 @@ function render() {
 
     const source = sourceForItem(item);
     if (source) {
-      const badge = document.createElement("span");
-      badge.className = "card-source";
-      badge.textContent = "Source • " + source.title;
-      card.append(badge);
+      if (item.metadata?.libraryCard) {
+        const sourceMeta = document.createElement("div");
+        sourceMeta.className = "source-card-meta";
+        const type = document.createElement("span");
+        type.textContent = sourceKindLabel(source.kind);
+        const tags = document.createElement("span");
+        tags.textContent = (source.tags || []).slice(0, 3).map(tag => "#" + tag).join(" ");
+        sourceMeta.append(type);
+        if (tags.textContent) sourceMeta.append(tags);
+        card.append(sourceMeta);
+      } else {
+        const badge = document.createElement("span");
+        badge.className = "card-source";
+        badge.textContent = "Source • " + source.title;
+        card.append(badge);
+      }
 
       const collections = collectionsForSource(source);
       if (collections.length) {
@@ -893,7 +905,33 @@ function render() {
       edit.addEventListener("click", event => { event.stopPropagation(); editNote(item); });
       controls.append(edit);
     }
-    if (item.anchor?.documentId) {
+    if (source && item.metadata?.libraryCard) {
+      const open = document.createElement("button");
+      open.textContent = "Open";
+      open.title = "Open this document";
+      open.addEventListener("click", event => { event.stopPropagation(); selectDocument(source); });
+      controls.append(open);
+
+      const metadata = document.createElement("button");
+      metadata.textContent = "Metadata";
+      metadata.addEventListener("click", event => { event.stopPropagation(); openDocumentMetadataEditor(source); });
+      controls.append(metadata);
+
+      const remove = document.createElement("button");
+      remove.textContent = "Remove";
+      remove.title = "Remove this source card from the workspace";
+      remove.addEventListener("click", event => {
+        event.stopPropagation();
+        workspace.items = workspace.items.filter(candidate => candidate.id !== item.id);
+        selectedItemId = null;
+        workspace.updatedAt = new Date().toISOString();
+        saveWorkspace();
+        indexWorkspace();
+        render();
+      });
+      controls.append(remove);
+    }
+    if (item.anchor?.documentId && !item.metadata?.libraryCard) {
       const jump = document.createElement("button");
       jump.textContent = "Jump to source";
       jump.addEventListener("click", event => { event.stopPropagation(); jumpToSource(item); });
