@@ -77,6 +77,47 @@ async function vaultHealth(document) {
     return "missing";
   }
 }
+async function scanVault() {
+  await ensureOfflineStorage();
+  const records = workspace.documents.filter(source => source.vault?.relativePath);
+  for (const source of records) source.vault.health = await vaultHealth(source);
+  const healthy = records.filter(item => item.vault.health === "healthy");
+  const missing = records.filter(item => item.vault.health === "missing");
+  const modified = records.filter(item => item.vault.health === "modified");
+  const bytes = healthy.reduce((sum, item) => sum + Number(item.vault.size || 0), 0);
+  return { total: records.length, healthy: healthy.length, missing: missing.length, modified: modified.length, bytes };
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
+}
+
+async function openVaultManager() {
+  const dialog = document.getElementById("vaultManager");
+  if (!dialog) return;
+  const stats = await scanVault();
+  document.getElementById("vaultManagerSummary").textContent =
+    stats.total + " local documents • " + stats.healthy + " healthy • " +
+    stats.missing + " missing • " + stats.modified + " modified • " + formatBytes(stats.bytes);
+  const list = document.getElementById("vaultManagerList");
+  list.replaceChildren();
+  for (const source of workspace.documents.filter(item => item.vault)) {
+    const row = document.createElement("div");
+    row.className = "vault-manager-row";
+    const name = document.createElement("strong");
+    name.textContent = source.title || source.vault.originalName || "Document";
+    const status = document.createElement("span");
+    status.textContent = source.vault.health || "unknown";
+    status.className = "vault-manager-status vault-manager-" + (source.vault.health || "unknown");
+    row.append(name, status);
+    list.append(row);
+  }
+  dialog.showModal();
+}
+
 
 async function recoverVaultDocument(document) {
   if (!document?.vault?.relativePath || !document.vault.originalName) return false;
