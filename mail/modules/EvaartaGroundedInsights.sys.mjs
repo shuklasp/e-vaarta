@@ -1,0 +1,3 @@
+/* MPL-2.0 */
+export function createInsight({kind,title,text,evidenceIds=[],confidence=0,model="local-or-user-selected"}={}){if(!text||!evidenceIds.length)throw new TypeError("Grounded insights require text and evidenceIds");return{id:"insight-"+(globalThis.crypto?.randomUUID?.()||Math.random().toString(36).slice(2)),kind,title,text,evidenceIds,confidence,model,grounded:true,createdAt:new Date().toISOString()};}
+export function validateInsight(insight,graph){const ids=new Set((graph?.entities||[]).map(e=>e.id));return Boolean(insight?.grounded&&insight.evidenceIds?.length&&insight.evidenceIds.every(id=>ids.has(id)));}
