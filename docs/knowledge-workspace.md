@@ -320,3 +320,8 @@ PDFs now participate in the unified extraction pipeline through a page-aware PDF
 ## Phase 60: Extraction provenance
 
 Indexed content now carries provenance metadata: extraction method, source kind, extraction timestamp, and method-specific details such as PDF page, OCR language, and OCR confidence. The content index was upgraded to version 4 with migration support for older entries, which are marked as legacy provenance rather than losing existing searchable content.
+
+
+## Phase 61: Provenance-aware search
+
+Search results now expose extraction provenance. Results identify whether content came from native PDF text, OCR, Office extraction, email body, or legacy indexing, with page information and extraction timestamp where available. OCR results also expose confidence when supplied by the configured backend.
