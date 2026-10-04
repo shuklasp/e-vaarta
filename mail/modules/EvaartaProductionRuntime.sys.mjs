@@ -44,12 +44,12 @@ export function createEvidenceLifecycle() {
     nodes: [],
     edges: [],
     addNode(type, id, sourceIds = [], properties = {}) {
-      const node = createSemanticNode(type, id, sourceIds, properties);
+      const node = createSemanticNode({ type, id, sourceIds, properties });
       this.nodes.push(node);
       return node;
     },
     link(from, to, type, evidenceIds = []) {
-      const edge = createSemanticEdge(from, to, type, evidenceIds);
+      const edge = createSemanticEdge({ from, to, type, evidenceIds });
       this.edges.push(edge);
       return edge;
     },
