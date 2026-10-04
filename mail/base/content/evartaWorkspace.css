@@ -616,3 +616,7 @@ select:focus-visible,
 .search-toolbar { display: flex; gap: 7px; margin-bottom: 8px; }
 .search-toolbar input { flex: 1; min-width: 0; }
 .search-collections { margin-top: 5px; font-size: .75em; opacity: .7; }
+
+.card-collection-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.card-collection-chip { border: 1px solid var(--in-content-box-border-color, #bbb); border-radius: 999px; padding: 2px 7px; font-size: .72em; background: transparent; cursor: pointer; }
+.card-collection-chip:hover { text-decoration: underline; }
