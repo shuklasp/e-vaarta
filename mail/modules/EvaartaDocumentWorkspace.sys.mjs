@@ -435,6 +435,18 @@ export function getLinkedItems(workspace, itemId) {
   return workspace.items.filter(item => linkedIds.has(item.id));
 }
 
+export function getLinkedGraphEntities(workspace, entityId) {
+  const linkedIds = new Set();
+  for (const link of workspace.links) {
+    if (link.fromId === entityId) linkedIds.add(link.toId);
+    if (link.toId === entityId) linkedIds.add(link.fromId);
+  }
+  return [
+    ...workspace.items.filter(item => linkedIds.has(item.id)),
+    ...(workspace.evidenceGroups || []).filter(group => linkedIds.has(group.id)),
+  ];
+}
+
 export function serializeWorkspace(workspace) {
   return JSON.stringify(workspace, null, 2);
 }
