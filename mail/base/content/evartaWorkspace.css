@@ -580,3 +580,6 @@ select:focus-visible,
 .source-info { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 .source-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .source-info small { opacity: .65; margin-top: 2px; }
+
+.workspace-canvas.canvas-drop-active { outline: 2px dashed currentColor; outline-offset: -6px; }
+.workspace-canvas.canvas-drop-active::before { content: "Drop source here"; position: absolute; inset: 12px; display: grid; place-items: start center; pointer-events: none; opacity: .7; font-weight: 600; z-index: 5; }
