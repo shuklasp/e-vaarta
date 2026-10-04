@@ -325,3 +325,8 @@ Indexed content now carries provenance metadata: extraction method, source kind,
 ## Phase 61: Provenance-aware search
 
 Search results now expose extraction provenance. Results identify whether content came from native PDF text, OCR, Office extraction, email body, or legacy indexing, with page information and extraction timestamp where available. OCR results also expose confidence when supplied by the configured backend.
+
+
+## Phase 62: Actionable evidence navigation
+
+Search results are now source-aware navigation targets. PDF results with page metadata open the corresponding page and attempt to restore a text selection using the matching query term. Email-body results open the originating message, while other indexed source results open the associated source document.
