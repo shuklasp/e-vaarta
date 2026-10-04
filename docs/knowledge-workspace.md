@@ -40,3 +40,8 @@ The next hardening step is to capture PDF.js text-layer coordinates/selectors wh
 ## Phase 6: Persistent PDF highlights
 
 PDF selections now capture optional PDF.js text-layer selectors and selection rectangles in addition to the source quote and page. When a source-bound annotation is reopened, e-Vaarta attempts to restore the highlight directly on the corresponding PDF.js text-layer spans and scrolls the first matched span into view. Quote-based range restoration remains active as the fallback. The source PDF itself is not modified; annotation state remains part of the e-Vaarta workspace model.
+
+
+## Phase 7: Annotation management
+
+The workspace now includes an annotation panel with a source-bound list, jump-to-source, edit, and delete actions. Annotations retain their source anchor and graph relationships when edited. The annotation model supports highlight, underline, strikethrough, and comment types plus a persisted color. PDF.js text-layer restoration applies the appropriate visual class and color when the annotation is reopened.
