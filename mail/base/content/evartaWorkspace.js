@@ -482,11 +482,15 @@ let ingestionCancelRequested = false;
 function updateIngestionStatusSummary() {
   const target = document.getElementById("ingestionStatusSummary");
   if (!target) return;
+  const textNode = document.getElementById("ingestionStatusText");
+  const cancelButton = document.getElementById("ingestionCancelButton");
   const counts = { queued: 0, running: 0, failed: 0, deferred: 0 };
   for (const job of ingestionQueue) counts[job.state] = (counts[job.state] || 0) + 1;
   const active = counts.queued + counts.running;
   if (!ingestionQueue.length) {
-    target.textContent = "Ingestion: idle";
+    target.hidden = true;
+    if (cancelButton) cancelButton.hidden = true;
+    if (textNode) textNode.textContent = "Ingestion: idle";
     return;
   }
   const parts = [];
@@ -498,7 +502,9 @@ function updateIngestionStatusSummary() {
     const progress = running.totalBytes ? Math.min(100, Math.round((running.processedBytes || 0) / running.totalBytes * 100)) : 0;
     parts.unshift("Importing " + progress + "%");
   }
-  target.textContent = "Ingestion: " + parts.join(" • ");
+  target.hidden = false;
+  if (textNode) textNode.textContent = "Ingestion: " + parts.join(" • ");
+  if (cancelButton) cancelButton.hidden = !running;
 
 }
 
@@ -2900,6 +2906,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   contentIndex = await loadContentIndex();
   indexWorkspace();
   saveWorkspace();
+  document.getElementById("ingestionCancelButton")?.addEventListener("click", cancelIngestion);
   document.getElementById("newNoteButton").addEventListener("click", addNote);
   document.getElementById("openEmailSourceButton").addEventListener("click", openSelectedEmailSource);
   document.getElementById("openDocumentButton").addEventListener("click", openDocument);
