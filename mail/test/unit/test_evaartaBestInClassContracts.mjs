@@ -56,3 +56,15 @@ add_task(function testAutomationAndAccessibility() {
   Assert.ok(!authorizeAutomation(automation, []));
   Assert.ok(validateAccessibilityProfile(createAccessibilityProfile()));
 });
+
+add_task(function testSemanticProductContract() {
+  const semantic = getProductContract(ProductClass.SEMANTIC);
+  Assert.ok(semantic.capabilities.includes("evidence-action-graph"));
+  const record = createAcceptanceRecord({
+    productClass: ProductClass.SEMANTIC,
+    capability: "evidence-action-graph",
+    level: AcceptanceLevel.IMPLEMENTED,
+    evidence: ["unit-test"],
+  });
+  Assert.equal(record.level, AcceptanceLevel.IMPLEMENTED);
+});
