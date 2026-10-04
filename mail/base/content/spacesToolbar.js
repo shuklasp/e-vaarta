@@ -278,6 +278,23 @@ var gSpacesToolbar = {
         },
       },
       {
+        name: "evaartaWorkspace",
+        button: document.getElementById("evaartaWorkspaceButton"),
+        tabInSpace(tabInfo) {
+          return tabInfo.mode.name == "contentTab" &&
+            tabInfo.urlbar?.value == "chrome://messenger/content/evartaWorkspace.xhtml"
+            ? 1
+            : 0;
+        },
+        open(where) {
+          return openTab(
+            "contentTab",
+            { url: "chrome://messenger/content/evartaWorkspace.xhtml" },
+            where
+          );
+        },
+      },
+      {
         name: "settings",
         button: document.getElementById("settingsButton"),
         menuitem: document.getElementById("spacesPopupButtonSettings"),
