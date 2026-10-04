@@ -607,3 +607,8 @@ select:focus-visible,
 .library-collections { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 8px; }
 .library-filter { border: 1px solid transparent; border-radius: 999px; padding: 4px 9px; font-size: .78em; }
 .library-filter.active { border-color: currentColor; font-weight: 600; }
+
+.collection-create { display: flex; gap: 8px; margin-bottom: 12px; }
+.collection-create input { flex: 1; }
+.collection-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 7px; align-items: center; padding: 8px 0; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+.collection-row small { opacity: .65; }
