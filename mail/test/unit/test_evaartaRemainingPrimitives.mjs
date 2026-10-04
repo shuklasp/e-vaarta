@@ -1,0 +1,5 @@
+import assert from "node:assert/strict";
+import {diffLines} from "../../modules/EvaartaDocumentDiff.sys.mjs";import {evaluateRule} from "../../modules/EvaartaSmartRules.sys.mjs";import {createEnvelope,validateEnvelope} from "../../modules/EvaartaSecurityEnvelope.sys.mjs";import {parseDeepLink} from "../../modules/EvaartaDeepLinkRouter.sys.mjs";import {extractActions} from "../../modules/EvaartaMeetingIntelligence.sys.mjs";import {eventToICS} from "../../modules/EvaartaCalendarBridge.sys.mjs";
+assert.equal(diffLines("a","b")[0].type,"removed");assert.equal(evaluateRule({subject:"Solar report"},{field:"subject",operator:"contains",value:"solar"}),true);
+const e=createEnvelope({projectId:"p",eventId:"e",deviceId:"d",capability:"read",payload:{},signature:"s"});assert.equal(validateEnvelope(e),true);
+assert.equal(parseDeepLink("evaarta://document/abc").id,"abc");assert.equal(extractActions("Action: call team").length,1);assert.ok(eventToICS({id:"1",start:"2026-10-04T10:00:00Z",title:"Test"}).includes("BEGIN:VEVENT"));console.log("remaining e-Vaarta primitives passed");
