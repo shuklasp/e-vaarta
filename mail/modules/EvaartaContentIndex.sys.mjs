@@ -11,7 +11,7 @@
  * metadata, OCR output, or other sources without inflating workspace JSON.
  */
 
-export const EVAARTA_INDEX_VERSION = 1;
+export const EVAARTA_INDEX_VERSION = 2;
 
 function now() {
   return new Date().toISOString();
@@ -69,6 +69,42 @@ export function removeIndexEntries(index, documentId) {
   return index;
 }
 
+export function upsertExtractedContent(index, {
+  documentId,
+  sourceRef = null,
+  title = "",
+  kind = "document-content",
+  text = "",
+  metadata = {},
+  fingerprint = null,
+}) {
+  return upsertIndexEntry(index, createIndexEntry({
+    documentId,
+    sourceRef,
+    title,
+    kind,
+    text,
+    metadata: { ...metadata, fingerprint },
+  }));
+}
+
+export function needsReindex(index, documentId, kind, fingerprint) {
+  const entry = index.entries.find(candidate =>
+    candidate.documentId === documentId && candidate.kind === kind
+  );
+  return !entry || entry.metadata?.fingerprint !== fingerprint;
+}
+
+export function fingerprintText(text) {
+  const value = String(text || "");
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16);
+}
+
 export function searchIndex(index, query, limit = 100) {
   const needle = normalize(query);
   if (!needle) return [];
@@ -96,6 +132,10 @@ export function serializeIndex(index) {
 
 export function deserializeIndex(serialized) {
   const index = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
+  if (index?.version === 1) {
+    index.version = EVAARTA_INDEX_VERSION;
+    for (const entry of index.entries || []) entry.metadata ||= {};
+  }
   if (index?.version !== EVAARTA_INDEX_VERSION) {
     throw new Error(`Unsupported e-Vaarta index version: ${index?.version}`);
   }
