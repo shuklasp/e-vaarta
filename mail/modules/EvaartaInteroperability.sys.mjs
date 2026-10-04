@@ -1,9 +1,36 @@
 /* MPL-2.0 */
-const formats=new Set(["eml","mbox","maildir","pdf","docx","pptx","xlsx","markdown","html","bibtex","ris","csl-json","opml","ics","evaarta-json"]);
-export function supportedFormats(){return [...formats].sort();}
-export function canImport(format){return formats.has(String(format).toLowerCase());}
-export function lossReport(source,target,fields=[]){
-  const compatible=source===target||target==="evaarta-json";
-  return {source,target,lossless:compatible,lostFields:compatible?[]:fields,warning:compatible?null:"Target format may not preserve e-Vaarta provenance."};
+const formats = new Set([
+  "eml","mbox","maildir","pdf","docx","pptx","xlsx","markdown","html",
+  "bibtex","ris","csl-json","opml","ics","json-canvas","evaarta-json",
+]);
+
+export function supportedFormats() { return [...formats].sort(); }
+export function canImport(format) { return formats.has(String(format).toLowerCase()); }
+export function canExport(format) { return formats.has(String(format).toLowerCase()); }
+
+export function lossReport(source, target, fields = []) {
+  const compatible = source === target || target === "evaarta-json";
+  return {
+    source, target, lossless: compatible,
+    lostFields: compatible ? [] : fields,
+    warning: compatible ? null : "Target format may not preserve e-Vaarta provenance.",
+  };
 }
-export function projectBundle(project){return JSON.stringify({schema:"evaarta.project.v1",exportedAt:new Date().toISOString(),project},null,2);}
+
+export function roundTripContract(format) {
+  return Object.freeze({
+    format,
+    import: canImport(format),
+    export: canExport(format),
+    provenancePreservation: format === "evaarta-json",
+    lossReportRequired: format !== "evaarta-json",
+  });
+}
+
+export function projectBundle(project) {
+  return JSON.stringify({
+    schema: "evaarta.project.v2",
+    exportedAt: new Date().toISOString(),
+    project,
+  }, null, 2);
+}
