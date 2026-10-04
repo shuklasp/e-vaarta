@@ -32,6 +32,8 @@ let metadataEditorDocumentId = null;
 let selectedItemId = null;
 let selectedGroupId = null;
 let selectedItemIds = new Set();
+let activeEvidenceGroupId = null;
+let activeEvidenceIndex = 0;
 let linkSourceId = null;
 let selectedLinkId = null;
 let annotationPanelOpen = false;
@@ -222,6 +224,8 @@ function selectGraphEntity(entity) {
   selectedItemIds.clear();
   if (graphEntityIsGroup(entity)) {
     selectedGroupId = entity.id;
+    activeEvidenceGroupId = entity.id;
+    activeEvidenceIndex = 0;
     selectedItemId = null;
     selectedLinkId = null;
     const items = getEvidenceGroupItems(workspace, entity.id);
@@ -243,6 +247,72 @@ function selectEvidenceGroup(group) {
   if (!group) return;
   selectGraphEntity(group);
 }
+
+function activeEvidenceGroup() {
+  return (workspace.evidenceGroups || []).find(group => group.id === activeEvidenceGroupId) || null;
+}
+
+function activeEvidenceItems() {
+  const group = activeEvidenceGroup();
+  return group ? getEvidenceGroupItems(workspace, group.id) : [];
+}
+
+function navigateEvidenceGroup(step) {
+  const group = activeEvidenceGroup();
+  const items = activeEvidenceItems();
+  if (!group || !items.length) return;
+  activeEvidenceIndex = Math.max(0, Math.min(items.length - 1, activeEvidenceIndex + step));
+  const item = items[activeEvidenceIndex];
+  selectItem(item);
+  selectedGroupId = group.id;
+  activeEvidenceGroupId = group.id;
+  render();
+  window.setTimeout(() => focusCanvasItem(item), 0);
+}
+
+function openEvidenceGroupNavigator(group) {
+  if (!group) return;
+  activeEvidenceGroupId = group.id;
+  activeEvidenceIndex = 0;
+  selectGraphEntity(group);
+  document.getElementById("evidenceNavigator").showModal();
+  renderEvidenceNavigator();
+}
+
+function renderEvidenceNavigator() {
+  const list = document.getElementById("evidenceNavigatorList");
+  const group = activeEvidenceGroup();
+  const items = activeEvidenceItems();
+  list.replaceChildren();
+  if (!group || !items.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "This evidence group has no members.";
+    list.append(empty);
+    return;
+  }
+  const counter = document.createElement("div");
+  counter.className = "evidence-navigator-counter";
+  counter.textContent = "Evidence " + (activeEvidenceIndex + 1) + " of " + items.length;
+  list.append(counter);
+  for (let index = 0; index < items.length; index++) {
+    const item = items[index];
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "evidence-navigator-row";
+    if (index === activeEvidenceIndex) row.classList.add("active");
+    row.textContent = (index + 1) + ". " + itemLabel(item);
+    row.addEventListener("click", () => {
+      activeEvidenceIndex = index;
+      selectItem(item);
+      selectedGroupId = group.id;
+      renderEvidenceNavigator();
+    });
+    list.append(row);
+  }
+}
+
+
 
 function createEvidenceGroupFromItem(item) {
   if (!item) return;
@@ -293,6 +363,12 @@ function renderEvidenceGroups() {
       selectEvidenceGroup(group);
       document.getElementById("evidenceGroupsPane").close();
     });
+    const navigate = document.createElement("button");
+    navigate.textContent = "Navigate";
+    navigate.addEventListener("click", () => {
+      document.getElementById("evidenceGroupsPane").close();
+      openEvidenceGroupNavigator(group);
+    });
     const add = document.createElement("button");
     add.textContent = "Add selected";
     add.addEventListener("click", () => {
@@ -311,7 +387,7 @@ function renderEvidenceGroups() {
       renderEvidenceGroups();
       render();
     });
-    row.append(info, select, add, remove);
+    row.append(info, select, navigate, add, remove);
     list.append(row);
   }
 }
@@ -2057,6 +2133,9 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("annotateSelectionButton").addEventListener("click", annotateSelection);
   document.getElementById("annotationPanelButton").addEventListener("click", () => toggleAnnotationPanel(true));
   document.getElementById("createEvidenceGroupSelectionButton").addEventListener("click", createEvidenceGroupFromSelection);
+  document.getElementById("evidenceNavigatorPrevButton").addEventListener("click", () => { navigateEvidenceGroup(-1); renderEvidenceNavigator(); });
+  document.getElementById("evidenceNavigatorNextButton").addEventListener("click", () => { navigateEvidenceGroup(1); renderEvidenceNavigator(); });
+  document.getElementById("evidenceNavigatorCloseButton").addEventListener("click", () => document.getElementById("evidenceNavigator").close());
   document.getElementById("clearEvidenceSelectionButton").addEventListener("click", clearMultiSelection);
   document.getElementById("evidenceGroupsButton").addEventListener("click", openEvidenceGroups);
   document.getElementById("evidenceGroupsCloseButton").addEventListener("click", () => document.getElementById("evidenceGroupsPane").close());
