@@ -211,3 +211,8 @@ The desktop Canvas now supports multi-selection of evidence items using Shift-cl
 ## Phase 39: Coordinated evidence navigation
 
 Evidence groups now have a dedicated navigator. Opening Navigate for a group presents all member evidence in order, tracks the active member, and provides Previous/Next controls. Selecting a member uses the existing synchronized evidence navigation path, so anchored annotations/excerpts jump to their source passage while the group context remains active.
+
+
+## Phase 40: Evidence-group member management
+
+Existing evidence groups can now be edited from the group manager. Multi-selected evidence can be added to or removed from a group without recreating it. Group source metadata is recalculated after membership changes: a group retains a single source only when all of its members resolve to that source; mixed-source groups become source-neutral.
