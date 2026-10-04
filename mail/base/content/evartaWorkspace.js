@@ -386,14 +386,30 @@ async function importPendingAttachments(workspace) {
     Services.prefs.clearUserPref("mail.evaarta.pendingAttachments");
     for (const source of pending) {
       if (!source?.title || !source?.sourceRef) continue;
+      let vault = null;
+      if (source.localPath) {
+        try {
+          vault = await importIntoLocalVault(
+            source.localPath,
+            source.title,
+            source.mimeType || null
+          );
+        } catch (error) {
+          console.error("e-Vaarta: failed to vault email attachment", error);
+        } finally {
+          try { await IOUtils.remove(source.localPath); } catch (error) {}
+        }
+      }
       const document = createDocument({
         ...source,
         metadata: {
           ...(source.metadata || {}),
-          ingestion: source.kind === "email" ? "email-source" : "pending-attachment",
-          offlineMaterialization: source.kind === "email" ? "message-backed" : "deferred"
-        }
+          ingestion: source.kind === "email" ? "email-source" : "email-attachment",
+          offlineMaterialization: vault ? "vaulted" : (source.kind === "email" ? "message-backed" : "deferred")
+        },
+        vault
       });
+      if (vault) attachVaultRecord(document, vault);
       workspace = addDocument(workspace, document);
     }
   } catch (error) { console.error("e-Vaarta: failed to import pending attachments", error); }
