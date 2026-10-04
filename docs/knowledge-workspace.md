@@ -134,3 +134,8 @@ The Document Library now provides built-in collections: All, Recent (last seven 
 ## Phase 24: Smart collections
 
 Collections can now optionally contain a smart rule. Rules can match document type, an exact tag, text in title/description/tags, and a recency window in days. Multiple filled conditions are combined with AND semantics. Smart collections calculate membership dynamically from canonical documents and do not duplicate document records. Clearing the rule returns the collection to manual membership mode. Workspace model version 4 migrates older collections automatically.
+
+
+## Phase 25: Search and collections integration
+
+Unified Search now shows the collections containing each matched document. A search can also be saved as a smart collection from the Search pane. The saved collection uses a text rule over document title, description, and tags, so its membership remains dynamic as document metadata changes.
