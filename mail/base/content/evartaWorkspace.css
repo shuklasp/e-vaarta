@@ -725,3 +725,7 @@ select:focus-visible,
 .vault-manager-status { font-size: .8em; text-transform: uppercase; opacity: .75; }
 .vault-manager-healthy { font-weight: 700; }
 .vault-manager-missing, .vault-manager-modified { font-weight: 700; text-decoration: underline; }
+
+.ingestion-state { margin-left: 5px; font-size: .62em; letter-spacing: .05em; opacity: .8; }
+.ingestion-state-failed { font-weight: 700; text-decoration: underline; }
+.ingestion-state-materializing, .ingestion-state-queued { opacity: .65; }
