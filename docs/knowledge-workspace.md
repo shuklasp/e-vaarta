@@ -174,3 +174,8 @@ The Document Library and workspace canvas now provide bidirectional source navig
 ## Phase 32: Source-aware excerpts
 
 Excerpts created from a source card through its context actions are marked source-aware and automatically linked to the corresponding source card with a `derived-from` relationship when that card exists. Selecting any source-backed excerpt also focuses its originating document in the Library and Reader.
+
+
+## Phase 33: Evidence hierarchy visualization
+
+Source-aware excerpts are now visually identified as evidence nodes. Their automatic `derived-from` relationships use a distinct dashed graph edge and become emphasized when the related node is selected. Direct evidence relationships also receive a subtle card highlight, making source-to-excerpt structure easier to read without changing graph semantics.
