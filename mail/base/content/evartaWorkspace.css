@@ -1,0 +1,187 @@
+:root {
+  color-scheme: light dark;
+  --workspace-gap: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.workspace-shell {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.workspace-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1500px;
+  margin: 0 auto 20px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+h1, h2, h3, p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 6px;
+}
+
+.workspace-header p {
+  margin-bottom: 0;
+  opacity: 0.75;
+}
+
+.workspace-actions {
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  font-weight: 700;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(420px, 2fr);
+  gap: var(--workspace-gap);
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.document-pane,
+.canvas-pane {
+  min-height: 560px;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 12px;
+  padding: 18px;
+  background: color-mix(in srgb, currentColor 4%, transparent);
+}
+
+.document-pane h2 {
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  display: grid;
+  gap: 6px;
+  padding: 20px 4px;
+  opacity: 0.65;
+}
+
+.empty-state span {
+  font-size: 13px;
+}
+
+.source-row {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.pane-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pane-heading h2 {
+  margin-bottom: 3px;
+}
+
+.pane-heading span {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.quiet {
+  font-size: 12px;
+}
+
+.workspace-canvas {
+  position: relative;
+  min-height: 470px;
+  margin-top: 18px;
+  padding: 8px;
+}
+
+.canvas-empty {
+  display: grid;
+  place-items: center;
+  min-height: 420px;
+  text-align: center;
+  max-width: 440px;
+  margin: auto;
+  opacity: 0.72;
+}
+
+.canvas-mark {
+  font-size: 34px;
+  margin-bottom: 12px;
+}
+
+.canvas-empty p {
+  line-height: 1.5;
+}
+
+.workspace-card {
+  display: inline-block;
+  vertical-align: top;
+  width: min(360px, 100%);
+  margin: 0 12px 12px 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.workspace-card h3 {
+  margin-bottom: 8px;
+}
+
+.workspace-card p {
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.card-kind,
+.source-anchor {
+  display: block;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.card-kind {
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.source-anchor {
+  margin-top: 10px;
+}
