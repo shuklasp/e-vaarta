@@ -194,3 +194,10 @@ Annotations now participate in bidirectional source synchronization. PDF selecti
 ## Phase 36: Evidence groups
 
 Evidence groups provide a semantic container for related excerpts and annotations. A group has a stable ID, name, description, optional source document, and item IDs, so it can be shared across clients without depending on canvas layout. The desktop workspace provides an Evidence groups manager, group chips on evidence cards, creation from the selected item, adding the selected item to an existing group, opening a group's evidence, and deleting a group without deleting its underlying evidence.
+
+
+## Phase 37: Evidence-group graph semantics
+
+Evidence groups are now first-class knowledge-graph nodes. Relationships may connect an evidence group to an excerpt, annotation, note, source-backed card, or another evidence group using the existing semantic relationship vocabulary. Group nodes render as distinct cluster cards on the Canvas and expose their member evidence directly.
+
+Selecting a group highlights its member evidence and synchronizes to the group's source document when one is recorded. Group relationships use the same persistent link model as item relationships, allowing later clients and the AI layer to reason over an entire evidence set rather than requiring every member relationship to be duplicated.
