@@ -226,6 +226,7 @@ export function createCollection({ name, description = "" } = {}) {
     name: name.trim(),
     description: String(description || "").trim(),
     documentIds: [],
+    smartRule: null,
     createdAt: now(),
     updatedAt: now(),
   };
@@ -254,6 +255,34 @@ export function removeCollection(workspace, collectionId) {
   workspace.collections = workspace.collections.filter(collection => collection.id !== collectionId);
   workspace.updatedAt = now();
   return workspace;
+}
+
+export function setCollectionRule(workspace, collectionId, rule = null) {
+  const collection = workspace.collections.find(item => item.id === collectionId);
+  if (!collection) return workspace;
+  collection.smartRule = rule;
+  collection.updatedAt = now();
+  workspace.updatedAt = now();
+  return workspace;
+}
+
+export function documentMatchesCollectionRule(document, rule) {
+  if (!rule) return false;
+  if (rule.kind && document.kind !== rule.kind) return false;
+  if (rule.tag && !(document.tags || []).some(tag => tag.toLocaleLowerCase() === String(rule.tag).toLocaleLowerCase())) return false;
+  if (rule.text && ![document.title, document.description, ...(document.tags || [])].join(" ").toLocaleLowerCase().includes(String(rule.text).toLocaleLowerCase())) return false;
+  if (rule.updatedWithinDays != null) {
+    const stamp = new Date(document.updatedAt || document.createdAt || 0).getTime();
+    if (!stamp || Date.now() - stamp > Number(rule.updatedWithinDays) * 86400000) return false;
+  }
+  return true;
+}
+
+export function getCollectionDocuments(workspace, collectionId) {
+  const collection = workspace.collections.find(item => item.id === collectionId);
+  if (!collection) return [];
+  if (!collection.smartRule) return workspace.documents.filter(document => collection.documentIds.includes(document.id));
+  return workspace.documents.filter(document => documentMatchesCollectionRule(document, collection.smartRule));
 }
 
 export function setDocumentCollections(workspace, documentId, collectionIds = []) {
@@ -327,14 +356,12 @@ export function serializeWorkspace(workspace) {
   return JSON.stringify(workspace, null, 2);
 }
 
-  if (workspace?.modelVersion === 3) {
-    workspace.modelVersion = EVAARTA_DOCUMENT_MODEL_VERSION;
-    workspace.collections ||= [];
-  }
 export function deserializeWorkspace(serialized) {
   const workspace = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
-  if (workspace?.modelVersion === 1 || workspace?.modelVersion === 2) {
+  if (workspace?.modelVersion === 1 || workspace?.modelVersion === 2 || workspace?.modelVersion === 3) {
     workspace.modelVersion = EVAARTA_DOCUMENT_MODEL_VERSION;
+    workspace.collections ||= [];
+    for (const collection of workspace.collections) collection.smartRule ??= null;
     for (const item of workspace.items || []) {
       if (item.anchor) {
         item.anchor.selector ??= null;
