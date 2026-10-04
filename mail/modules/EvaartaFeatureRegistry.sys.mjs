@@ -70,6 +70,7 @@ const CAPABILITIES = Object.freeze([
   { id: "local-model-runtime", area: "ai", status: FeatureStatus.CONTRACTED },
   { id: "provider-ai-abstraction", area: "ai", status: FeatureStatus.CONTRACTED },
   { id: "evidence-agent", area: "ai", status: FeatureStatus.CONTRACTED },
+  { id: "evidence-action-graph", area: "semantic", status: FeatureStatus.IMPLEMENTED },
   { id: "semantic-collaboration", area: "collaboration", status: FeatureStatus.CONTRACTED },
   { id: "mobile-pdf-reader", area: "mobile", status: FeatureStatus.CONTRACTED },
   { id: "mobile-evidence-workspace", area: "mobile", status: FeatureStatus.CONTRACTED },
