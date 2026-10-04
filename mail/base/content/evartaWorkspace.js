@@ -240,13 +240,6 @@ function selectGraphEntity(entity) {
 function selectEvidenceGroup(group) {
   if (!group) return;
   selectGraphEntity(group);
-  return;
-  selectedItemId = group.itemIds?.[0] || null;
-  if (group.documentId) {
-    const source = workspace.documents.find(document => document.id === group.documentId);
-    if (source) selectDocument(source);
-  }
-  render();
 }
 
 function createEvidenceGroupFromItem(item) {
