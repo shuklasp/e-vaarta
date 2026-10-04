@@ -330,3 +330,10 @@ Search results now expose extraction provenance. Results identify whether conten
 ## Phase 62: Actionable evidence navigation
 
 Search results are now source-aware navigation targets. PDF results with page metadata open the corresponding page and attempt to restore a text selection using the matching query term. Email-body results open the originating message, while other indexed source results open the associated source document.
+
+
+## Phase 63: Evidence preview interaction
+
+Search results now provide an explicit **Preview** action that opens an inline evidence preview without leaving the current workspace. The preview keeps the existing excerpt and provenance information together and adds the resolved source, collections, evidence-group membership, and graph relationships when those entities are available.
+
+The preview's **Open evidence** action reuses the existing source-aware navigation path, including page-aware PDF navigation and email-source opening. Preview is therefore a non-destructive inspection step: users can evaluate evidence context before committing to navigation away from the current canvas state.
