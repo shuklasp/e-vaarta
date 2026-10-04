@@ -30,6 +30,7 @@ let selectedCustomCollectionId = null;
 let libraryView = "list";
 let metadataEditorDocumentId = null;
 let selectedItemId = null;
+let selectedGroupId = null;
 let linkSourceId = null;
 let selectedLinkId = null;
 let annotationPanelOpen = false;
@@ -104,6 +105,70 @@ function indexWorkspace() {
       });
     }
   }
+  for (const group of (workspace.evidenceGroups || [])) {
+    const card = document.createElement("article");
+    card.className = "workspace-card evidence-group-card";
+    card.dataset.itemId = group.id;
+    card.tabIndex = 0;
+    if (group.id === selectedGroupId) card.classList.add("card-selected");
+    if (group.id === linkSourceId) card.classList.add("card-link-source");
+    card.addEventListener("click", () => selectGraphEntity(group));
+    card.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectGraphEntity(group); }
+    });
+
+    const kind = document.createElement("span");
+    kind.className = "card-kind";
+    kind.textContent = "EVIDENCE GROUP";
+    const title = document.createElement("h3");
+    title.textContent = group.name;
+    const body = document.createElement("p");
+    body.textContent = group.description || (group.itemIds.length + " evidence item" + (group.itemIds.length === 1 ? "" : "s"));
+    card.append(kind, title, body);
+
+    const members = document.createElement("div");
+    members.className = "evidence-group-members";
+    for (const member of getEvidenceGroupItems(workspace, group.id).slice(0, 5)) {
+      const chip = document.createElement("button");
+      chip.className = "evidence-group-member-chip";
+      chip.textContent = itemLabel(member);
+      chip.addEventListener("click", event => { event.stopPropagation(); selectItem(member); });
+      members.append(chip);
+    }
+    if (group.itemIds.length > 5) {
+      const more = document.createElement("span");
+      more.textContent = "+" + (group.itemIds.length - 5) + " more";
+      members.append(more);
+    }
+    card.append(members);
+
+    const controls = document.createElement("div");
+    controls.className = "card-controls";
+    const link = document.createElement("button");
+    link.textContent = linkSourceId === group.id ? "Select target…" : "Link";
+    link.className = linkSourceId === group.id ? "link-active" : "";
+    link.addEventListener("click", event => { event.stopPropagation(); linkItem(group); });
+    controls.append(link);
+    card.append(controls);
+
+    const groupLinks = workspace.links.filter(link => link.fromId === group.id || link.toId === group.id);
+    if (groupLinks.length) {
+      const chips = document.createElement("div");
+      chips.className = "link-chip-row";
+      for (const link of groupLinks) {
+        const otherId = link.fromId === group.id ? link.toId : link.fromId;
+        const chip = document.createElement("button");
+        chip.className = "link-chip";
+        chip.dataset.kind = link.kind;
+        chip.textContent = linkLabel(link.kind) + " • " + graphEntityLabel(findGraphEntity(otherId));
+        chip.addEventListener("click", event => { event.stopPropagation(); selectLink(link); });
+        chips.append(chip);
+      }
+      card.append(chips);
+    }
+    canvas.append(card);
+  }
+
   for (const item of workspace.items) {
     const source = sourceForItem(item);
     contentIndex = upsertIndexEntry(contentIndex, createIndexEntry({
@@ -139,8 +204,43 @@ function evidenceGroupLabel(group) {
   return group?.name || "Evidence group";
 }
 
+function findGraphEntity(entityId) {
+  return findItem(entityId) || (workspace.evidenceGroups || []).find(group => group.id === entityId) || null;
+}
+
+function graphEntityLabel(entity) {
+  return entity?.id?.startsWith("evidence-group-") ? evidenceGroupLabel(entity) : itemLabel(entity);
+}
+
+function graphEntityIsGroup(entity) {
+  return Boolean(entity?.id?.startsWith("evidence-group-"));
+}
+
+function selectGraphEntity(entity) {
+  if (!entity) return;
+  if (graphEntityIsGroup(entity)) {
+    selectedGroupId = entity.id;
+    selectedItemId = null;
+    selectedLinkId = null;
+    const items = getEvidenceGroupItems(workspace, entity.id);
+    const source = entity.documentId
+      ? workspace.documents.find(document => document.id === entity.documentId)
+      : sourceForItem(items[0]);
+    if (source) {
+      selectedDocumentId = source.id;
+      focusLibrarySource(source);
+      selectDocument(source);
+    }
+    render();
+    return;
+  }
+  selectItem(entity);
+}
+
 function selectEvidenceGroup(group) {
   if (!group) return;
+  selectGraphEntity(group);
+  return;
   selectedItemId = group.itemIds?.[0] || null;
   if (group.documentId) {
     const source = workspace.documents.find(document => document.id === group.documentId);
@@ -485,7 +585,7 @@ function linkItem(item) {
   if (!linkSourceId) {
     linkSourceId = item.id;
     document.getElementById("cancelLinkButton").hidden = false;
-    document.getElementById("linkModeStatus").textContent = "Source selected: " + itemLabel(item) + ". Now select a target card.";
+    document.getElementById("linkModeStatus").textContent = "Source selected: " + graphEntityLabel(item) + ". Now select a target card.";
     render();
     return;
   }
@@ -511,6 +611,7 @@ function focusCanvasItem(item) {
 
 function selectItem(item) {
   selectedItemId = item.id;
+  selectedGroupId = null;
   selectedLinkId = null;
   renderRelationshipInspector();
   render();
@@ -532,6 +633,7 @@ function selectItem(item) {
 function selectLink(link) {
   selectedLinkId = link.id;
   selectedItemId = null;
+  selectedGroupId = null;
   renderRelationshipInspector();
   render();
 }
@@ -550,12 +652,12 @@ function renderRelationshipInspector() {
   if (!selectedLinkId) { inspector.hidden = true; inspector.replaceChildren(); return; }
   const link = workspace.links.find(candidate => candidate.id === selectedLinkId);
   if (!link) { inspector.hidden = true; inspector.replaceChildren(); return; }
-  const from = findItem(link.fromId);
-  const to = findItem(link.toId);
+  const from = findGraphEntity(link.fromId);
+  const to = findGraphEntity(link.toId);
   inspector.hidden = false;
   inspector.replaceChildren();
   const summary = document.createElement("span");
-  summary.textContent = itemLabel(from) + " → " + linkLabel(link.kind) + " → " + itemLabel(to);
+  summary.textContent = graphEntityLabel(from) + " → " + linkLabel(link.kind) + " → " + graphEntityLabel(to);
   const remove = document.createElement("button");
   remove.className = "quiet";
   remove.textContent = "Remove relationship";
@@ -657,7 +759,7 @@ function renderGraphEdges() {
     if (selectedLinkId === link.id) line.classList.add("edge-active");
     if (link.kind === "derived-from") {
       group.classList.add("edge-derived");
-      if (selectedItemId === link.fromId || selectedItemId === link.toId) group.classList.add("edge-derived-active");
+      if (selectedItemId === link.fromId || selectedItemId === link.toId || selectedGroupId === link.fromId || selectedGroupId === link.toId) group.classList.add("edge-derived-active");
     }
     const label = document.createElementNS(ns, "text");
     label.setAttribute("x", String((x1 + x2) / 2));
@@ -1097,7 +1199,8 @@ function render() {
     card.tabIndex = 0;
     if (item.id === selectedItemId) card.classList.add("card-selected");
     if (item.id === linkSourceId) card.classList.add("card-link-source");
-    if (selectedItemId && workspace.links.some(link => (link.fromId === item.id || link.toId === item.id))) card.classList.add("card-linked");
+    if ((selectedItemId || selectedGroupId) && workspace.links.some(link => (link.fromId === item.id || link.toId === item.id))) card.classList.add("card-linked");
+    if (selectedGroupId && (workspace.evidenceGroups || []).find(group => group.id === selectedGroupId)?.itemIds.includes(item.id)) card.classList.add("card-group-member");
     if (item.metadata?.sourceAware) card.classList.add("card-source-aware");
     if (selectedItemId) {
       const selectedLinks = workspace.links.filter(link => link.fromId === selectedItemId || link.toId === selectedItemId);
@@ -1308,7 +1411,7 @@ function render() {
         const chip = document.createElement("button");
         chip.className = "link-chip";
         chip.dataset.kind = link.kind;
-        chip.textContent = linkLabel(link.kind) + " • " + itemLabel(findItem(otherId));
+        chip.textContent = linkLabel(link.kind) + " • " + graphEntityLabel(findGraphEntity(otherId));
         chip.addEventListener("click", event => { event.stopPropagation(); selectLink(link); });
         chips.append(chip);
       }
