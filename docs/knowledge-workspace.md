@@ -290,3 +290,8 @@ Document ingestion now records a persistent state machine: queued, materializing
 ## Phase 54: Durable ingestion queue and retry
 
 Ingestion jobs are persisted in `evaarta/ingestion-queue.json`. Pending email attachments are queued before materialization, allowing the queue to survive application restart. Failed or deferred Library sources expose a Retry action; retry processing re-enters the materialization → vault → index state flow and removes a job from the queue only after successful completion.
+
+
+## Phase 55: Background ingestion worker
+
+The ingestion queue is processed asynchronously after workspace initialization rather than synchronously during startup. Queue jobs persist `state`, `attempts`, `lastError`, and timestamps. The workspace exposes an aggregate ingestion status (pending, failed, deferred), while successful jobs are removed from the durable queue. This keeps workspace rendering responsive and makes ingestion progress recoverable across restarts.
