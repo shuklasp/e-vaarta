@@ -89,6 +89,7 @@ EXTRA_JS_MODULES += [
     "EvaartaAccessibilityRuntime.sys.mjs",
     "EvaartaCommunicationBenchmarkComplete.sys.mjs",
     "EvaartaProviderExecutionAdapters.sys.mjs",
+    "EvaartaProviderRuntimeCatalog.sys.mjs",
     "EvaartaMessageToActionPipeline.sys.mjs",
     "EvaartaExportRuntime.sys.mjs",
     "EvaartaReleaseExecutionGate.sys.mjs",
