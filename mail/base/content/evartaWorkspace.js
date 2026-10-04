@@ -14,6 +14,7 @@ const {
 );
 
 const { createIndex, createIndexEntry, upsertIndexEntry, serializeIndex, deserializeIndex, searchIndex, upsertExtractedContent, needsReindex, fingerprintText } = ChromeUtils.importESModule("resource:///modules/EvaartaContentIndex.sys.mjs");
+const { extractOfficeText } = ChromeUtils.importESModule("resource:///modules/EvaartaOfficeExtractor.sys.mjs");
 
 const PREF = "mail.evaarta.workspace.json";
 const INDEX_PREF = "mail.evaarta.contentIndex.json";
@@ -682,12 +683,19 @@ async function openDocument() {
   if (result != Ci.nsIFilePicker.returnOK || !picker.file) return;
   const file = picker.file;
   const lowerName = file.leafName.toLowerCase();
-  const kind = lowerName.endsWith(".pdf") ? "pdf" : "other";
+  const kind = lowerName.endsWith(".pdf")
+    ? "pdf"
+    : lowerName.endsWith(".docx") ? "word"
+    : lowerName.endsWith(".pptx") ? "powerpoint"
+    : "other";
   const source = createDocument({ title: file.leafName, kind, sourceRef: Services.io.newFileURI(file).spec, mimeType: kind == "pdf" ? "application/pdf" : null });
   workspace = addDocument(workspace, source);
   workspace.updatedAt = new Date().toISOString();
   saveWorkspace();
   selectDocument(source);
+  if (source.kind === "word" || source.kind === "powerpoint") {
+    indexOfficeSource(source);
+  }
 }
 
 function selectDocument(source, page = null, anchor = null) {
@@ -750,6 +758,32 @@ function pdfSelector(range, page) {
     };
   } catch (error) {
     return null;
+  }
+}
+
+function indexOfficeSource(source) {
+  if (!source || !["word", "powerpoint"].includes(source.kind)) return;
+  try {
+    const text = extractOfficeText(source.sourceRef, source.kind);
+    if (!text) return;
+    const fingerprint = fingerprintText(text);
+    if (!needsReindex(contentIndex, source.id, "office-text", fingerprint)) return;
+    contentIndex = upsertExtractedContent(contentIndex, {
+      documentId: source.id,
+      sourceRef: source.sourceRef,
+      title: source.title,
+      kind: "office-text",
+      text,
+      metadata: {
+        mimeType: source.mimeType || (source.kind === "word"
+          ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          : "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+      },
+      fingerprint,
+    });
+    saveContentIndex();
+  } catch (error) {
+    console.warn("e-Vaarta: Office text indexing unavailable", error);
   }
 }
 
