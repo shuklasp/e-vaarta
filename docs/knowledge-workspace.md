@@ -71,3 +71,6 @@ The content index now supports extracted-content entries, fingerprints, and `nee
 The message header view now indexes the body text of the currently displayed Thunderbird message after MIME rendering completes. It reads the rendered message DOM, normalizes the visible text, fingerprints it, and writes an `email-body` entry only when the content has changed. Search results for indexed email bodies reopen the original message window using its message URI.
 
 This deliberately indexes the rendered body rather than attempting to duplicate Thunderbird's MIME parsing stack. It therefore respects the message representation Thunderbird has already resolved, while the existing attachment pipeline remains responsible for document attachments.
+
+
+PDF text is now also ingested from the native PDF.js text layer when a PDF source loads. The extracted page text is fingerprinted and stored as a `pdf-text` index entry with page count metadata; unchanged PDFs are skipped on subsequent loads. This is a text-layer path, so scanned/image-only PDFs will require the future OCR adapter.
