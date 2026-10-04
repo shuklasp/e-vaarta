@@ -12,7 +12,7 @@
  * keeping the original source context addressable.
  */
 
-export const EVAARTA_DOCUMENT_MODEL_VERSION = 1;
+export const EVAARTA_DOCUMENT_MODEL_VERSION = 2;
 
 export const DocumentKind = Object.freeze({
   PDF: "pdf",
@@ -73,6 +73,8 @@ export function createSourceAnchor({
   startOffset = null,
   endOffset = null,
   quote = null,
+  selector = null,
+  rects = null,
 }) {
   if (!documentId) {
     throw new TypeError("documentId is required.");
@@ -83,6 +85,8 @@ export function createSourceAnchor({
     startOffset,
     endOffset,
     quote,
+    selector,
+    rects,
   };
 }
 
@@ -235,6 +239,15 @@ export function serializeWorkspace(workspace) {
 
 export function deserializeWorkspace(serialized) {
   const workspace = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
+  if (workspace?.modelVersion === 1) {
+    workspace.modelVersion = EVAARTA_DOCUMENT_MODEL_VERSION;
+    for (const item of workspace.items || []) {
+      if (item.anchor) {
+        item.anchor.selector ??= null;
+        item.anchor.rects ??= null;
+      }
+    }
+  }
   if (workspace?.modelVersion !== EVAARTA_DOCUMENT_MODEL_VERSION) {
     throw new Error(
       `Unsupported e-Vaarta document model version: ${workspace?.modelVersion}`
