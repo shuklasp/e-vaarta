@@ -1972,12 +1972,20 @@ async function openDocument() {
       : kind === "powerpoint"
         ? "application/vnd.openxmlformats-officedocument.presentationml.presentation"
         : null;
+  let vault = null;
+  try {
+    vault = await importIntoLocalVault(file.path, file.leafName, mimeType);
+  } catch (error) {
+    console.error("e-Vaarta: failed to copy source into local vault", error);
+  }
   const source = createDocument({
     title: file.leafName,
     kind,
     sourceRef: Services.io.newFileURI(file).spec,
     mimeType,
+    vault,
   });
+  if (vault) attachVaultRecord(source, vault);
   workspace = addDocument(workspace, source);
   workspace.updatedAt = new Date().toISOString();
   saveWorkspace();
