@@ -81,6 +81,7 @@ async function initializeLocalBackend() {
       return runTesseract(source, command);
     },
   });
+  Services.obs.notifyObservers(null, "evaarta-ocr-ready");
 }
 
 let backend = null;
