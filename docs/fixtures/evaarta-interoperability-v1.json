@@ -1,0 +1,16 @@
+{
+  "protocol": "e-vaarta-runtime",
+  "version": 1,
+  "projectId": "demo-project",
+  "sessionId": "fixture-session",
+  "events": [
+    {"eventId":"evt-001","type":"project.created","projectId":"demo-project"},
+    {"eventId":"evt-002","type":"task.created","projectId":"demo-project","taskId":"task-001"},
+    {"eventId":"evt-003","type":"task.assigned","projectId":"demo-project","taskId":"task-001","assignee":"peer-b"}
+  ],
+  "attachment": {
+    "attachmentId":"att-001",
+    "totalChunks":3,
+    "receivedChunks":[0,2]
+  }
+}
