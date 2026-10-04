@@ -12,7 +12,7 @@
  * keeping the original source context addressable.
  */
 
-export const EVAARTA_DOCUMENT_MODEL_VERSION = 2;
+export const EVAARTA_DOCUMENT_MODEL_VERSION = 3;
 
 export const DocumentKind = Object.freeze({
   PDF: "pdf",
@@ -51,6 +51,8 @@ export function createDocument({
   kind = DocumentKind.OTHER,
   sourceRef = null,
   mimeType = null,
+  tags = [],
+  description = "",
 }) {
   if (!title?.trim()) {
     throw new TypeError("A document title is required.");
@@ -62,6 +64,8 @@ export function createDocument({
     kind,
     sourceRef,
     mimeType,
+    description,
+    tags: [...new Set(tags.filter(Boolean).map(tag => String(tag).trim()).filter(Boolean))],
     createdAt: now(),
     updatedAt: now(),
   };
@@ -162,6 +166,40 @@ export function createLink({fromId, toId, kind = LinkKind.RELATES_TO}) {
   };
 }
 
+export function createLibraryEntry({ documentId, workspaceId = null, text = "", title = null, kind = "document" }) {
+  if (!documentId) throw new TypeError("documentId is required.");
+  return {
+    id: id("index"),
+    documentId,
+    workspaceId,
+    kind,
+    title,
+    text: text?.trim() || "",
+    createdAt: now(),
+    updatedAt: now(),
+  };
+}
+
+export function searchWorkspace(workspace, query) {
+  const needle = String(query || "").trim().toLocaleLowerCase();
+  if (!needle) return [];
+  const results = [];
+  for (const document of workspace.documents || []) {
+    const haystack = [document.title, document.description, ...(document.tags || [])].join(" ").toLocaleLowerCase();
+    if (haystack.includes(needle)) {
+      results.push({ type: "document", id: document.id, title: document.title, text: document.description || "", documentId: document.id });
+    }
+  }
+  for (const item of workspace.items || []) {
+    const source = workspace.documents.find(document => document.id === item.anchor?.documentId);
+    const haystack = [item.title, item.text, item.anchor?.quote, source?.title].join(" ").toLocaleLowerCase();
+    if (haystack.includes(needle)) {
+      results.push({ type: item.kind, id: item.id, title: item.title || item.kind, text: item.text || item.anchor?.quote || "", documentId: item.anchor?.documentId || null });
+    }
+  }
+  return results;
+}
+
 export function createWorkspace({name, description = ""}) {
   if (!name?.trim()) {
     throw new TypeError("A workspace name is required.");
@@ -239,7 +277,7 @@ export function serializeWorkspace(workspace) {
 
 export function deserializeWorkspace(serialized) {
   const workspace = typeof serialized === "string" ? JSON.parse(serialized) : serialized;
-  if (workspace?.modelVersion === 1) {
+  if (workspace?.modelVersion === 1 || workspace?.modelVersion === 2) {
     workspace.modelVersion = EVAARTA_DOCUMENT_MODEL_VERSION;
     for (const item of workspace.items || []) {
       if (item.anchor) {
