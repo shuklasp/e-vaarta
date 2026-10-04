@@ -597,6 +597,31 @@ function render() {
       icon.className = "source-icon";
       icon.setAttribute("aria-hidden", "true");
       icon.textContent = source.kind === "pdf" ? "PDF" : source.kind === "word" ? "DOCX" : source.kind === "powerpoint" ? "PPTX" : source.kind === "email" ? "✉" : source.kind === "image" ? "IMG" : "DOC";
+      if (libraryView === "grid") {
+        const preview = document.createElement("div");
+        preview.className = "source-preview";
+        if (source.kind === "image" && source.sourceRef) {
+          const image = document.createElement("img");
+          image.src = source.sourceRef;
+          image.alt = "";
+          image.loading = "lazy";
+          image.addEventListener("error", () => {
+            preview.replaceChildren(icon.cloneNode(true));
+            preview.classList.add("source-preview-fallback");
+          });
+          preview.append(image);
+        } else if (source.kind === "pdf" && source.sourceRef) {
+          const frame = document.createElement("iframe");
+          frame.src = source.sourceRef + "#page=1&toolbar=0&navpanes=0&scrollbar=0";
+          frame.title = "First page preview";
+          frame.setAttribute("tabindex", "-1");
+          frame.setAttribute("aria-hidden", "true");
+          preview.append(frame);
+        } else {
+          preview.append(icon.cloneNode(true));
+        }
+        row.append(preview);
+      }
       const info = document.createElement("span");
       info.className = "source-info";
       const title = document.createElement("strong");
