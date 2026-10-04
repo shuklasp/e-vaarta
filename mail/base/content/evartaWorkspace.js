@@ -469,6 +469,46 @@ function selectDocument(source, page = null, anchor = null) {
 let activeSourceSelection = null;
 const selectionCleanup = new WeakMap();
 
+function selectionRects(range, win) {
+  try {
+    return [...range.getClientRects()].map(rect => ({
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: rect.height,
+    }));
+  } catch (error) {
+    return [];
+  }
+}
+
+function pdfSelector(range, page) {
+  try {
+    const node = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+      ? range.commonAncestorContainer
+      : range.commonAncestorContainer.parentElement;
+    const pageElement = node?.closest?.(".page[data-page-number]");
+    if (!pageElement) return null;
+    const textLayer = pageElement.querySelector(".textLayer");
+    if (!textLayer) return null;
+    const spans = [...textLayer.querySelectorAll("span")];
+    const selected = spans.filter(span => {
+      try {
+        const r = range.getBoundingClientRect();
+        const s = span.getBoundingClientRect();
+        return r.bottom >= s.top && r.top <= s.bottom && r.right >= s.left && r.left <= s.right;
+      } catch (error) { return false; }
+    });
+    return {
+      type: "pdfjs-text-layer",
+      page,
+      spanIndexes: selected.map(span => spans.indexOf(span)).filter(index => index >= 0),
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
 function inspectPdfSelection(frameWindow) {
   let selection;
   try { selection = frameWindow.getSelection(); } catch (error) { return null; }
@@ -487,6 +527,8 @@ function inspectPdfSelection(frameWindow) {
     page,
     startOffset: range.startOffset,
     endOffset: range.endOffset,
+    selector: pdfSelector(range, page),
+    rects: selectionRects(range, frameWindow),
   };
 }
 
