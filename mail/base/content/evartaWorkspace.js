@@ -1735,7 +1735,12 @@ function render() {
       source.vault.health = await vaultHealth(source);
     }
   }
-  sourceList.replaceChildren();
+  function ingestionStatusLabel(source) {
+  const state = source?.metadata?.ingestionState;
+  return { queued: "QUEUED", materializing: "IMPORTING", vaulted: "LOCAL", indexed: "INDEXED", failed: "FAILED", deferred: "DEFERRED" }[state] || null;
+}
+
+sourceList.replaceChildren();
   sourceList.classList.toggle("library-grid", libraryView === "grid");
   const libraryToolbar = document.createElement("div");
   libraryToolbar.className = "library-toolbar";  for (const collection of workspace.collections) {
@@ -1798,6 +1803,14 @@ function render() {
       row.setAttribute("aria-current", source.id === selectedDocumentId ? "true" : "false");
       const icon = document.createElement("span");
       icon.className = "source-icon";
+      const ingestionStatus = ingestionStatusLabel(source);
+      if (ingestionStatus) {
+        const state = document.createElement("span");
+        state.className = "ingestion-state ingestion-state-" + source.metadata.ingestionState;
+        state.textContent = ingestionStatus;
+        state.title = source.metadata.ingestionError || "Ingestion state: " + ingestionStatus;
+        row.append(state);
+      }
       if (source.vault) {
         const health = document.createElement("span");
         health.className = "vault-health vault-health-" + (source.vault.health || "unknown");
