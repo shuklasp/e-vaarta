@@ -120,6 +120,27 @@ export function evaluateMessagePolicy(message,policy={}) {
   if(policy.externalLinkPolicy==="block"&&/https?:\/\//i.test(message.body))findings.push({rule:"external-link"});
   return {allowed:findings.length===0,findings};
 }
+export function standardProviderCatalog(){return [
+  {provider:"thunderbird-email",channels:["email"],capabilities:["receive","send","attachments","search","offline-queue"]},
+  {provider:"sms",channels:["sms"],capabilities:["receive","send"]},
+  {provider:"rcs",channels:["rcs"],capabilities:["receive","send","attachments","reactions"]},
+  {provider:"matrix",channels:["matrix"],capabilities:["receive","send","rooms","reactions","offline"]},
+  {provider:"telegram",channels:["telegram"],capabilities:["receive","send","attachments"]},
+  {provider:"whatsapp",channels:["whatsapp"],capabilities:["receive","send","attachments"]},
+  {provider:"slack",channels:["slack"],capabilities:["receive","send","channels","threads","reactions"]},
+  {provider:"teams",channels:["teams"],capabilities:["receive","send","channels","threads","meetings"]}
+];}
+export function messageToEML(message,{from="",to=[],subject=""}={}) {
+  const esc=v=>String(v??"").replace(/\r?\n/g," ");
+  return ["MIME-Version: 1.0","Content-Type: text/plain; charset=UTF-8",`From: ${esc(from)}`,`To: ${to.map(esc).join(", ")}`,`Subject: ${esc(subject)}`,"",String(message?.body??"")].join("\r\n");
+}
+export function vCardForPerson(person){
+  const esc=v=>String(v??"").replace(/[\\;\n,]/g,m=>"\\"+m);
+  return ["BEGIN:VCARD","VERSION:4.0",`UID:${esc(person.id)}`,`FN:${esc(person.name)}`,...(person.addresses||[]).map(v=>`EMAIL:${esc(v)}`),...(person.phones||[]).map(v=>`TEL:${esc(v)}`),"END:VCARD"].join("\r\n");
+}
+export function createAuditEvent({actorId,action,targetId,sourceIds=[],result="allowed",timestamp=new Date().toISOString()}={}) {
+  return Object.freeze({schema:"evaarta.communication-audit.v1",actorId,action,targetId,sourceIds:[...new Set(sourceIds)],result,timestamp});
+}
 export function communicationInteroperability(kind,payload) {
   return {schema:"evaarta.communication-interoperability.v1",kind,sourceFormat:kind,payload,preserved:true,warnings:[]};
 }
