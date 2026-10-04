@@ -638,3 +638,8 @@ select:focus-visible,
 .source-context-actions { display: grid; gap: 8px; }
 .source-context-actions button { width: 100%; text-align: left; }
 .source-context-actions .danger { margin-top: 6px; }
+
+.source-focus-pulse { animation: evaarta-source-focus .9s ease-out; }
+.card-focus-pulse { animation: evaarta-card-focus .9s ease-out; }
+@keyframes evaarta-source-focus { 0% { outline: 2px solid Highlight; } 100% { outline: 2px solid transparent; } }
+@keyframes evaarta-card-focus { 0% { box-shadow: 0 0 0 3px Highlight; } 100% { box-shadow: 0 0 0 3px transparent; } }
