@@ -22,6 +22,7 @@ EXTRA_JS_MODULES += [
     "EvaartaDocumentWorkspace.sys.mjs",
     "EvaartaContentIndex.sys.mjs",
     "EvaartaOfficeExtractor.sys.mjs",
+    "EvaartaOcr.sys.mjs",
     "DNS.sys.mjs",
     "DNS.worker.mjs",
     "ExtensionsUI.sys.mjs",
