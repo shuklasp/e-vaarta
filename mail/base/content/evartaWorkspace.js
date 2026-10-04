@@ -791,6 +791,28 @@ function pdfSelector(range, page) {
   }
 }
 
+async function renderPdfPagesForOcr(frameWindow) {
+  const application = frameWindow?.wrappedJSObject?.PDFViewerApplication;
+  const pdfDocument = application?.pdfDocument;
+  if (!pdfDocument) return [];
+  const pages = [];
+  for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber++) {
+    try {
+      const page = await pdfDocument.getPage(pageNumber);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = frameWindow.document.createElement("canvas");
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      await page.render({ canvasContext: context, viewport }).promise;
+      pages.push({ pageNumber, canvas });
+    } catch (error) {
+      console.warn("e-Vaarta: unable to render PDF page for OCR", pageNumber, error);
+    }
+  }
+  return pages;
+}
+
 async function indexOcrSource(source, pageCanvases = null) {
   if (!source || !["pdf", "image"].includes(source.kind) || !isOcrAvailable()) return;
   try {
@@ -802,7 +824,7 @@ async function indexOcrSource(source, pageCanvases = null) {
         const tempPath = PathUtils.join(PathUtils.tempDir, `evaarta-ocr-${crypto.randomUUID()}.png`);
         await IOUtils.write(tempPath, bytes);
         try {
-          const sourceRef = Services.io.newFileURI(new (Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile))(tempPath)).spec;
+          const tempFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);\n          tempFile.initWithPath(tempPath);\n          const sourceRef = Services.io.newFileURI(tempFile).spec;
           const result = await extractOcrText({
             id: source.id + "-page-" + pageNumber,
             sourceRef,
@@ -976,10 +998,9 @@ function attachSourceSelectionBridge(source) {
       const pages = [...viewer.contentWindow.document.querySelectorAll(".page[data-page-number]")];
       const hasNativeText = pages.some(page => (page.innerText || "").trim());
       if (!hasNativeText) {
-        indexOcrSource(source, pages.map(page => ({
-          pageNumber: Number(page.dataset.pageNumber) || 1,
-          canvas: page.querySelector("canvas"),
-        })).filter(item => item.canvas));
+        renderPdfPagesForOcr(viewer.contentWindow)
+          .then(renderedPages => indexOcrSource(source, renderedPages))
+          .catch(error => console.warn("e-Vaarta: PDF OCR rendering failed", error));
       }
     }
   } catch (error) {
