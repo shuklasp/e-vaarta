@@ -74,3 +74,12 @@ This deliberately indexes the rendered body rather than attempting to duplicate 
 
 
 PDF text is now also ingested from the native PDF.js text layer when a PDF source loads. The extracted page text is fingerprinted and stored as a `pdf-text` index entry with page count metadata; unchanged PDFs are skipped on subsequent loads. This is a text-layer path, so scanned/image-only PDFs will require the future OCR adapter.
+
+
+## Phase 12: Office document ingestion
+
+DOCX and PPTX files can now be text-indexed directly from their OOXML ZIP payloads. DOCX extraction reads `word/document.xml`; PPTX extraction reads and orders `ppt/slides/slide*.xml`. The extracted text is normalized, fingerprinted, and stored as an `office-text` content-index entry, so repeated opens do not duplicate unchanged content.
+
+Legacy binary `.doc` and `.ppt` formats are intentionally not parsed by this lightweight extractor. They remain available as document sources and can be handled later through a dedicated conversion/extraction adapter.
+
+The next ingestion extension is OCR for scanned/image-only PDFs and images, using the same `upsertExtractedContent` contract.
