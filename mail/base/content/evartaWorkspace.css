@@ -620,3 +620,7 @@ select:focus-visible,
 .card-collection-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
 .card-collection-chip { border: 1px solid var(--in-content-box-border-color, #bbb); border-radius: 999px; padding: 2px 7px; font-size: .72em; background: transparent; cursor: pointer; }
 .card-collection-chip:hover { text-decoration: underline; }
+
+.source-card-meta { display: flex; flex-wrap: wrap; gap: 7px; margin: 6px 0; font-size: .78em; opacity: .78; }
+.source-card-meta span:first-child { font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.workspace-card[data-source-card="true"] { border-width: 2px; }
