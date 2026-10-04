@@ -487,3 +487,10 @@ select:focus-visible,
 #sourceSelectionStatus:has(+ *) {
   margin-bottom: 2px;
 }
+
+
+/* e-Vaarta source highlights are applied to PDF.js text-layer spans. */
+.evaarta-persistent-highlight {
+  background: rgba(255, 220, 0, 0.45) !important;
+  border-radius: 2px;
+}
