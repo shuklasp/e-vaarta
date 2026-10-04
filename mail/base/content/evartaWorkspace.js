@@ -248,7 +248,7 @@ function captureSelection() {
   let page = null;
   try {
     selectedText = viewer.contentWindow.getSelection()?.toString().trim() || "";
-    const match = viewer.contentWindow.location.hash.match(/(?:^|&)page=(\\d+)/);
+    const match = viewer.contentWindow.location.hash.replace(/^#/, "").match(/(?:^|&)page=(\\d+)/);
     page = match ? Number(match[1]) : null;
   } catch (error) {
     console.warn("e-Vaarta: unable to read source selection", error);
