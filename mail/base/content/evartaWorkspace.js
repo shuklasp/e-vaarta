@@ -24,6 +24,7 @@ const INDEX_PREF = "mail.evaarta.contentIndex.json";
 let workspace;
 let contentIndex;
 let selectedDocumentId = null;
+let libraryFilter = "";
 let selectedItemId = null;
 let linkSourceId = null;
 let selectedLinkId = null;
@@ -448,6 +449,17 @@ function layoutCards() {
   canvas.style.minHeight = Math.max(470, rows * rowHeight + 24) + "px";
 }
 
+function sourceKindLabel(kind) {
+  return ({ pdf: "PDF", word: "Word", powerpoint: "PowerPoint", image: "Image", email: "Email", web: "Web" }[kind] || "Document");
+}
+
+function sourceMatchesFilter(source) {
+  const query = libraryFilter.trim().toLocaleLowerCase();
+  if (!query) return true;
+  return [source.title, source.description, source.kind, ...(source.tags || [])]
+    .join(" ").toLocaleLowerCase().includes(query);
+}
+
 function render() {
   const sourceList = document.getElementById("sourceList");
   const canvas = document.getElementById("workspaceCanvas");
@@ -457,18 +469,54 @@ function render() {
   count.textContent = workspace.items.length + " item" + (workspace.items.length === 1 ? "" : "s") + " • " + workspace.links.length + " relationship" + (workspace.links.length === 1 ? "" : "s");
 
   sourceList.replaceChildren();
+  const libraryToolbar = document.createElement("div");
+  libraryToolbar.className = "library-toolbar";
+  const filter = document.createElement("input");
+  filter.type = "search";
+  filter.placeholder = "Filter documents...";
+  filter.value = libraryFilter;
+  filter.setAttribute("aria-label", "Filter documents");
+  filter.addEventListener("input", () => { libraryFilter = filter.value; render(); document.getElementById("libraryFilter")?.focus(); });
+  filter.id = "libraryFilter";
+  const summary = document.createElement("span");
+  summary.className = "library-summary";
+  const visibleSources = workspace.documents.filter(sourceMatchesFilter)
+    .sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")));
+  summary.textContent = visibleSources.length + " of " + workspace.documents.length;
+  libraryToolbar.append(filter, summary);
+  sourceList.append(libraryToolbar);
   if (!workspace.documents.length) {
     const state = document.createElement("div");
     state.className = "empty-state";
     state.innerHTML = "<strong>No documents yet</strong><span>Documents and email attachments will appear here as sources.</span>";
     sourceList.append(state);
+  } else if (!visibleSources.length) {
+    const state = document.createElement("div");
+    state.className = "empty-state";
+    state.textContent = "No documents match this filter.";
+    sourceList.append(state);
   } else {
-    for (const source of workspace.documents) {
+    for (const source of visibleSources) {
       const row = document.createElement("button");
       row.className = "source-row";
-      row.textContent = source.title;
+      row.draggable = true;
       row.setAttribute("aria-current", source.id === selectedDocumentId ? "true" : "false");
+      const icon = document.createElement("span");
+      icon.className = "source-icon";
+      icon.textContent = sourceKindLabel(source.kind);
+      const info = document.createElement("span");
+      info.className = "source-info";
+      const title = document.createElement("strong");
+      title.textContent = source.title;
+      const meta = document.createElement("small");
+      meta.textContent = [sourceKindLabel(source.kind), ...(source.tags || []).slice(0, 2)].join(" • ");
+      info.append(title, meta);
+      row.append(icon, info);
       row.addEventListener("click", () => selectDocument(source));
+      row.addEventListener("dragstart", event => {
+        event.dataTransfer.setData("application/x-evaarta-document", source.id);
+        event.dataTransfer.effectAllowed = "copy";
+      });
       sourceList.append(row);
     }
   }
