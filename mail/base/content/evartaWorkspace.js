@@ -21,6 +21,41 @@ const { extractOcrText, isOcrAvailable } = ChromeUtils.importESModule("resource:
 
 const PREF = "mail.evaarta.workspace.json";
 const INDEX_PREF = "mail.evaarta.contentIndex.json";
+const EVAARTA_DATA_DIR = PathUtils.join(PathUtils.profileDir, "evaarta");
+const WORKSPACE_FILE = PathUtils.join(EVAARTA_DATA_DIR, "workspace.json");
+const INDEX_FILE = PathUtils.join(EVAARTA_DATA_DIR, "content-index.json");
+let offlineStorageReady = false;
+let workspaceSavePromise = Promise.resolve();
+let indexSavePromise = Promise.resolve();
+
+async function ensureOfflineStorage() {
+  await IOUtils.makeDirectory(EVAARTA_DATA_DIR, { ignoreExisting: true });
+  offlineStorageReady = true;
+}
+
+async function readOfflineJson(path) {
+  try {
+    const value = await IOUtils.readUTF8(path);
+    return JSON.parse(value);
+  } catch (error) {
+    return null;
+  }
+}
+
+async function writeOfflineJson(path, value) {
+  await ensureOfflineStorage();
+  const tempPath = path + ".tmp";
+  await IOUtils.writeUTF8(tempPath, JSON.stringify(value), { tmpPath: path });
+}
+
+function updateOfflineStatus(message, ready = offlineStorageReady) {
+  const status = document.getElementById("offlineStatus");
+  if (!status) return;
+  status.textContent = ready ? message : "Offline storage: preparing…";
+  status.dataset.ready = String(ready);
+}
+
+
 let workspace;
 let contentIndex;
 let selectedDocumentId = null;
@@ -67,28 +102,67 @@ const evaartaOcrObserver = {
   },
 };
 
-function loadWorkspace() {
+async function loadWorkspace() {
   try {
+    const fileValue = await readOfflineJson(WORKSPACE_FILE);
+    if (fileValue) {
+      offlineStorageReady = true;
+      updateOfflineStatus("Offline • local workspace");
+      return importPendingAttachments(deserializeWorkspace(JSON.stringify(fileValue)));
+    }
     const value = Services.prefs.getStringPref(PREF, "");
-    if (value) return importPendingAttachments(deserializeWorkspace(value));
-  } catch (error) { console.error("e-Vaarta: failed to load workspace", error); }
-  return importPendingAttachments(createWorkspace({ name: "My workspace" }));
+    const loaded = value ? importPendingAttachments(deserializeWorkspace(value)) : importPendingAttachments(createWorkspace({ name: "My workspace" }));
+    await writeOfflineJson(WORKSPACE_FILE, JSON.parse(JSON.stringify(loaded)));
+    offlineStorageReady = true;
+    updateOfflineStatus("Offline • local workspace");
+    return loaded;
+  } catch (error) {
+    console.error("e-Vaarta: failed to load offline workspace", error);
+    updateOfflineStatus("Offline • recovery mode", false);
+    try {
+      const value = Services.prefs.getStringPref(PREF, "");
+      return value ? importPendingAttachments(deserializeWorkspace(value)) : importPendingAttachments(createWorkspace({ name: "My workspace" }));
+    } catch (fallbackError) {
+      return importPendingAttachments(createWorkspace({ name: "My workspace" }));
+    }
+  }
 }
 
-function saveWorkspace() { Services.prefs.setStringPref(PREF, JSON.stringify(workspace)); }
+function saveWorkspace() {
+  const snapshot = JSON.parse(JSON.stringify(workspace));
+  workspaceSavePromise = workspaceSavePromise
+    .catch(() => {})
+    .then(() => writeOfflineJson(WORKSPACE_FILE, snapshot))
+    .then(() => {
+      offlineStorageReady = true;
+      updateOfflineStatus("Offline • saved locally");
+    })
+    .catch(error => {
+      console.error("e-Vaarta: failed to save offline workspace", error);
+      updateOfflineStatus("Offline • save error", false);
+    });
+}
 
-function loadContentIndex() {
+async function loadContentIndex() {
   try {
+    const fileValue = await readOfflineJson(INDEX_FILE);
+    if (fileValue) return deserializeIndex(JSON.stringify(fileValue));
     const value = Services.prefs.getStringPref(INDEX_PREF, "");
-    return value ? deserializeIndex(value) : createIndex();
+    const loaded = value ? deserializeIndex(value) : createIndex();
+    await writeOfflineJson(INDEX_FILE, JSON.parse(serializeIndex(loaded)));
+    return loaded;
   } catch (error) {
-    console.error("e-Vaarta: failed to load content index", error);
+    console.error("e-Vaarta: failed to load offline content index", error);
     return createIndex();
   }
 }
 
 function saveContentIndex() {
-  Services.prefs.setStringPref(INDEX_PREF, serializeIndex(contentIndex));
+  const snapshot = serializeIndex(contentIndex);
+  indexSavePromise = indexSavePromise
+    .catch(() => {})
+    .then(() => writeOfflineJson(INDEX_FILE, JSON.parse(snapshot)))
+    .catch(error => console.error("e-Vaarta: failed to save offline content index", error));
 }
 
 function indexWorkspace() {
@@ -2251,10 +2325,12 @@ function clearWorkspace() {
   render();
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   updateOcrStatus();
-  workspace = loadWorkspace();
-  contentIndex = loadContentIndex();
+  updateOfflineStatus("Offline storage: preparing…", false);
+  await ensureOfflineStorage();
+  workspace = await loadWorkspace();
+  contentIndex = await loadContentIndex();
   indexWorkspace();
   saveWorkspace();
   document.getElementById("newNoteButton").addEventListener("click", addNote);
