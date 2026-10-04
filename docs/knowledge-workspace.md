@@ -114,3 +114,8 @@ Search results now include a contextual excerpt generated around the first match
 ## Phase 18: Library-to-canvas workflow
 
 Document Library entries are draggable using the `application/x-evaarta-document` payload. Dropping a source onto the workspace canvas creates a source-backed excerpt card containing the document title and metadata. The operation is persistent, selects the new card, and is idempotent for the same source/card. The canvas provides visual drop feedback during a drag operation.
+
+
+## Phase 20: Visual Document Library
+
+The Document Library now supports list and grid views. Grid cards show a type-specific visual marker, title, type/tags metadata, description when available, and the existing metadata editor. The view is client-side and preserves the existing source selection, drag/drop, filtering, and search behavior.
