@@ -386,6 +386,45 @@ const IngestionState = Object.freeze({
   FAILED: "failed",
   DEFERRED: "deferred",
 });
+const INGESTION_QUEUE_FILE = PathUtils.join(EVAARTA_DATA_DIR, "ingestion-queue.json");
+let ingestionQueue = [];
+let ingestionQueueSavePromise = Promise.resolve();
+
+async function loadIngestionQueue() {
+  try {
+    const value = await readOfflineJson(INGESTION_QUEUE_FILE);
+    ingestionQueue = Array.isArray(value) ? value : [];
+  } catch (error) {
+    ingestionQueue = [];
+  }
+  return ingestionQueue;
+}
+
+async function saveIngestionQueue() {
+  const snapshot = ingestionQueue.slice();
+  ingestionQueueSavePromise = ingestionQueueSavePromise.then(async () => {
+    await ensureOfflineStorage();
+    await writeOfflineJson(INGESTION_QUEUE_FILE, snapshot);
+  });
+  return ingestionQueueSavePromise;
+}
+
+function queueIngestionSource(source) {
+  if (!source?.sourceRef) return;
+  const existing = ingestionQueue.find(item => item.sourceRef === source.sourceRef);
+  if (existing) {
+    Object.assign(existing, source, { queuedAt: existing.queuedAt || new Date().toISOString() });
+  } else {
+    ingestionQueue.push({ ...source, queuedAt: new Date().toISOString() });
+  }
+  return saveIngestionQueue();
+}
+
+function removeIngestionSource(sourceRef) {
+  ingestionQueue = ingestionQueue.filter(item => item.sourceRef !== sourceRef);
+  return saveIngestionQueue();
+}
+
 
 function setIngestionState(document, state, error = null) {
   document.metadata = {
@@ -409,31 +448,18 @@ async function importPendingAttachments(workspace) {
         metadata: {
           ...(source.metadata || {}),
           ingestion: source.kind === "email" ? "email-source" : "email-attachment",
-          offlineMaterialization: source.kind === "email" ? "message-backed" : "deferred"
+          offlineMaterialization: source.kind === "email" ? "message-backed" : "deferred",
+          ingestionSource: { ...source }
         }
       });
-      setIngestionState(document, source.localPath ? IngestionState.QUEUED : (source.kind === "email" ? IngestionState.INDEXED : IngestionState.DEFERRED));
-      if (source.localPath) {
-        setIngestionState(document, IngestionState.MATERIALIZING);
-        try {
-          const vault = await importIntoLocalVault(source.localPath, source.title, source.mimeType || null);
-          document.vault = vault;
-          attachVaultRecord(document, vault);
-          document.metadata.offlineMaterialization = "vaulted";
-          setIngestionState(document, IngestionState.VAULTED);
-          setIngestionState(document, IngestionState.INDEXED);
-        } catch (error) {
-          setIngestionState(document, IngestionState.FAILED, error);
-        } finally {
-          try { await IOUtils.remove(source.localPath); } catch (error) {}
-        }
-      }
+      setIngestionState(document, source.localPath ? IngestionState.QUEUED :
+        (source.kind === "email" ? IngestionState.INDEXED : IngestionState.DEFERRED));
       workspace = addDocument(workspace, document);
+      if (source.localPath) await queueIngestionSource(source);
     }
-  } catch (error) { console.error("e-Vaarta: failed to import pending attachments", error); }
+  } catch (error) { console.error("e-Vaarta: failed to queue pending attachments", error); }
   return workspace;
-}
-function updateOcrStatus() {
+}function updateOcrStatus() {
   const status = document.getElementById("ocrStatus");
   if (!status) return;
   status.textContent = isOcrAvailable() ? "OCR: ready" : "OCR: unavailable";
@@ -445,6 +471,42 @@ const evaartaOcrObserver = {
     updateOcrStatus();
   },
 };
+
+async function retryIngestion(document) {
+  const source = document?.metadata?.ingestionSource;
+  if (!source?.sourceRef) return false;
+  await queueIngestionSource(source);
+  setIngestionState(document, IngestionState.QUEUED);
+  await saveWorkspace();
+  await processIngestionQueue();
+  return true;
+}
+
+async function processIngestionQueue() {
+  if (!ingestionQueue.length) return;
+  const queue = ingestionQueue.slice();
+  for (const source of queue) {
+    if (!source?.localPath) continue;
+    const document = workspace?.documents?.find(item => item.sourceRef === source.sourceRef);
+    if (!document) continue;
+    setIngestionState(document, IngestionState.MATERIALIZING);
+    try {
+      const vault = await importIntoLocalVault(source.localPath, source.title, source.mimeType || null);
+      document.vault = vault;
+      attachVaultRecord(document, vault);
+      document.metadata.offlineMaterialization = "vaulted";
+      setIngestionState(document, IngestionState.VAULTED);
+      setIngestionState(document, IngestionState.INDEXED);
+      await removeIngestionSource(source.sourceRef);
+      await saveWorkspace();
+    } catch (error) {
+      setIngestionState(document, IngestionState.FAILED, error);
+      await saveWorkspace();
+    } finally {
+      try { await IOUtils.remove(source.localPath); } catch (error) {}
+    }
+  }
+}
 
 async function loadWorkspace() {
   try {
