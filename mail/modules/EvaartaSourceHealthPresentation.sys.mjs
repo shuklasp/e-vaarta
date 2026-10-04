@@ -1,0 +1,2 @@
+/* MPL-2.0 */
+export function presentSourceHealth(document,{health="unknown"}={}){return{id:document?.id||null,title:document?.title||"Source",health,offlineAvailable:Boolean(document?.vault?.relativePath),sourceAvailable:Boolean(document?.sourceRef)}}
