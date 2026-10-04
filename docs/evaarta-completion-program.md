@@ -119,3 +119,12 @@ e-Vaarta is ready for a production 1.0 claim only when all P0 capabilities are i
 This pass adds executable release-gate and benchmark contracts for production validation, including PDF fidelity, search, recovery, security, interoperability, accessibility and the complete evidence-to-action chain. Android and iOS receive the shared release-gate and end-to-end benchmark models.
 
 These additions deliberately leave native runtime results unclaimed until they are produced by the actual desktop, Android and iOS build environments.
+
+
+## Tier 1–3 implementation pass
+
+The shared production runtime boundary is now implemented in `EvaartaProductionRuntime.sys.mjs` and mirrored in Android and iOS. It provides one explicit capability taxonomy across PDF, research, search, documents, knowledge, citations, AI, projects, collaboration, mobile, accessibility, security, interoperability and automation, plus the Tier 3 evidence-to-action capabilities.
+
+Runtime operations are fail-closed: an operation must be explicitly bound by the native/platform adapter before it can execute.
+
+See `docs/evaarta-tier1-tier3-implementation.md` for the implementation boundary and remaining native integration gates.
