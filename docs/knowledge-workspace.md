@@ -255,3 +255,8 @@ The offline vault now supports lifecycle operations from the source context menu
 ## Phase 47: Offline Storage manager
 
 e-Vaarta now includes an Offline Storage panel in the Document Library. It performs an integrity scan of vault-backed documents, reports healthy/missing/modified files, and shows the total locally stored size. This provides a single place to inspect the health of the offline document store before recovery or cleanup actions.
+
+
+## Phase 48: Content-addressed vault
+
+New vault imports are now stored under SHA-256 content-addressed blob paths and tracked by a local vault manifest. Manifest entries record blob metadata and reference counts, allowing identical content to share one physical local copy. Removing a document decrements the reference count and removes the blob only when its last reference is released. The Offline Storage manager also reports shared and orphaned manifest entries.
