@@ -233,3 +233,10 @@ Evidence groups can now participate directly in the semantic knowledge graph as 
 e-Vaarta workspace persistence is now file-backed in the Thunderbird profile rather than relying on a large preference string. Workspace state is stored locally under the e-Vaarta profile data directory, with the content index stored separately. Existing preference data is migrated automatically when no local file exists. Writes are serialized to avoid concurrent state loss, and the UI exposes explicit offline/local-storage status. If file storage fails, the application retains a local preference fallback and continues in recovery mode.
 
 This phase is deliberately local-only: no network service is required to create, edit, navigate, search, annotate, group, or relate workspace evidence.
+
+
+## Phase 44: Offline document vault
+
+Documents opened/imported through the desktop workspace are now copied into an e-Vaarta-managed local vault under the Thunderbird profile. Each vault-backed document records a stable vault ID, relative vault path, original filename, size, MIME type, and import timestamp. The document source reference is switched to the local vault copy, allowing the workspace reader to reopen the document without depending on the original file location or network availability.
+
+Existing documents without vault metadata remain compatible and continue using their existing source references.
