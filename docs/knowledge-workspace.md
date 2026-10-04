@@ -124,3 +124,8 @@ The Document Library now supports list and grid views. Grid cards show a type-sp
 ## Phase 21: Visual source previews
 
 Grid cards now render actual image thumbnails when the source is an image and a first-page PDF preview surface for PDF sources. Office, email, and other source kinds retain lightweight type markers so the Library avoids eagerly loading large document payloads. Preview failures fall back to the source type marker.
+
+
+## Phase 22: Library collections and smart filters
+
+The Document Library now provides built-in collections: All, Recent (last seven days), PDF, Office, Email, and Images. Collections combine with the existing free-text filter, so users can narrow a collection by title, description, type, or tags. The active collection is reflected in the Library UI while list/grid and drag/drop behavior remain unchanged.
