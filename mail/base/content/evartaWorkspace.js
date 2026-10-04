@@ -2707,6 +2707,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("cancelLinkButton").addEventListener("click", cancelLinkMode);
   document.getElementById("collectionManagerButton").addEventListener("click", openCollectionManager);
   document.getElementById("vaultManagerButton").addEventListener("click", openVaultManager);
+  document.getElementById("vaultManagerRepairButton").addEventListener("click", async () => {
+    await repairVaultManifest();
+    await openVaultManager();
+  });
+  document.getElementById("vaultManagerCollectButton").addEventListener("click", async () => {
+    const removed = await garbageCollectVault();
+    Services.prompt.alert(window, "e-Vaarta", removed + " orphaned vault file" + (removed === 1 ? "" : "s") + " removed.");
+    await openVaultManager();
+  });
   document.getElementById("vaultManagerCloseButton").addEventListener("click", () => document.getElementById("vaultManager").close());
   document.getElementById("sourceContextCloseButton").addEventListener("click", closeSourceContextMenu);
   document.getElementById("sourceContextOpenButton").addEventListener("click", sourceContextOpen);
