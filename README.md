@@ -25,3 +25,15 @@ e-Vaarta uses the Mozilla platform and inherits substantial mail-client architec
 ### Licensing
 
 This repository contains substantial code originating from the Mozilla/Thunderbird project as well as e-Vaarta-specific work. Consult the repository license files and source-file notices for the applicable terms.
+
+## e-Vaarta capability and production roadmap
+
+The implementation status and acceptance contract are maintained in:
+
+- [Feature Contract](docs/evaarta-feature-contract-v1.md)
+- [LiquidText-class research workspace](docs/phases-1311-1399-liquidtext-parity.md)
+- [Knowledge, research and citation suite](docs/phases-1400-1499-knowledge-research.md)
+- [Execution, collaboration and security](docs/phases-1500-1599-execution-collaboration-security.md)
+- [Production readiness gate](docs/production-readiness.md)
+
+These documents deliberately distinguish semantic implementation from platform integration and runtime validation.
