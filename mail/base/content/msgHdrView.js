@@ -1184,12 +1184,19 @@ var messageProgressListener = {
  * integration deliberately reuses the native attachment pipeline.
  */
 function addCurrentMessageAttachmentsToEvaarta() {
-  if (!currentAttachments.length) {
-    Services.prompt.alert(window, "e-Vaarta", "This message has no attachments.");
+  if (!gMessage || !gMessageURI) {
+    Services.prompt.alert(window, "e-Vaarta", "No message is currently displayed.");
     return;
   }
 
-  const documents = currentAttachments.map(attachment => ({
+  const messageDocument = {
+    title: gMessage.mime2DecodedSubject || gMessage.subject || "Email message",
+    kind: "email",
+    sourceRef: gMessageURI,
+    mimeType: "message/rfc822",
+  };
+
+  const documents = [messageDocument, ...currentAttachments.map(attachment => ({
     title: attachment.name || "Email attachment",
     kind: attachment.contentType == "application/pdf"
       ? "pdf"
@@ -1202,23 +1209,16 @@ function addCurrentMessageAttachmentsToEvaarta() {
             : "other",
     sourceRef: attachment.url || attachment.uri?.spec || null,
     mimeType: attachment.contentType || null,
-  })).filter(document => document.sourceRef);
-
-  if (!documents.length) {
-    Services.prompt.alert(window, "e-Vaarta", "The attachments are not available as readable sources yet.");
-    return;
-  }
+  })).filter(document => document.sourceRef)];
 
   Services.prefs.setStringPref(
     "mail.evaarta.pendingAttachments",
     JSON.stringify(documents)
   );
 
-  if (top.document.getElementById("tabmail")) {
-    top.openTab("contentTab", {
-      url: "chrome://messenger/content/evartaWorkspace.xhtml",
-    }, "tab");
-  }
+  top.openTab("contentTab", {
+    url: "chrome://messenger/content/evartaWorkspace.xhtml",
+  }, "tab");
 }
 
 function updateStarButton() {
