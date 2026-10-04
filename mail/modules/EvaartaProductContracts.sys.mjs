@@ -21,6 +21,7 @@ export const ProductClass = Object.freeze({
   AUTOMATION: "automation",
   INTEROPERABILITY: "interoperability",
   SECURITY: "security",
+  SEMANTIC: "semantic",
 });
 
 export const AcceptanceLevel = Object.freeze({
@@ -94,6 +95,11 @@ const CONTRACTS = Object.freeze([
   ["security", [
     "device-identity", "capabilities", "signed-events", "encrypted-envelopes",
     "secure-storage", "audit-log", "retention", "legal-hold",
+  ]],
+  ["semantic", [
+    "evidence-action-graph", "provenance", "revision-awareness",
+    "typed-edges", "evidence-linked-decisions", "evidence-linked-tasks",
+    "report-traceability", "communication-traceability",
   ]],
 ]);
 
