@@ -75,6 +75,7 @@ EXTRA_JS_MODULES += [
     "EvaartaWorkspaceShell.sys.mjs",
     "EvaartaIdentityGraph.sys.mjs",
     "EvaartaAttachmentIntelligence.sys.mjs",
+    "EvaartaArtifactLifecycle.sys.mjs",
     "EvaartaCommunicationSync.sys.mjs",
     "EvaartaLocalAIRuntime.sys.mjs",
     "EvaartaInteroperabilityPack.sys.mjs",
