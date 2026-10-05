@@ -56,7 +56,7 @@ const CONTRACTS = Object.freeze([
   ]],
   ["communication", [
     "email", "attachments", "conversations", "offline-mail", "calendar",
-    "contacts", "capture", "message-intelligence", "universal-message-model", "identity-resolution", "provider-adapters", "unified-inbox", "threading", "team-chat", "offline-send-queue", "notifications", "meeting-workspace", "availability", "external-channel-adapters", "communication-ai", "reply-grounding", "communication-to-task", "communication-to-decision", "workflow-automation", "encryption-boundary", "dlp", "retention", "legal-hold", "audit", "interoperability", "production-integration", "provider-transport", "calendar-provider-boundary", "credential-isolation", "capability-authorization", "end-to-end-validation", "provider-complete-catalog", "notification-policy", "meeting-workspace-trace", "crypto-key-lifecycle", "migration-engine", "accessibility-runtime", "complete-communication-benchmark",
+    "contacts", "capture", "message-intelligence", "universal-message-model", "identity-resolution", "provider-adapters", "unified-inbox", "threading", "team-chat", "offline-send-queue", "notifications", "meeting-workspace", "availability", "external-channel-adapters", "communication-ai", "reply-grounding", "communication-to-task", "communication-to-decision", "workflow-automation", "encryption-boundary", "dlp", "retention", "legal-hold", "audit", "interoperability", "production-integration", "provider-transport", "calendar-provider-boundary", "credential-isolation", "capability-authorization", "end-to-end-validation", "provider-complete-catalog", "notification-policy", "meeting-workspace-trace", "crypto-key-lifecycle", "migration-engine", "accessibility-runtime", "complete-communication-benchmark", "artifact-sharing", "communication-artifact-references", "secure-artifact-forwarding",
   ]],
   ["search", [
     "lexical", "hybrid", "semantic", "metadata", "ocr", "annotations",
@@ -73,7 +73,7 @@ const CONTRACTS = Object.freeze([
     "acceptance", "monitoring", "stalled-detection", "escalation", "sla", "recurrence", "checklists",
     "time-tracking", "activity-stream", "decisions", "reports", "evidence-linked-tasks", "verification",
     "portfolio", "risk", "predictive-deadlines", "decision-to-task", "evidence-to-task", "evidence-completion",
-    "impact-analysis", "grounded-project-control", "weekly-review", "authorization-boundary",
+    "impact-analysis", "grounded-project-control", "weekly-review", "authorization-boundary", "reusable-artifacts", "task-artifact-forwarding", "artifact-revisions",
   ]],
   ["collaboration", [
     "semantic-events", "three-way-merge", "conflict-review",
@@ -103,7 +103,7 @@ const CONTRACTS = Object.freeze([
   ["semantic", [
     "evidence-action-graph", "provenance", "revision-awareness", "cross-platform-semantic-model",
     "typed-edges", "evidence-linked-decisions", "evidence-linked-tasks",
-    "report-traceability", "communication-traceability", "validation-evidence", "human-benchmark",
+    "report-traceability", "communication-traceability", "validation-evidence", "human-benchmark", "artifact-provenance", "artifact-references",
   ]],
 ]);
 
