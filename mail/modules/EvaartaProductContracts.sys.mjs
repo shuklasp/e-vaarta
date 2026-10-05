@@ -103,7 +103,7 @@ const CONTRACTS = Object.freeze([
   ["semantic", [
     "evidence-action-graph", "provenance", "revision-awareness", "cross-platform-semantic-model",
     "typed-edges", "evidence-linked-decisions", "evidence-linked-tasks",
-    "report-traceability", "communication-traceability", "validation-evidence", "human-benchmark", "artifact-provenance", "artifact-references",
+    "report-traceability", "communication-traceability", "validation-evidence", "human-benchmark", "artifact-provenance", "artifact-references", "content-addressed-vault", "artifact-chunking", "resumable-artifact-sync", "artifact-gc", "artifact-workspace",
   ]],
 ]);
 
