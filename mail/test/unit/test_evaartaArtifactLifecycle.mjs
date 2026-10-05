@@ -1,5 +1,5 @@
 /* MPL-2.0 */
-import {createArtifact,createArtifactStore,linkArtifact,artifactsForTarget,forwardTaskArtifacts,createCommunicationShare,evaluateArtifactShare,createArtifactRevision,buildArtifactProvenance,universalAttachmentContract} from "../EvaartaArtifactLifecycle.sys.mjs";
+import {createArtifact,createArtifactStore,linkArtifact,artifactsForTarget,forwardTaskArtifacts,createCommunicationShare,evaluateArtifactShare,createArtifactRevision,buildArtifactProvenance,universalAttachmentContract} from "../../modules/EvaartaArtifactLifecycle.sys.mjs";
 
 const assert=(x,m)=>{if(!x)throw new Error(m||"assertion failed")};
 
