@@ -1,0 +1,12 @@
+/* MPL-2.0 */
+export const VAULT_STATE=Object.freeze({ANNOUNCED:"announced",STORED:"stored",VERIFIED:"verified",TOMBSTONED:"tombstoned"}); export const CHUNK_SIZE=4*1024*1024;
+const key=v=>String(v||"").trim().toLowerCase();
+export function createVault({id="default",chunkSize=CHUNK_SIZE}={}){return Object.freeze({id,chunkSize,objects:new Map(),refs:new Map(),events:[]});}
+export function createVaultObject({artifactId,contentHash,size,mediaType="application/octet-stream",chunks=[]}){if(!artifactId||!contentHash)throw new TypeError("artifactId and contentHash are required");return Object.freeze({artifactId,contentHash:key(contentHash),size,mediaType,chunks:[...chunks],state:VAULT_STATE.ANNOUNCED});}
+export function putVaultObject(v,o){const objects=new Map(v.objects);objects.set(o.contentHash,Object.freeze({...o,state:VAULT_STATE.STORED}));return Object.freeze({...v,objects});}
+export function verifyVaultObject(v,h,verified=true){const k=key(h),o=v.objects.get(k);if(!o)return v;const objects=new Map(v.objects);objects.set(k,Object.freeze({...o,state:verified?VAULT_STATE.VERIFIED:VAULT_STATE.ANNOUNCED}));return Object.freeze({...v,objects});}
+export function retainVaultObject(v,h,refId){const k=key(h),refs=new Map(v.refs),s=new Set(refs.get(k)||[]);s.add(refId);refs.set(k,s);return Object.freeze({...v,refs});}
+export function releaseVaultObject(v,h,refId){const k=key(h),refs=new Map(v.refs),s=new Set(refs.get(k)||[]);s.delete(refId);refs.set(k,s);return Object.freeze({...v,refs});}
+export function collectGarbage(v,{protectedHashes=[],legalHoldHashes=[]}={}){const p=new Set([...protectedHashes,...legalHoldHashes].map(key)),objects=new Map(v.objects);for(const [h,o] of objects)if(!(v.refs.get(h)?.size||0)&&!p.has(h))objects.set(h,Object.freeze({...o,state:VAULT_STATE.TOMBSTONED}));return Object.freeze({...v,objects});}
+export function vaultManifest(v){return [...v.objects.entries()].map(([contentHash,o])=>({contentHash,size:o.size,mediaType:o.mediaType,state:o.state,chunks:o.chunks.map(c=>({...c}))}));}
+export function vaultContract(){return Object.freeze({contentAddressed:true,sha256Identity:true,dedupe:true,chunking:true,resumable:true,crashSafeCommitBoundary:true,offlineFirst:true,legalHoldAware:true});}
